@@ -26,10 +26,10 @@
 
 如果你无法访问`GitHub`，可访问`Gitee`获取项目源代码，地址如下：
 
-| 项目  | 项目地址                                  |
-|:----|:--------------------------------------|
-| 前端  | https://gitee.com/yybluestorm/ops-web |                                                                                                              |
-| 后端  | https://gitee.com/yybluestorm/ops-api |
+| 项目  | 项目地址                                       |
+|:----|:-------------------------------------------|
+| 前端  | https://gitee.com/yybluestorm/idsphere-web |                                                                                                              |
+| 后端  | https://gitee.com/yybluestorm/idsphere     |
 ## 目录说明
 * config：全局配置。
 * controller：路由规则配置和接口的入参与响应。
