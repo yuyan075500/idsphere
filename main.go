@@ -19,31 +19,31 @@ func main() {
 
 	// 初始化MySQL
 	if err := db.MySQLInit(); err != nil {
-		logger.Error("ERROR：", err.Error())
+		logger.Error("MySQL初始化失败：", err.Error())
 		return
 	}
 
 	// 初始Redis
 	if err := db.RedisInit(); err != nil {
-		logger.Error("ERROR：", err.Error())
+		logger.Error("Redis初始化失败：", err.Error())
 		return
 	}
 
 	// 初始化Minio
 	if err := db.MinioInit(); err != nil {
-		logger.Error("ERROR：", err.Error())
+		logger.Error("Minio初始化失败：", err.Error())
 		return
 	}
 
 	// 初始化CasBin权限
 	if err := middleware.CasBinInit(); err != nil {
-		logger.Error("ERROR：", err.Error())
+		logger.Error("权限初始化失败：", err.Error())
 		return
 	}
 
 	// 初始化定时任务
 	if err := service.TaskInit(); err != nil {
-		logger.Error("ERROR：", err.Error())
+		logger.Error("定时任务初始化失败：", err.Error())
 		return
 	}
 
@@ -84,6 +84,6 @@ func main() {
 
 	// 启动服务
 	if err := r.Run(fmt.Sprintf("%v", config.Conf.Server)); err != nil {
-		logger.Error("ERROR：", err.Error())
+		logger.Error("IDSphere服务启动失败：", err.Error())
 	}
 }
