@@ -19,10 +19,10 @@
 ## 架构设计
 项目采用前后端分离架构设计，项目地址如下：
 
-| 项目  | 项目地址                                   |
-|:----|:---------------------------------------|
-| 前端  | https://github.com/yuyan075500/ops-web |                                                                                                              |
-| 后端  | https://github.com/yuyan075500/ops-api |
+| 项目  | 项目地址                                        |
+|:----|:--------------------------------------------|
+| 前端  | https://github.com/yuyan075500/idsphere-web |                                                                                                              |
+| 后端  | https://github.com/yuyan075500/idsphere     |
 
 如果你无法访问`GitHub`，可访问`Gitee`获取项目源代码，地址如下：
 
