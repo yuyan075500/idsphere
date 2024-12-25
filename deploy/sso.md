@@ -132,23 +132,23 @@ spec:
 # 已测试通过的客户端
 针对 `CAS3.0`、`OAuth2.0`、`SAML2`、`OIDC` 协议，目前经测试对接成功的SSO客户端如下：
 
-| 客户端名称      | 对接协议名称   | 参考文档                                                                                               |
-|:-----------|:---------|----------------------------------------------------------------------------------------------------|
-| Grafana    | OAuth2.0 | [参考文档](https://github.com/yuyan075500/ops-api/blob/main/deploy/sso_example/grafana.md "参考文档")      |
-| Jenkins    | CAS3.0   | [参考文档](https://github.com/yuyan075500/ops-api/blob/main/deploy/sso_example/jenkins.md "参考文档")      |
-| Zabbix     | SAML2    | [参考文档](https://github.com/yuyan075500/ops-api/blob/main/deploy/sso_example/zabbix.md "参考文档")       |
-| 华为云        | SAML2    | [参考文档](https://github.com/yuyan075500/ops-api/blob/main/deploy/sso_example/huawei_cloud.md "参考文档") |
-| JumpServer | OAuth2.0 | [参考文档](https://github.com/yuyan075500/ops-api/blob/main/deploy/sso_example/jumpserver.md "参考文档")   |
-| Jira       | OAuth2.0 | [参考文档](https://github.com/yuyan075500/ops-api/blob/main/deploy/sso_example/jira.md "参考文档")         |
-| Confluence | OAuth2.0 | [参考文档](https://github.com/yuyan075500/ops-api/blob/main/deploy/sso_example/confluence.md "参考文档")   |
-| KubePi     | OIDC     | [参考文档](https://github.com/yuyan075500/ops-api/blob/main/deploy/sso_example/kubepi.md "参考文档")       |
-| 阿里云        | SAML2    | [参考文档](https://github.com/yuyan075500/ops-api/blob/main/deploy/sso_example/aliyun.md "参考文档")       |
-| 腾讯云        | SAML2    | [参考文档](https://github.com/yuyan075500/ops-api/blob/main/deploy/sso_example/tencent.md "参考文档")      |
-| Minio      | OIDC     | [参考文档](https://github.com/yuyan075500/ops-api/blob/main/deploy/sso_example/minio.md "参考文档")        |
-| GitLab     | OIDC     | [参考文档](https://github.com/yuyan075500/ops-api/blob/main/deploy/sso_example/gitlab.md "参考文档")       |
-| 天翼云        |          | 待测试                                                                                                |
-| Rancher    |          | 待测试                                                                                                |
-| 禅道         |          | 待测试                                                                                                |
-| AWS        |          | 待测试                                                                                                |
+| 客户端名称      | 对接协议名称   | 参考文档                                                                                                |
+|:-----------|:---------|-----------------------------------------------------------------------------------------------------|
+| Grafana    | OAuth2.0 | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/grafana.md "参考文档")      |
+| Jenkins    | CAS3.0   | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/jenkins.md "参考文档")      |
+| Zabbix     | SAML2    | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/zabbix.md "参考文档")       |
+| 华为云        | SAML2    | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/huawei_cloud.md "参考文档") |
+| JumpServer | OAuth2.0 | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/jumpserver.md "参考文档")   |
+| Jira       | OAuth2.0 | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/jira.md "参考文档")         |
+| Confluence | OAuth2.0 | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/confluence.md "参考文档")   |
+| KubePi     | OIDC     | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/kubepi.md "参考文档")       |
+| 阿里云        | SAML2    | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/aliyun.md "参考文档")       |
+| 腾讯云        | SAML2    | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/tencent.md "参考文档")      |
+| Minio      | OIDC     | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/minio.md "参考文档")        |
+| GitLab     | OIDC     | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/gitlab.md "参考文档")       |
+| 天翼云        |          | 待测试                                                                                                 |
+| Rancher    |          | 待测试                                                                                                 |
+| 禅道         |          | 待测试                                                                                                 |
+| AWS        |          | 待测试                                                                                                 |
 
 PS：如果你有其它第三方系统需要对接可以提交 `Issue` 请求。

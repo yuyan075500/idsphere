@@ -9,9 +9,9 @@
    `Docker`和`Docker Compose`是部署必须准备的，其它组件在 `docker-compose.yaml` 配置清单中已指定。<br><br>
 2. **克隆项目**：<br><br>
     ```shell
-    git clone https://github.com/yuyan075500/ops-api.git
+    git clone https://github.com/yuyan075500/idsphere.git
     或
-    git clone https://gitee.com/yybluestorm/ops-api
+    git clone https://gitee.com/yybluestorm/idsphere
     ```
 3. **切换工作目录**：<br><br>
     ```shell
@@ -51,9 +51,9 @@
 ### 部署
 1. **克隆项目**：
     ```shell
-    git clone https://github.com/yuyan075500/ops-api.git
+    git clone https://github.com/yuyan075500/idsphere.git
     或
-    git clone https://gitee.com/yybluestorm/ops-api
+    git clone https://gitee.com/yybluestorm/idsphere
     ```
 2. **切换工作目录**：
     ```shell
@@ -147,9 +147,9 @@ swagger: true
 * [ ] ldap：参考 [LDAP配置](#LDAP配置)。
 * [ ] sms：参考 [短信配置](#短信配置)。
 * [ ] mail：邮件相关配置。
-* [ ] dingTalk：钉钉扫码登录相关配置，参考 [钉钉配置](https://github.com/yuyan075500/ops-api/blob/main/deploy/dingtalk.md "钉钉配置")。
-* [ ] wechat：企业微信扫码登录相关配置，参考 [企业微信配置](https://github.com/yuyan075500/ops-api/blob/main/deploy/wechat.md "企业微信配置")。
-* [ ] feishu：飞书扫码登录相关配置，参考 [飞书配置](https://github.com/yuyan075500/ops-api/blob/main/deploy/feishu.md "飞书配置")。
+* [ ] dingTalk：钉钉扫码登录相关配置，参考 [钉钉配置](https://github.com/yuyan075500/idsphere/blob/main/deploy/dingtalk.md "钉钉配置")。
+* [ ] wechat：企业微信扫码登录相关配置，参考 [企业微信配置](https://github.com/yuyan075500/idsphere/blob/main/deploy/wechat.md "企业微信配置")。
+* [ ] feishu：飞书扫码登录相关配置，参考 [飞书配置](https://github.com/yuyan075500/idsphere/blob/main/deploy/feishu.md "飞书配置")。
 * [x] swagger：Swagger 接口配置，生产环境建议关闭。<br><br>
 
 **注意：`externalUrl` 地址一经固定，切忽随意更改，更改后影响 SSO 的相关功能，如果更改后 SSO 客户端无法登录，那么你需要重置进行相关客户端配置。**
