@@ -15,7 +15,7 @@
     ```
 3. **切换工作目录**：<br><br>
     ```shell
-    cd ops-api/deploy/docker-compose
+    cd idsphere/deploy/docker-compose
     ```
 4. **配置环境变量**：<br><br>
    配置文件位于 `.env`，此配置文件中主要指定了 MySQL 数据库、Redis 缓存、MinIO 的初始化配置和项目启动的版本，该步骤可以跳过。<br><br>
@@ -57,7 +57,7 @@
     ```
 2. **切换工作目录**：
     ```shell
-    cd ops-api/deploy/kubernetes
+    cd idsphere/deploy/kubernetes
     ```
 3. **创建证书**：<br><br>
    创建 [项目证书](#项目证书)，证书创建完成后需要使用新的证书替换 `templates/configmap.yaml` 文件中对应的内容。<br><br>
