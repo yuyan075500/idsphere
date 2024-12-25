@@ -248,7 +248,7 @@ func (s *sso) ServiceValidate(param *CASServiceValidate) (data *CASServiceRespon
 	return &CASServiceResponse{
 		Xmlns: "http://www.yale.edu/tp/cas",
 		AuthenticationSuccess: &AuthenticationSuccess{
-			User: user.Name,
+			User: user.Username,
 			Attributes: Attributes{
 				Id:          uint(user.ID),
 				Email:       user.Email,
