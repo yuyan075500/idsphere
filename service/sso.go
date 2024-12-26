@@ -436,6 +436,12 @@ func (s *sso) GetIdPMetadata() (metadata string, err error) {
 		OrganizationURL:         config2.Conf.ExternalUrl,
 	})
 
+	// 添加单点登录接口信息（实际不支持单点登出）
+	idp.AddSingleSignOutService(saml.MetadataBinding{
+		Binding:  saml.HTTPPostBinding,
+		Location: config2.Conf.ExternalUrl + "/api/auth/logout",
+	})
+
 	// 生成metadata元数据
 	metadata, msg := idp.MetaDataResponse()
 	if msg != nil {
@@ -561,11 +567,17 @@ func (s *sso) GetSPAuthorize(samlRequest *SAMLRequest, userId uint) (html, siteN
 	idp.AddAttribute("email", userinfo.Email, saml.AttributeFormatUnspecified)              // 邮箱地址
 	idp.AddAttribute("phone_number", userinfo.PhoneNumber, saml.AttributeFormatUnspecified) // 电话号码
 
-	// 华为云相关配置
+	// 华为云专属配置
 	idp.AddAttribute("IAM_SAML_Attributes_xUserId", userinfo.Username, saml.AttributeFormatUnspecified)
 	idp.AddAttribute("IAM_SAML_Attributes_redirect_url", site.RedirectUrl, saml.AttributeFormatUnspecified) // 登录后跳转的地址
 	idp.AddAttribute("IAM_SAML_Attributes_domain_id", site.DomainId, saml.AttributeFormatUnspecified)
 	idp.AddAttribute("IAM_SAML_Attributes_idp_id", site.IDPName, saml.AttributeFormatUnspecified)
+
+	// 天翼云专属配置
+	idp.AddAttribute("nickName", userinfo.Name, saml.AttributeFormatUnspecified)  // 用户姓名
+	idp.AddAttribute("accountId", site.DomainId, saml.AttributeFormatUnspecified) //  天翼云账号ID
+	idp.AddAttribute("userId", userinfo.CtyunId, saml.AttributeFormatUnspecified) // 天翼云IAM用户ID
+	idp.AddAttribute("idpId", site.DomainId, saml.AttributeFormatUnspecified)     // 天翼云IDP ID
 
 	// 设置认证请求有效期
 	idp.AuthnRequestTTL(time.Minute * 10)

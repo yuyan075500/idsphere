@@ -33,6 +33,7 @@ type UserInfo struct {
 	Name              string     `json:"name"`
 	Username          string     `json:"username"`
 	WwId              string     `json:"ww_id"`
+	CtyunId           string     `json:"ctyun_id"`
 	PhoneNumber       string     `json:"phone_number"`
 	IsActive          bool       `json:"is_active"`
 	Email             string     `json:"email"`
@@ -65,6 +66,7 @@ type PasswordExpiredUserList struct {
 type UserUpdate struct {
 	ID                uint       `json:"id" binding:"required"`
 	WwId              *string    `json:"ww_id"`
+	CtyunId           *string    `json:"ctyun_id"`
 	PhoneNumber       string     `json:"phone_number" validate:"omitempty,phone"`
 	Email             string     `json:"email" validate:"omitempty,email"`
 	IsActive          bool       `json:"is_active" validate:"omitempty"`
