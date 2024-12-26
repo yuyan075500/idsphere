@@ -2,7 +2,7 @@
 Jenkins 支持的单点登录方式：CAS3.0
 ## 配置方法
 1. **站点注册**：登录到 IDSphere 统一认证平台，点击【资产管理】-【站点管理】-【新增】将 Jenkins 站点信息注册到 IDSphere 统一认证平台，配置如下所示：<br><br>
-![img.png](img/jenkins-site.jpg)
+![img.png](img/jenkins-site.jpg)<br><br>
    * 站点名称：指定一个名称，便于用户区分。
    * 登录地址：Jenkins 的登录地址。
    * SSO 认证：启用。

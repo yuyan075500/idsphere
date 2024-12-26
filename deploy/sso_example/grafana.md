@@ -2,7 +2,7 @@
 Grafana 支持的单点登录方式：OAuth2.0
 ## 配置方法
 1. **站点注册**：登录到 IDSphere 统一认证平台，点击【资产管理】-【站点管理】-【新增】将 Grafana 站点信息注册到 IDSphere 统一认证平台，配置如下所示：<br><br>
-![img.png](img/grafana.jpg)
+![img.png](img/grafana.jpg)<br><br>
     * 站点名称：指定一个名称，便于用户区分。
     * 登录地址：Grafana 的登录地址。
     * SSO认证：启用。

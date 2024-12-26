@@ -146,7 +146,7 @@ spec:
 | 腾讯云        | SAML2    | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/tencent.md "参考文档")      |
 | Minio      | OIDC     | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/minio.md "参考文档")        |
 | GitLab     | OIDC     | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/gitlab.md "参考文档")       |
-| 天翼云        |          | 待测试                                                                                                 |
+| 天翼云        | SAML2    | [参考文档](https://github.com/yuyan075500/idsphere/blob/main/deploy/sso_example/ctyun.md "参考文档")        |
 | Rancher    |          | 待测试                                                                                                 |
 | 禅道         |          | 待测试                                                                                                 |
 | AWS        |          | 待测试                                                                                                 |
