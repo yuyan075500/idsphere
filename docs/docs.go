@@ -484,7 +484,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"code\": 0, \"msg\": \"删除成功\", \"data\": nil}",
+                        "description": "{\"code\": 0, \"msg\": \"删除成功\"}",
                         "schema": {
                             "type": "string"
                         }
@@ -917,7 +917,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"code\": 0, \"msg\": \"删除成功\", \"data\": nil}",
+                        "description": "{\"code\": 0, \"msg\": \"删除成功\"}",
                         "schema": {
                             "type": "string"
                         }
@@ -1192,9 +1192,127 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/settings": {
+            "get": {
+                "description": "配置相接口",
+                "tags": [
+                    "配置相接口"
+                ],
+                "summary": "获取配置",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer 用户令牌",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 0, \"data\": []}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "配置相接口",
+                "tags": [
+                    "配置相接口"
+                ],
+                "summary": "修改配置",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer 用户令牌",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "配置信息",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.SettingsUpdate"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 0, \"msg\": \"更新成功\", \"data\": nil}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/settings/logo": {
+            "get": {
+                "description": "配置相接口",
+                "tags": [
+                    "配置相接口"
+                ],
+                "summary": "获取 Logo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer 用户令牌",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 0, \"path\": logoPreview}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/settings/logoUpload": {
+            "post": {
+                "description": "配置相接口",
+                "tags": [
+                    "配置相接口"
+                ],
+                "summary": "上传 Logo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer 用户令牌",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Logo",
+                        "name": "logo",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 0, \"path\": logoPreview}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/site": {
             "put": {
-                "description": "站点关接口",
+                "description": "站点相关接口",
                 "tags": [
                     "站点管理"
                 ],
@@ -1227,7 +1345,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "站点关接口",
+                "description": "站点相关接口",
                 "consumes": [
                     "application/json"
                 ],
@@ -1268,7 +1386,7 @@ const docTemplate = `{
         },
         "/api/v1/site/group": {
             "put": {
-                "description": "站点关接口",
+                "description": "站点相关接口",
                 "tags": [
                     "站点管理"
                 ],
@@ -1301,7 +1419,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "站点关接口",
+                "description": "站点相关接口",
                 "consumes": [
                     "application/json"
                 ],
@@ -1342,7 +1460,7 @@ const docTemplate = `{
         },
         "/api/v1/site/group/{id}": {
             "delete": {
-                "description": "站点关接口",
+                "description": "站点相关接口",
                 "tags": [
                     "站点管理"
                 ],
@@ -1365,7 +1483,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"code\": 0, \"msg\": \"删除成功\", \"data\": nil}",
+                        "description": "{\"code\": 0, \"msg\": \"删除成功\"}",
                         "schema": {
                             "type": "string"
                         }
@@ -1375,7 +1493,7 @@ const docTemplate = `{
         },
         "/api/v1/site/guide": {
             "get": {
-                "description": "站点关接口",
+                "description": "站点相关接口",
                 "tags": [
                     "站点管理"
                 ],
@@ -1401,7 +1519,7 @@ const docTemplate = `{
         },
         "/api/v1/site/logoUpload": {
             "post": {
-                "description": "站点关接口",
+                "description": "站点相关接口",
                 "tags": [
                     "站点管理"
                 ],
@@ -1434,7 +1552,7 @@ const docTemplate = `{
         },
         "/api/v1/site/tags": {
             "put": {
-                "description": "站点关接口",
+                "description": "站点相关接口",
                 "tags": [
                     "站点管理"
                 ],
@@ -1469,7 +1587,7 @@ const docTemplate = `{
         },
         "/api/v1/site/users": {
             "put": {
-                "description": "站点关接口",
+                "description": "站点相关接口",
                 "tags": [
                     "站点管理"
                 ],
@@ -1504,7 +1622,7 @@ const docTemplate = `{
         },
         "/api/v1/site/{id}": {
             "delete": {
-                "description": "站点关接口",
+                "description": "站点相关接口",
                 "tags": [
                     "站点管理"
                 ],
@@ -1527,7 +1645,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"code\": 0, \"msg\": \"删除成功\", \"data\": nil}",
+                        "description": "{\"code\": 0, \"msg\": \"删除成功\"}",
                         "schema": {
                             "type": "string"
                         }
@@ -1537,7 +1655,7 @@ const docTemplate = `{
         },
         "/api/v1/sites": {
             "get": {
-                "description": "站点关接口",
+                "description": "站点相关接口",
                 "tags": [
                     "站点管理"
                 ],
@@ -1935,7 +2053,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"code\": 0, \"msg\": \"删除成功\", \"data\": nil}",
+                        "description": "{\"code\": 0, \"msg\": \"删除成功\"}",
                         "schema": {
                             "type": "string"
                         }
@@ -2088,7 +2206,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"code\": 0, \"data\": nil}",
+                        "description": "{\"code\": 0, \"msg\": \"头像更新成功\"}",
                         "schema": {
                             "type": "string"
                         }
@@ -2262,7 +2380,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"code\": 0, \"msg\": \"更新成功\", \"data\": nil}",
+                        "description": "{\"code\": 0, \"msg\": \"重置成功\", \"data\": nil}",
                         "schema": {
                             "type": "string"
                         }
@@ -2321,7 +2439,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"code\": 0, \"msg\": \"删除成功\", \"data\": nil}",
+                        "description": "{\"code\": 0, \"msg\": \"删除成功\"}",
                         "schema": {
                             "type": "string"
                         }
@@ -2523,6 +2641,9 @@ const docTemplate = `{
                     "description": "指针类型，可以确保使用Updates方法更新时，如果值为空时也能更新成功",
                     "type": "string"
                 },
+                "helper_url": {
+                    "type": "string"
+                },
                 "icon": {
                     "type": "string"
                 },
@@ -2558,6 +2679,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                },
+                "password_expired_at": {
                     "type": "string"
                 },
                 "phone_number": {
@@ -2596,6 +2720,9 @@ const docTemplate = `{
                 "id"
             ],
             "properties": {
+                "ctyun_id": {
+                    "type": "string"
+                },
                 "email": {
                     "type": "string"
                 },
@@ -2604,6 +2731,9 @@ const docTemplate = `{
                 },
                 "is_active": {
                     "type": "boolean"
+                },
+                "password_expired_at": {
+                    "type": "string"
                 },
                 "phone_number": {
                     "type": "string"
@@ -2714,6 +2844,10 @@ const docTemplate = `{
                     "description": "OAuth2.0客户端：客户端ID",
                     "type": "string"
                 },
+                "nonce": {
+                    "description": "OIDC客户端：随机码",
+                    "type": "string"
+                },
                 "redirect_uri": {
                     "description": "OAuth2.0客户端：重定向URL",
                     "type": "string"
@@ -2768,6 +2902,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "code": {
+                    "type": "string"
+                },
+                "nonce": {
+                    "description": "OIDC客户端：随机码",
                     "type": "string"
                 },
                 "redirect_uri": {
@@ -2938,6 +3076,9 @@ const docTemplate = `{
                 "client_id": {
                     "type": "string"
                 },
+                "nonce": {
+                    "type": "string"
+                },
                 "redirect_uri": {
                     "type": "string"
                 },
@@ -3045,6 +3186,38 @@ const docTemplate = `{
                 }
             }
         },
+        "service.SettingsUpdate": {
+            "type": "object",
+            "properties": {
+                "externalUrl": {
+                    "type": "string"
+                },
+                "issuer": {
+                    "type": "string"
+                },
+                "ldapAddress": {
+                    "type": "string"
+                },
+                "ldapBindDn": {
+                    "type": "string"
+                },
+                "ldapBindPassword": {
+                    "type": "string"
+                },
+                "ldapFilterAttribute": {
+                    "type": "string"
+                },
+                "ldapSearchDn": {
+                    "type": "string"
+                },
+                "ldapUserPasswordExpireDate": {
+                    "type": "string"
+                },
+                "mfa": {
+                    "type": "string"
+                }
+            }
+        },
         "service.SiteCreate": {
             "type": "object",
             "required": [
@@ -3071,6 +3244,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "entity_id": {
+                    "type": "string"
+                },
+                "helper_url": {
                     "type": "string"
                 },
                 "icon": {
@@ -3236,6 +3412,10 @@ const docTemplate = `{
                     "description": "Nginx代理客户端：回调地址",
                     "type": "string"
                 },
+                "nonce": {
+                    "description": "OIDC客户端：随机码",
+                    "type": "string"
+                },
                 "password": {
                     "type": "string"
                 },
@@ -3295,6 +3475,10 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "code": {
+                    "type": "string"
+                },
+                "nonce": {
+                    "description": "OIDC客户端：随机码",
                     "type": "string"
                 },
                 "redirect_uri": {

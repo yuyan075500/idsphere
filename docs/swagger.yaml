@@ -78,6 +78,8 @@ definitions:
       entity_id:
         description: 指针类型，可以确保使用Updates方法更新时，如果值为空时也能更新成功
         type: string
+      helper_url:
+        type: string
       icon:
         type: string
       id:
@@ -97,6 +99,8 @@ definitions:
       name:
         type: string
       password:
+        type: string
+      password_expired_at:
         type: string
       phone_number:
         type: string
@@ -126,12 +130,16 @@ definitions:
     type: object
   dao.UserUpdate:
     properties:
+      ctyun_id:
+        type: string
       email:
         type: string
       id:
         type: integer
       is_active:
         type: boolean
+      password_expired_at:
+        type: string
       phone_number:
         type: string
       ww_id:
@@ -206,6 +214,9 @@ definitions:
       client_id:
         description: OAuth2.0客户端：客户端ID
         type: string
+      nonce:
+        description: OIDC客户端：随机码
+        type: string
       redirect_uri:
         description: OAuth2.0客户端：重定向URL
         type: string
@@ -245,6 +256,9 @@ definitions:
         description: OAuth2.0客户端：客户端ID
         type: string
       code:
+        type: string
+      nonce:
+        description: OIDC客户端：随机码
         type: string
       redirect_uri:
         description: OAuth2.0客户端：重定向URL
@@ -364,6 +378,8 @@ definitions:
     properties:
       client_id:
         type: string
+      nonce:
+        type: string
       redirect_uri:
         type: string
       response_type:
@@ -440,6 +456,27 @@ definitions:
     - username
     - validate_type
     type: object
+  service.SettingsUpdate:
+    properties:
+      externalUrl:
+        type: string
+      issuer:
+        type: string
+      ldapAddress:
+        type: string
+      ldapBindDn:
+        type: string
+      ldapBindPassword:
+        type: string
+      ldapFilterAttribute:
+        type: string
+      ldapSearchDn:
+        type: string
+      ldapUserPasswordExpireDate:
+        type: string
+      mfa:
+        type: string
+    type: object
   service.SiteCreate:
     properties:
       address:
@@ -453,6 +490,8 @@ definitions:
       domain_id:
         type: string
       entity_id:
+        type: string
+      helper_url:
         type: string
       icon:
         type: string
@@ -568,6 +607,9 @@ definitions:
       nginx_redirect_uri:
         description: Nginx代理客户端：回调地址
         type: string
+      nonce:
+        description: OIDC客户端：随机码
+        type: string
       password:
         type: string
       redirect_uri:
@@ -611,6 +653,9 @@ definitions:
         description: OAuth2.0客户端：客户端ID
         type: string
       code:
+        type: string
+      nonce:
+        description: OIDC客户端：随机码
         type: string
       redirect_uri:
         description: OAuth2.0客户端：重定向URL
@@ -803,7 +848,7 @@ paths:
         type: integer
       responses:
         "200":
-          description: '{"code": 0, "msg": "删除成功", "data": nil}'
+          description: '{"code": 0, "msg": "删除成功"}'
           schema:
             type: string
       summary: 删除账号
@@ -1184,7 +1229,7 @@ paths:
         type: integer
       responses:
         "200":
-          description: '{"code": 0, "msg": "删除成功", "data": nil}'
+          description: '{"code": 0, "msg": "删除成功"}'
           schema:
             type: string
       summary: 删除组
@@ -1413,11 +1458,89 @@ paths:
       summary: 密码更新
       tags:
       - 个人信息管理
+  /api/v1/settings:
+    get:
+      description: 配置相接口
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{"code": 0, "data": []}'
+          schema:
+            type: string
+      summary: 获取配置
+      tags:
+      - 配置相接口
+    put:
+      description: 配置相接口
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 配置信息
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/service.SettingsUpdate'
+      responses:
+        "200":
+          description: '{"code": 0, "msg": "更新成功", "data": nil}'
+          schema:
+            type: string
+      summary: 修改配置
+      tags:
+      - 配置相接口
+  /api/v1/settings/logo:
+    get:
+      description: 配置相接口
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{"code": 0, "path": logoPreview}'
+          schema:
+            type: string
+      summary: 获取 Logo
+      tags:
+      - 配置相接口
+  /api/v1/settings/logoUpload:
+    post:
+      description: 配置相接口
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Logo
+        in: formData
+        name: logo
+        required: true
+        type: file
+      responses:
+        "200":
+          description: '{"code": 0, "path": logoPreview}'
+          schema:
+            type: string
+      summary: 上传 Logo
+      tags:
+      - 配置相接口
   /api/v1/site:
     post:
       consumes:
       - application/json
-      description: 站点关接口
+      description: 站点相关接口
       parameters:
       - description: Bearer 用户令牌
         in: header
@@ -1441,7 +1564,7 @@ paths:
       tags:
       - 站点管理
     put:
-      description: 站点关接口
+      description: 站点相关接口
       parameters:
       - description: Bearer 用户令牌
         in: header
@@ -1464,7 +1587,7 @@ paths:
       - 站点管理
   /api/v1/site/{id}:
     delete:
-      description: 站点关接口
+      description: 站点相关接口
       parameters:
       - description: Bearer 用户令牌
         in: header
@@ -1478,7 +1601,7 @@ paths:
         type: integer
       responses:
         "200":
-          description: '{"code": 0, "msg": "删除成功", "data": nil}'
+          description: '{"code": 0, "msg": "删除成功"}'
           schema:
             type: string
       summary: 删除站点
@@ -1488,7 +1611,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: 站点关接口
+      description: 站点相关接口
       parameters:
       - description: Bearer 用户令牌
         in: header
@@ -1512,7 +1635,7 @@ paths:
       tags:
       - 站点管理
     put:
-      description: 站点关接口
+      description: 站点相关接口
       parameters:
       - description: Bearer 用户令牌
         in: header
@@ -1535,7 +1658,7 @@ paths:
       - 站点管理
   /api/v1/site/group/{id}:
     delete:
-      description: 站点关接口
+      description: 站点相关接口
       parameters:
       - description: Bearer 用户令牌
         in: header
@@ -1549,7 +1672,7 @@ paths:
         type: integer
       responses:
         "200":
-          description: '{"code": 0, "msg": "删除成功", "data": nil}'
+          description: '{"code": 0, "msg": "删除成功"}'
           schema:
             type: string
       summary: 删除站点分组
@@ -1557,7 +1680,7 @@ paths:
       - 站点管理
   /api/v1/site/guide:
     get:
-      description: 站点关接口
+      description: 站点相关接口
       parameters:
       - description: Bearer 用户令牌
         in: header
@@ -1574,7 +1697,7 @@ paths:
       - 站点管理
   /api/v1/site/logoUpload:
     post:
-      description: 站点关接口
+      description: 站点相关接口
       parameters:
       - description: Bearer 用户令牌
         in: header
@@ -1596,7 +1719,7 @@ paths:
       - 站点管理
   /api/v1/site/tags:
     put:
-      description: 站点关接口
+      description: 站点相关接口
       parameters:
       - description: Bearer 用户令牌
         in: header
@@ -1619,7 +1742,7 @@ paths:
       - 站点管理
   /api/v1/site/users:
     put:
-      description: 站点关接口
+      description: 站点相关接口
       parameters:
       - description: Bearer 用户令牌
         in: header
@@ -1642,7 +1765,7 @@ paths:
       - 站点管理
   /api/v1/sites:
     get:
-      description: 站点关接口
+      description: 站点相关接口
       parameters:
       - description: Bearer 用户令牌
         in: header
@@ -1872,7 +1995,7 @@ paths:
         type: integer
       responses:
         "200":
-          description: '{"code": 0, "msg": "删除成功", "data": nil}'
+          description: '{"code": 0, "msg": "删除成功"}'
           schema:
             type: string
       summary: 删除定时任务
@@ -2006,7 +2129,7 @@ paths:
         type: integer
       responses:
         "200":
-          description: '{"code": 0, "msg": "删除成功", "data": nil}'
+          description: '{"code": 0, "msg": "删除成功"}'
           schema:
             type: string
       summary: 删除用户
@@ -2028,7 +2151,7 @@ paths:
         type: file
       responses:
         "200":
-          description: '{"code": 0, "data": nil}'
+          description: '{"code": 0, "msg": "头像更新成功"}'
           schema:
             type: string
       summary: 头像上传
@@ -2142,7 +2265,7 @@ paths:
           $ref: '#/definitions/dao.UserPasswordUpdate'
       responses:
         "200":
-          description: '{"code": 0, "msg": "更新成功", "data": nil}'
+          description: '{"code": 0, "msg": "重置成功", "data": nil}'
           schema:
             type: string
       summary: 密码更新

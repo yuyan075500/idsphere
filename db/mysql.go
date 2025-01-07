@@ -52,6 +52,7 @@ func MySQLInit() error {
 		&model.ScheduledTask{},
 		&model.ScheduledTaskExecLog{},
 		&model.Account{},
+		&model.Settings{},
 	)
 
 	// 设置数据库连接池

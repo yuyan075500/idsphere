@@ -18,7 +18,7 @@ type site struct{}
 
 // GetSiteList 获取站点列表（表格）
 // @Summary 获取站点列表（表格）
-// @Description 站点关接口
+// @Description 站点相关接口
 // @Tags 站点管理
 // @Param Authorization header string true "Bearer 用户令牌"
 // @Param page query int true "分页"
@@ -52,7 +52,7 @@ func (s *site) GetSiteList(c *gin.Context) {
 
 // GetSiteGuideList 获取站点列表（导航）
 // @Summary 获取站点列表（导航）
-// @Description 站点关接口
+// @Description 站点相关接口
 // @Tags 站点管理
 // @Param Authorization header string true "Bearer 用户令牌"
 // @Success 200 {string} json "{"code": 0, "data": []}"
@@ -80,7 +80,7 @@ func (s *site) GetSiteGuideList(c *gin.Context) {
 
 // AddGroup 创建分组
 // @Summary 创建分组
-// @Description 站点关接口
+// @Description 站点相关接口
 // @Tags 站点管理
 // @Accept application/json
 // @Produce application/json
@@ -107,7 +107,7 @@ func (s *site) AddGroup(c *gin.Context) {
 
 // AddSite 创建站点
 // @Summary 创建站点
-// @Description 站点关接口
+// @Description 站点相关接口
 // @Tags 站点管理
 // @Accept application/json
 // @Produce application/json
@@ -134,7 +134,7 @@ func (s *site) AddSite(c *gin.Context) {
 
 // DeleteGroup 删除站点分组
 // @Summary 删除站点分组
-// @Description 站点关接口
+// @Description 站点相关接口
 // @Tags 站点管理
 // @Param Authorization header string true "Bearer 用户令牌"
 // @Param id path int true "分组ID"
@@ -160,7 +160,7 @@ func (s *site) DeleteGroup(c *gin.Context) {
 
 // DeleteSite 删除站点
 // @Summary 删除站点
-// @Description 站点关接口
+// @Description 站点相关接口
 // @Tags 站点管理
 // @Param Authorization header string true "Bearer 用户令牌"
 // @Param id path int true "分组ID"
@@ -186,7 +186,7 @@ func (s *site) DeleteSite(c *gin.Context) {
 
 // UpdateGroup 更新分组信息
 // @Summary 更新分组信息
-// @Description 站点关接口
+// @Description 站点相关接口
 // @Tags 站点管理
 // @Param Authorization header string true "Bearer 用户令牌"
 // @Param group body service.SiteGroupUpdate true "分组信息"
@@ -213,7 +213,7 @@ func (s *site) UpdateGroup(c *gin.Context) {
 
 // UpdateSite 更新站点信息
 // @Summary 更新站点信息
-// @Description 站点关接口
+// @Description 站点相关接口
 // @Tags 站点管理
 // @Param Authorization header string true "Bearer 用户令牌"
 // @Param group body dao.UpdateSite true "分组信息"
@@ -240,7 +240,7 @@ func (s *site) UpdateSite(c *gin.Context) {
 
 // UploadLogo 站点图片上传
 // @Summary 站点图片上传
-// @Description 站点关接口
+// @Description 站点相关接口
 // @Tags 站点管理
 // @Param Authorization header string true "Bearer 用户令牌"
 // @Param logo formData file true "头像"
@@ -289,7 +289,7 @@ func (s *site) UploadLogo(c *gin.Context) {
 
 // UpdateSiteUser 更新站点用户
 // @Summary 更新站点用户
-// @Description 站点关接口
+// @Description 站点相关接口
 // @Tags 站点管理
 // @Param Authorization header string true "Bearer 用户令牌"
 // @Param users body service.SiteUserUpdate true "用户信息"
@@ -316,7 +316,7 @@ func (s *site) UpdateSiteUser(c *gin.Context) {
 
 // UpdateSiteTag 更新站点标签
 // @Summary 更新站点标签
-// @Description 站点关接口
+// @Description 站点相关接口
 // @Tags 站点管理
 // @Param Authorization header string true "Bearer 用户令牌"
 // @Param users body service.SiteTagUpdate true "用户信息"

@@ -60,19 +60,20 @@ func PermissionCheck() gin.HandlerFunc {
 			"/health",                           // 预留健身检查接口
 			"/api/v1/user/info",                 // 用户登录成功后获取用户信息接口
 			"/api/v1/user/avatarUpload",         // 用户头像上传接口
-			"/swagger/",                         // swagger接口
+			"/swagger/",                         // Swagger 接口
+			"/api/v1/settings/logo",             // 获取 Logo
 			"/api/v1/sms/huawei/callback",       // 华为云短信回调接口
 			"/api/v1/sms/reset_password",        // 获取重置密码验证码
 			"/api/v1/reset_password",            // 密码自助重置接口
-			"/api/v1/user/mfa_qrcode",           // 获取MFA二维码
-			"/api/v1/user/mfa_auth",             // MFA认证
+			"/api/v1/user/mfa_qrcode",           // 获取 MFA 二维码
+			"/api/v1/user/mfa_auth",             // MFA 认证
 			"/api/v1/site/logoUpload",           // 站点图片上传
 			"/api/v1/site/guide",                // 获取导航站点信息
-			"/p3/serviceValidate",               // CAS3.0票据校验
+			"/p3/serviceValidate",               // CAS3.0 票据校验
 			"/api/v1/sso/",                      // 单点登录相关接口
-			"/.well-known/openid-configuration", // OIDC配置
-			"/api/v1/sso/oidc/jwks",             // OIDC JWKS配置
-			"/api/v1/sso/cookie/auth",           // Cookie认证
+			"/.well-known/openid-configuration", // OIDC 配置
+			"/api/v1/sso/oidc/jwks",             // OIDC JWKS 配置
+			"/api/v1/sso/cookie/auth",           // Cookie 认证
 			"/api/v1/audit/sms/receipt",         // 获取短信回执
 			"/api/v1/tag/list",                  // 获取标签列表
 			"/api/v1/account",                   // 账号管理相关接口
