@@ -14,7 +14,7 @@ type settings struct{}
 func (s *settings) GetAllSettings() ([]model.Settings, error) {
 	var settings []model.Settings
 	// 获取所有配置，排队敏感信息
-	if err := global.MySQLClient.Not("`key` IN ?", []string{"ldapBindPassword", "mailPassword"}).Find(&settings).Error; err != nil {
+	if err := global.MySQLClient.Not("`key` IN ?", []string{"ldapBindPassword", "mailPassword", "smsAppSecret", "dingdingAppSecret", "feishuAppSecret", "wechatSecret"}).Find(&settings).Error; err != nil {
 		return nil, err
 	}
 	return settings, nil

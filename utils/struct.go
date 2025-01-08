@@ -2,15 +2,19 @@ package utils
 
 // excludedFields 不记录日志的字段
 var excludedFields = map[string]struct{}{
-	"password":         {},
-	"re_password":      {},
-	"client_id":        {},
-	"client_secret":    {},
-	"certificate":      {},
-	"mfa_code":         {},
-	"DeletedAt":        {},
-	"ldapBindPassword": {},
-	"mailPassword":     {},
+	"password":          {},
+	"re_password":       {},
+	"client_id":         {},
+	"client_secret":     {},
+	"certificate":       {},
+	"mfa_code":          {},
+	"DeletedAt":         {},
+	"ldapBindPassword":  {},
+	"mailPassword":      {},
+	"smsAppSecret":      {},
+	"dingdingAppSecret": {},
+	"feishuAppSecret":   {},
+	"wechatSecret":      {},
 }
 
 // FilterFields 递归过滤敏感字段

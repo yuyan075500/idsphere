@@ -38,6 +38,21 @@ type SettingsUpdate struct {
 	MailPort                   string `json:"mailPort"`
 	MailForm                   string `json:"mailForm"`
 	MailPassword               string `json:"mailPassword"`
+	SmsAppSecret               string `json:"smsAppSecret"`
+	SmsAppKey                  string `json:"smsAppKey"`
+	SmsProvider                string `json:"smsProvider"`
+	SmsSignature               string `json:"smsSignature"`
+	SmsEndpoint                string `json:"smsEndpoint"`
+	SmsSender                  string `json:"smsSender"`
+	SmsCallbackUrl             string `json:"smsCallbackUrl"`
+	SmsTemplateId              string `json:"smsTemplateId"`
+	DingdingAppKey             string `json:"dingdingAppKey"`
+	DingdingAppSecret          string `json:"dingdingAppSecret"`
+	FeishuAppId                string `json:"feishuAppId"`
+	FeishuAppSecret            string `json:"feishuAppSecret"`
+	WechatCorpId               string `json:"wechatCorpId"`
+	WechatAgentId              string `json:"wechatAgentId"`
+	WechatSecret               string `json:"wechatSecret"`
 }
 
 // GetAllSettingsWithParsedValues 获取所有配置
@@ -147,6 +162,21 @@ func (s *settings) UpdateSettingValues(data *SettingsUpdate) (map[string]interfa
 		"mailPort":                   data.MailPort,
 		"mailForm":                   data.MailForm,
 		"mailPassword":               data.MailPassword,
+		"smsAppSecret":               data.SmsAppSecret,
+		"smsAppKey":                  data.SmsAppKey,
+		"smsProvider":                data.SmsProvider,
+		"smsSignature":               data.SmsSignature,
+		"smsEndpoint":                data.SmsEndpoint,
+		"smsSender":                  data.SmsSender,
+		"smsCallbackUrl":             data.SmsCallbackUrl,
+		"smsTemplateId":              data.SmsTemplateId,
+		"dingdingAppKey":             data.DingdingAppKey,
+		"dingdingAppSecret":          data.DingdingAppSecret,
+		"feishuAppId":                data.FeishuAppId,
+		"feishuAppSecret":            data.FeishuAppSecret,
+		"wechatCorpId":               data.WechatCorpId,
+		"wechatAgentId":              data.WechatAgentId,
+		"wechatSecret":               data.WechatSecret,
 	}
 
 	// 开启事务
@@ -160,7 +190,7 @@ func (s *settings) UpdateSettingValues(data *SettingsUpdate) (map[string]interfa
 			strValue := fmt.Sprintf("%v", value)
 
 			// 敏感信息加密
-			if key == "ldapBindPassword" {
+			if key == "ldapBindPassword" || key == "mailPassword" || key == "smsAppSecret" || key == "dingdingAppSecret" || key == "feishuAppSecret" || key == "wechatSecret" {
 				// 对密码进行加密
 				cipherText, err := utils.Encrypt(strValue)
 				if err != nil {
