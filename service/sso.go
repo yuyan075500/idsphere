@@ -182,7 +182,8 @@ func (s *sso) GetCASAuthorize(data *CASAuthorize, userId uint, username string) 
 	st := fmt.Sprintf("ST-%d-%s", time.Now().Unix(), username)
 
 	// 使用HMAC SHA-256对票据进行签名
-	mac := hmac.New(sha256.New, []byte(config.Conf.Secret))
+	secret := config.Conf.Settings["Secret"].(string)
+	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write([]byte(st))
 	signature := hex.EncodeToString(mac.Sum(nil))
 
@@ -231,7 +232,8 @@ func (s *sso) ServiceValidate(param *CASServiceValidate) (data *CASServiceRespon
 	signature := parts[3]
 
 	// 生成新的签名
-	mac := hmac.New(sha256.New, []byte(config.Conf.Secret))
+	secret := config.Conf.Settings["Secret"].(string)
+	mac := hmac.New(sha256.New, []byte(secret))
 	mac.Write([]byte(ticket))
 	newSignature := hex.EncodeToString(mac.Sum(nil))
 

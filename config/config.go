@@ -11,7 +11,6 @@ var Conf *Config
 // Config 配置文件结构体, 与YAML文件对应
 type Config struct {
 	Server   string   `yaml:"server"`
-	Secret   string   `yaml:"secret"`
 	MFA      MFA      `yaml:"mfa"`
 	MySQL    MySQL    `yaml:"mysql"`
 	JWT      JWT      `yaml:"jwt"`
