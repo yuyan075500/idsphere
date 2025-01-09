@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/wonderivan/logger"
 	"mime/multipart"
-	"ops-api/config"
 	"ops-api/dao"
 	"ops-api/db"
 	"ops-api/global"
@@ -55,6 +54,7 @@ type SettingsUpdate struct {
 	WechatCorpId               string `json:"wechatCorpId"`
 	WechatAgentId              string `json:"wechatAgentId"`
 	WechatSecret               string `json:"wechatSecret"`
+	TokenExpiresTime           string `json:"tokenExpiresTime"`
 }
 
 // GetAllSettingsWithParsedValues 获取所有配置
@@ -98,7 +98,7 @@ func (s *settings) UploadLogo(path string, logo *multipart.FileHeader) (url stri
 	}
 
 	// 获取预览URL
-	logoPreview, err := utils.GetPresignedURL(path, time.Duration(config.Conf.JWT.Expires)*time.Hour)
+	logoPreview, err := utils.GetPresignedURL(path, 6*time.Hour)
 
 	return logoPreview.String(), nil
 }
@@ -115,7 +115,7 @@ func (s *settings) GetLogo() (string, error) {
 	}
 
 	// 获取预览URL
-	logoPreview, err := utils.GetPresignedURL(*logo.Value, time.Duration(config.Conf.JWT.Expires)*time.Hour)
+	logoPreview, err := utils.GetPresignedURL(*logo.Value, 6*time.Hour)
 
 	return logoPreview.String(), nil
 }
@@ -179,6 +179,7 @@ func (s *settings) UpdateSettingValues(data *SettingsUpdate) (map[string]interfa
 		"wechatCorpId":               data.WechatCorpId,
 		"wechatAgentId":              data.WechatAgentId,
 		"wechatSecret":               data.WechatSecret,
+		"TokenExpiresTime":           data.TokenExpiresTime,
 	}
 
 	// 开启事务

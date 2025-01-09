@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/wonderivan/logger"
 	"net/http"
-	"ops-api/config"
 	"ops-api/dao"
 	"ops-api/global"
 	"ops-api/model"
@@ -77,7 +76,7 @@ func (u *user) Login(c *gin.Context) {
 		Value:    token,
 		Path:     "/",
 		Domain:   domain,
-		Expires:  time.Now().Add(time.Duration(config.Conf.JWT.Expires) * time.Hour),
+		Expires:  time.Now().Add(6 * time.Hour),
 		Secure:   true,
 		HttpOnly: true, // 防止客户端JavaScript访问
 		SameSite: http.SameSiteNoneMode,
@@ -248,7 +247,7 @@ func (u *user) Logout(c *gin.Context) {
 	parts := strings.SplitN(token, " ", 2)
 
 	// 将Token存入Redis缓存
-	err := global.RedisClient.Set(parts[1], true, time.Duration(config.Conf.JWT.Expires)*time.Hour).Err()
+	err := global.RedisClient.Set(parts[1], true, 24*time.Hour).Err()
 	if err != nil {
 		Response(c, 90500, err.Error())
 		return
@@ -686,7 +685,7 @@ func (u *user) GoogleQrcodeValidate(c *gin.Context) {
 		Value:    token,
 		Path:     "/",
 		Domain:   domain,
-		Expires:  time.Now().Add(time.Duration(config.Conf.JWT.Expires) * time.Hour),
+		Expires:  time.Now().Add(6 * time.Hour),
 		Secure:   true,
 		HttpOnly: true, // 防止客户端JavaScript访问
 		SameSite: http.SameSiteNoneMode,

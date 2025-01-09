@@ -2,7 +2,6 @@ package model
 
 import (
 	"encoding/json"
-	"ops-api/config"
 	"ops-api/utils"
 	"strconv"
 	"time"
@@ -41,7 +40,7 @@ func (s *Settings) ParseValue() error {
 		s.ParsedValue = intValue
 	default:
 		if s.Key == "logo" || s.Key == "icon" {
-			logoPreview, err := utils.GetPresignedURL(*s.Value, time.Duration(config.Conf.JWT.Expires)*time.Hour)
+			logoPreview, err := utils.GetPresignedURL(*s.Value, 6*time.Hour)
 			if err != nil {
 				return err
 			}

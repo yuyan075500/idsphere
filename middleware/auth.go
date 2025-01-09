@@ -118,16 +118,20 @@ func ValidateJWT(token string) (mc *UserClaims, err error) {
 // GenerateJWT 生成Token
 func GenerateJWT(id uint, name, username string) (string, error) {
 
-	externalUrl := config.Conf.Settings["externalUrl"].(string)
+	var (
+		externalUrl      = config.Conf.Settings["externalUrl"].(string)
+		tokenExpiresTime = config.Conf.Settings["tokenExpiresTime"].(int)
+	)
+
 	claims := UserClaims{
 		id,
 		name,
 		username,
 		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(config.Conf.JWT.Expires) * time.Hour)), // 过期时间
-			IssuedAt:  jwt.NewNumericDate(time.Now()),                                                         // 签发时间
-			NotBefore: jwt.NewNumericDate(time.Now()),                                                         // 生效时间
-			Issuer:    externalUrl,                                                                            // 签发者
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(tokenExpiresTime) * time.Hour)), // 过期时间
+			IssuedAt:  jwt.NewNumericDate(time.Now()),                                                  // 签发时间
+			NotBefore: jwt.NewNumericDate(time.Now()),                                                  // 生效时间
+			Issuer:    externalUrl,                                                                     // 签发者
 		},
 	}
 
@@ -156,7 +160,11 @@ func GenerateJWT(id uint, name, username string) (string, error) {
 // GenerateOAuthToken 生成GenerateOAuthToken
 func GenerateOAuthToken(id uint, name, username, clientId, policy, nonce string) (string, error) {
 
-	externalUrl := config.Conf.Settings["externalUrl"].(string)
+	var (
+		externalUrl      = config.Conf.Settings["externalUrl"].(string)
+		tokenExpiresTime = config.Conf.Settings["tokenExpiresTime"].(int)
+	)
+
 	claims := OAuthClaims{
 		id,
 		name,
@@ -165,12 +173,12 @@ func GenerateOAuthToken(id uint, name, username, clientId, policy, nonce string)
 		policy,   // 授权的策略，具体看客户端定义
 		nonce,
 		jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(config.Conf.JWT.Expires) * time.Hour)), // 过期时间
-			IssuedAt:  jwt.NewNumericDate(time.Now()),                                                         // 签发时间
-			NotBefore: jwt.NewNumericDate(time.Now()),                                                         // 生效时间
-			Issuer:    externalUrl,                                                                            // 签发者
-			Audience:  []string{clientId},                                                                     // 令牌的受众，这里返回客户端 ID
-			Subject:   fmt.Sprintf("user-%d", id),                                                             // 令牌主题，通常是用户的唯一标识符
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(tokenExpiresTime) * time.Hour)), // 过期时间
+			IssuedAt:  jwt.NewNumericDate(time.Now()),                                                  // 签发时间
+			NotBefore: jwt.NewNumericDate(time.Now()),                                                  // 生效时间
+			Issuer:    externalUrl,                                                                     // 签发者
+			Audience:  []string{clientId},                                                              // 令牌的受众，这里返回客户端 ID
+			Subject:   fmt.Sprintf("user-%d", id),                                                      // 令牌主题，通常是用户的唯一标识符
 		},
 	}
 

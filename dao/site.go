@@ -3,7 +3,6 @@ package dao
 import (
 	"errors"
 	"gorm.io/gorm"
-	"ops-api/config"
 	"ops-api/global"
 	"ops-api/model"
 	"ops-api/utils"
@@ -137,7 +136,7 @@ func (s *site) GetSiteGuideList(name string) (data *SiteGuideList, err error) {
 
 			// 对站点图标进行特殊处理，返回一个Minio中的临时URL链接
 			if s.Icon != nil {
-				iconUrl, err := utils.GetPresignedURL(*s.Icon, time.Duration(config.Conf.JWT.Expires)*time.Hour)
+				iconUrl, err := utils.GetPresignedURL(*s.Icon, 6*time.Hour)
 				if err != nil {
 					siteItem.Icon = ""
 				} else {
@@ -222,7 +221,7 @@ func (s *site) GetSiteList(groupName, siteName string, page, limit int) (data *S
 
 			// 对站点图标进行特殊处理，返回一个Minio中的临时URL链接
 			if s.Icon != nil {
-				iconUrl, err := utils.GetPresignedURL(*s.Icon, time.Duration(config.Conf.JWT.Expires)*time.Hour)
+				iconUrl, err := utils.GetPresignedURL(*s.Icon, 6*time.Hour)
 				if err != nil {
 					siteItem.Icon = ""
 				} else {

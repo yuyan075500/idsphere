@@ -12,7 +12,6 @@ var Conf *Config
 type Config struct {
 	Server   string `yaml:"server"`
 	MySQL    MySQL  `yaml:"mysql"`
-	JWT      JWT    `yaml:"jwt"`
 	Redis    Redis  `yaml:"redis"`
 	OSS      OSS    `yaml:"oss"`
 	Swagger  bool   `yaml:"swagger"`
@@ -42,10 +41,6 @@ type OSS struct {
 	SecretKey  string `yaml:"secretKey"`
 	BucketName string `yaml:"bucketName"`
 	SSL        bool   `yaml:"ssl"`
-}
-
-type JWT struct {
-	Expires int `yaml:"expires"`
 }
 
 // InitConfig 配置文件初始化

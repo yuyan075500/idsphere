@@ -2,7 +2,6 @@ package dao
 
 import (
 	"gorm.io/gorm"
-	"ops-api/config"
 	"ops-api/global"
 	"ops-api/model"
 	"ops-api/utils"
@@ -166,7 +165,7 @@ func (u *user) GetUserInfo(userid uint) (userinfo *UserInfoWithMenu, err error) 
 	}
 
 	// 从OSS中获取头像临时访问URL，临时URL的过期时间与用户Token过期时间保持一致
-	avatarURL, err := utils.GetPresignedURL(userInfo.Avatar, time.Duration(config.Conf.JWT.Expires)*time.Hour)
+	avatarURL, err := utils.GetPresignedURL(userInfo.Avatar, 6*time.Hour)
 	if err != nil {
 		userInfo.Avatar = ""
 	} else {

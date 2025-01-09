@@ -151,3 +151,4 @@ INSERT INTO `settings` VALUES (34, 'feishuAppSecret', null, 'string');
 INSERT INTO `settings` VALUES (35, 'wechatCorpId', null, 'string');
 INSERT INTO `settings` VALUES (36, 'wechatAgentId', null, 'int');
 INSERT INTO `settings` VALUES (37, 'wechatSecret', null, 'string');
+INSERT INTO `settings` VALUES (38, 'tokenExpiresTime', 12, 'int');
