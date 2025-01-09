@@ -14,8 +14,10 @@ type router struct{}
 
 func (r *router) InitRouter(router *gin.Engine) {
 
+	swagger := config.Conf.Settings["swagger"].(bool)
+
 	// Swagger接口文档
-	if config.Conf.Swagger {
+	if swagger {
 		docs.SwaggerInfo.BasePath = ""
 		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	}

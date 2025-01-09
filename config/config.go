@@ -14,7 +14,6 @@ type Config struct {
 	MySQL    MySQL  `yaml:"mysql"`
 	Redis    Redis  `yaml:"redis"`
 	OSS      OSS    `yaml:"oss"`
-	Swagger  bool   `yaml:"swagger"`
 	Settings map[string]interface{}
 }
 

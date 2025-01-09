@@ -55,6 +55,7 @@ type SettingsUpdate struct {
 	WechatAgentId              string `json:"wechatAgentId"`
 	WechatSecret               string `json:"wechatSecret"`
 	TokenExpiresTime           string `json:"tokenExpiresTime"`
+	Swagger                    string `json:"swagger"`
 }
 
 // GetAllSettingsWithParsedValues 获取所有配置
@@ -180,6 +181,7 @@ func (s *settings) UpdateSettingValues(data *SettingsUpdate) (map[string]interfa
 		"wechatAgentId":              data.WechatAgentId,
 		"wechatSecret":               data.WechatSecret,
 		"TokenExpiresTime":           data.TokenExpiresTime,
+		"Swagger":                    data.Swagger,
 	}
 
 	// 开启事务
