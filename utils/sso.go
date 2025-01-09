@@ -11,7 +11,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
-	"os"
+	"ops-api/config"
 )
 
 // EntityDescriptor SP Metadata中的数据绑定结构体
@@ -110,18 +110,14 @@ func GenerateSAMLResponsePostForm() *template.Template {
 func LoadIdpCertificate() (*x509.Certificate, error) {
 
 	// 读取证书
-	certData, err := os.ReadFile("/data/certs/certificate.crt")
-	if err != nil {
-		certData, err = os.ReadFile("config/certs/certificate.crt")
-		if err != nil {
-			return nil, err
-		}
-	}
+	certificate := config.Conf.Settings["certificate"].(string)
+
+	certificateData := []byte(certificate)
 
 	// 解码PEM格式证书
-	block, _ := pem.Decode(certData)
-	if block == nil {
-		return nil, errors.New("证书解码失败")
+	block, _ := pem.Decode(certificateData)
+	if block == nil || block.Type != "CERTIFICATE" {
+		return nil, errors.New("invalid certificate")
 	}
 
 	// 解析证书

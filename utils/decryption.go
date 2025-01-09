@@ -6,6 +6,8 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"errors"
+	"ops-api/config"
 )
 
 // Decrypt 字符串解密
@@ -13,14 +15,16 @@ func Decrypt(cipherText string) (string, error) {
 	// 对Base64编码的字符串解码
 	str, err := base64.RawURLEncoding.DecodeString(cipherText)
 
-	file, err := ReadFile("/data/certs/private.key")
-	if err != nil {
-		file, err = ReadFile("config/certs/private.key")
-		if err != nil {
-			return "", err
-		}
+	// 读取私钥
+	privateKeySrt := config.Conf.Settings["privateKey"].(string)
+
+	// 私钥字符串转换为字节切片
+	privateKeyData := []byte(privateKeySrt)
+
+	block, _ := pem.Decode(privateKeyData)
+	if block == nil || block.Type != "PRIVATE KEY" {
+		return "", errors.New("invalid private key")
 	}
-	block, _ := pem.Decode(file)
 
 	// 解析私钥
 	privateKeyInterface, err := x509.ParsePKCS8PrivateKey(block.Bytes)

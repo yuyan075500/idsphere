@@ -13,7 +13,6 @@ import (
 	"ops-api/config"
 	"ops-api/global"
 	"ops-api/utils"
-	"os"
 	"strings"
 	"time"
 )
@@ -121,6 +120,7 @@ func GenerateJWT(id uint, name, username string) (string, error) {
 	var (
 		externalUrl      = config.Conf.Settings["externalUrl"].(string)
 		tokenExpiresTime = config.Conf.Settings["tokenExpiresTime"].(int)
+		privateKeySrt    = config.Conf.Settings["privateKey"].(string)
 	)
 
 	claims := UserClaims{
@@ -138,14 +138,8 @@ func GenerateJWT(id uint, name, username string) (string, error) {
 	// 使用RS256签名算法生成Token
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
-	// 读取私钥
-	privateKeyData, err := os.ReadFile("/data/certs/private.key")
-	if err != nil {
-		privateKeyData, err = os.ReadFile("config/certs/private.key")
-		if err != nil {
-			return "", err
-		}
-	}
+	// 私钥字符串转换为字节切片
+	privateKeyData := []byte(privateKeySrt)
 
 	// 解析私钥
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyData)
@@ -163,6 +157,7 @@ func GenerateOAuthToken(id uint, name, username, clientId, policy, nonce string)
 	var (
 		externalUrl      = config.Conf.Settings["externalUrl"].(string)
 		tokenExpiresTime = config.Conf.Settings["tokenExpiresTime"].(int)
+		privateKeySrt    = config.Conf.Settings["privateKey"].(string)
 	)
 
 	claims := OAuthClaims{
@@ -185,14 +180,8 @@ func GenerateOAuthToken(id uint, name, username, clientId, policy, nonce string)
 	// 使用RS256签名算法生成Token
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 
-	// 读取私钥
-	privateKeyData, err := os.ReadFile("/data/certs/private.key")
-	if err != nil {
-		privateKeyData, err = os.ReadFile("config/certs/private.key")
-		if err != nil {
-			return "", err
-		}
-	}
+	// 私钥字符串转换为字节切片
+	privateKeyData := []byte(privateKeySrt)
 
 	// 解析私钥
 	privateKey, err := jwt.ParseRSAPrivateKeyFromPEM(privateKeyData)
@@ -225,16 +214,13 @@ func GenerateOAuthToken(id uint, name, username, clientId, policy, nonce string)
 
 // ParseToken 解析Token
 func ParseToken(tokenString string) (*UserClaims, error) {
-	var mc = new(UserClaims)
+	var (
+		mc           = new(UserClaims)
+		publicKeySrt = config.Conf.Settings["publicKey"].(string)
+	)
 
-	// 读取公钥
-	publicKeyData, err := os.ReadFile("/data/certs/public.key")
-	if err != nil {
-		publicKeyData, err = os.ReadFile("config/certs/public.key")
-		if err != nil {
-			return nil, err
-		}
-	}
+	// 公钥字符串转换为字节切片
+	publicKeyData := []byte(publicKeySrt)
 
 	// 解析公钥
 	publicKey, err := jwt.ParseRSAPublicKeyFromPEM(publicKeyData)

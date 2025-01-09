@@ -297,7 +297,6 @@ func (s *sso) GetJwksConfig(c *gin.Context) {
 // @Router /api/v1/sso/saml/metadata [get]
 func (s *sso) GetIdPMetadata(c *gin.Context) {
 
-	// 获取票据
 	response, err := service.SSO.GetIdPMetadata()
 	if err != nil {
 		Response(c, 90500, err.Error())

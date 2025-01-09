@@ -6,20 +6,23 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"encoding/pem"
+	"errors"
+	"ops-api/config"
 )
 
 // Encrypt 字符串加密
 func Encrypt(str string) (string, error) {
-	file, err := ReadFile("/data/certs/public.key")
-	if err != nil {
-		file, err = ReadFile("config/certs/public.key")
-		if err != nil {
-			return "", err
-		}
-	}
+	// 读取公钥文件
+	publicKeySrt := config.Conf.Settings["publicKey"].(string)
+
+	// 公钥字符串转换为字节切片
+	publicKeyData := []byte(publicKeySrt)
 
 	// 解析公钥数据
-	block, _ := pem.Decode(file)
+	block, _ := pem.Decode(publicKeyData)
+	if block == nil || block.Type != "PUBLIC KEY" {
+		return "", errors.New("invalid public key")
+	}
 
 	// 解析PEM格式的公钥
 	publicKey, err := x509.ParsePKIXPublicKey(block.Bytes)

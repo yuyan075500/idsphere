@@ -518,22 +518,10 @@ func (s *sso) GetSPAuthorize(samlRequest *SAMLRequest, userId uint) (html, siteN
 	}
 
 	// 获取IDP私钥
-	IDPKey, err := utils.ReadFileString("/data/certs/private.key")
-	if err != nil {
-		IDPKey, err = utils.ReadFileString("config/certs/private.key")
-		if err != nil {
-			return "", site.Name, err
-		}
-	}
+	privateKeySrt := config.Conf.Settings["privateKey"].(string)
 
 	// 获取IDP证书
-	IDPCert, err := utils.ReadFileString("/data/certs/certificate.crt")
-	if err != nil {
-		IDPCert, err = utils.ReadFileString("config/certs/certificate.crt")
-		if err != nil {
-			return "", site.Name, err
-		}
-	}
+	certificate := config.Conf.Settings["certificate"].(string)
 
 	// 获取SP证书（给证书加上头尾）
 	SPCert := site.Certificate
@@ -552,8 +540,8 @@ func (s *sso) GetSPAuthorize(samlRequest *SAMLRequest, userId uint) (html, siteN
 		IsIdpInitiated:       false,                                   // 是否为IDP发起认证
 		Issuer:               externalUrl,                             // IDP实体
 		Audiences:            []string{requestData.Issuer.Value},      // SP实体
-		IDPKey:               IDPKey,                                  // IDP私钥
-		IDPCert:              IDPCert,                                 // IDP证书
+		IDPKey:               privateKeySrt,                           // IDP私钥
+		IDPCert:              certificate,                             // IDP证书
 		SPCert:               SPCert,                                  // SP证书
 		NameIdentifier:       userinfo.Username,                       // 用户的唯一标识符
 		NameIdentifierFormat: saml.NameIdFormatUnspecified,            // 用户唯一标识符格式
