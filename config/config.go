@@ -15,7 +15,6 @@ type Config struct {
 	JWT      JWT      `yaml:"jwt"`
 	Redis    Redis    `yaml:"redis"`
 	OSS      OSS      `yaml:"oss"`
-	Mail     Mail     `yaml:"mail"`
 	DingTalk DingTalk `yaml:"dingTalk"`
 	Wechat   Wechat   `yaml:"wechat"`
 	Feishu   Feishu   `yaml:"feishu"`
@@ -32,13 +31,6 @@ type MySQL struct {
 	MaxIdleConns int    `yaml:"maxIdleConns"`
 	MaxOpenConns int    `yaml:"maxOpenConns"`
 	MaxLifeTime  int    `yaml:"maxLifeTime"`
-}
-
-type Mail struct {
-	SmtpHost string `yaml:"smtpHost"`
-	SmtpPort int    `yaml:"smtpPort"`
-	From     string `yaml:"from"`
-	Password string `yaml:"password"`
 }
 
 type Wechat struct {

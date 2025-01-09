@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/go-gomail/gomail"
 	"ops-api/config"
+	"ops-api/utils"
 )
 
 var Email EmailInfo
@@ -20,12 +21,22 @@ type EmailInfo struct {
 // Setup 初始化邮件dialer
 func (e *EmailInfo) Setup() *gomail.Dialer {
 
+	var (
+		mailHost     = config.Conf.Settings["mailAddress"].(string)
+		mailPort     = config.Conf.Settings["mailPort"].(int)
+		mailFrom     = config.Conf.Settings["mailForm"].(string)
+		mailPassword = config.Conf.Settings["mailPassword"].(string)
+	)
+
+	// 密码解密
+	str, _ := utils.Decrypt(mailPassword)
+
 	if e.dialer == nil {
 		// 实例化邮件连接对象
-		host := config.Conf.Mail.SmtpHost
-		port := config.Conf.Mail.SmtpPort
-		form := config.Conf.Mail.From
-		password := config.Conf.Mail.Password
+		host := mailHost
+		port := mailPort
+		form := mailFrom
+		password := str
 
 		// 创建SMTP实例
 		e.dialer = gomail.NewDialer(host, port, form, password)
@@ -47,7 +58,8 @@ func (e *EmailInfo) SendMsg(to, cc, files []string, subject, body, sendType stri
 	e.msg = gomail.NewMessage()
 
 	// 设置发件人
-	e.msg.SetHeader("From", config.Conf.Mail.From)
+	mailFrom := config.Conf.Settings["mailForm"].(string)
+	e.msg.SetHeader("From", mailFrom)
 	// 设置收件人
 	e.msg.SetHeader("To", to...)
 	// 设置抄送人
