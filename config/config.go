@@ -15,7 +15,6 @@ type Config struct {
 	JWT      JWT      `yaml:"jwt"`
 	Redis    Redis    `yaml:"redis"`
 	OSS      OSS      `yaml:"oss"`
-	SMS      SMS      `yaml:"sms"`
 	Mail     Mail     `yaml:"mail"`
 	DingTalk DingTalk `yaml:"dingTalk"`
 	Wechat   Wechat   `yaml:"wechat"`
@@ -70,21 +69,6 @@ type OSS struct {
 	SecretKey  string `yaml:"secretKey"`
 	BucketName string `yaml:"bucketName"`
 	SSL        bool   `yaml:"ssl"`
-}
-
-type SMS struct {
-	Provider      string        `yaml:"provider"`
-	URL           string        `yaml:"url"`
-	AppKey        string        `yaml:"appKey"`
-	AppSecret     string        `yaml:"appSecret"`
-	CallbackUrl   string        `yaml:"callbackUrl"`
-	ResetPassword ResetPassword `yaml:"resetPassword"`
-}
-
-type ResetPassword struct {
-	Sender     string `yaml:"sender"`
-	TemplateId string `yaml:"templateId"`
-	Signature  string `yaml:"signature"`
 }
 
 type JWT struct {

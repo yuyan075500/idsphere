@@ -58,11 +58,19 @@ type AliyunSMSSender struct{}
 
 // SendSMS 华为云短信发送
 func (s *HuaweiSMSSender) SendSMS(data *SendData, code string) (string, error) {
+
+	var (
+		smsSender      = config.Conf.Settings["smsSender"].(string)
+		smsTemplateId  = config.Conf.Settings["smsTemplateId"].(string)
+		smsCallbackUrl = config.Conf.Settings["smsCallbackUrl"].(string)
+		smsSignature   = config.Conf.Settings["smsSignature"].(string)
+	)
+
 	return HuaweiSend(
-		config.Conf.SMS.ResetPassword.Sender,
-		config.Conf.SMS.ResetPassword.TemplateId,
-		config.Conf.SMS.CallbackUrl,
-		config.Conf.SMS.ResetPassword.Signature,
+		smsSender,
+		smsTemplateId,
+		smsCallbackUrl,
+		smsSignature,
 		data.PhoneNumber,
 		code,
 	)
@@ -107,7 +115,10 @@ func (s *AliyunSMSSender) ProcessResponse(resp string) (string, error) {
 
 // GetSMSSender 获取短信发送器
 func GetSMSSender() Sender {
-	switch config.Conf.SMS.Provider {
+
+	smsProvider := config.Conf.Settings["smsProvider"].(string)
+
+	switch smsProvider {
 	case "huawei":
 		return &HuaweiSMSSender{}
 	case "aliyun":

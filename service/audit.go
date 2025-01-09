@@ -52,8 +52,10 @@ type ResponseBody struct {
 // GetSMSReceipt 获取短信回执
 func (a *audit) GetSMSReceipt(smsId int) (err error) {
 
+	smsProvider := config.Conf.Settings["smsProvider"].(string)
+
 	// 华为云不需要
-	if config.Conf.SMS.Provider != "aliyun" {
+	if smsProvider != "aliyun" {
 		return nil
 	}
 

@@ -21,6 +21,11 @@ type sms struct{}
 // SMSSend 发送短信
 func (s *sms) SMSSend(data *message.SendData) (string, error) {
 
+	var (
+		smsSignature  = config.Conf.Settings["smsSignature"].(string)
+		smsTemplateId = config.Conf.Settings["smsTemplateId"].(string)
+	)
+
 	if data.PhoneNumber == "" {
 		return "", errors.New("手机号不能为空")
 	}
@@ -55,8 +60,8 @@ func (s *sms) SMSSend(data *message.SendData) (string, error) {
 	// 记录短信发送日志
 	smsLog := &model.LogSMS{
 		Note:       data.Note,
-		Signature:  config.Conf.SMS.ResetPassword.Signature,
-		TemplateId: config.Conf.SMS.ResetPassword.TemplateId,
+		Signature:  smsSignature,
+		TemplateId: smsTemplateId,
 		Receiver:   data.PhoneNumber,
 		Status:     "API请求成功",
 		SmsMsgId:   smsMsgId,

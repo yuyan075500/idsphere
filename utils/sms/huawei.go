@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"ops-api/config"
+	"ops-api/utils"
 	"ops-api/utils/sms/core"
 )
 
@@ -23,14 +24,23 @@ import (
 //	templateParas: 模板参数
 func HuaweiSend(sender, templateId, statusCallBack, signature, receiver string, templateParas string) (resp string, err error) {
 
+	var (
+		appKey    = config.Conf.Settings["smsAppKey"].(string)
+		appSecret = config.Conf.Settings["smsAppSecret"].(string)
+		endpoint  = config.Conf.Settings["smsEndpoint"].(string)
+	)
+
+	// secret解密
+	str, _ := utils.Decrypt(appSecret)
+
 	// 创建签名对象
 	appInfo := core.Signer{
-		Key:    config.Conf.SMS.AppKey,
-		Secret: config.Conf.SMS.AppSecret,
+		Key:    appKey,
+		Secret: str,
 	}
 
 	// 请求接口地址
-	apiAddress := config.Conf.SMS.URL
+	apiAddress := endpoint
 
 	// 构造参数
 	paras := fmt.Sprintf("[\"%s\"]", templateParas)

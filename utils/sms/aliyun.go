@@ -7,6 +7,7 @@ import (
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/alibabacloud-go/tea/tea"
 	"ops-api/config"
+	"ops-api/utils"
 )
 
 func CreateApiInfo(action string) (_result *openapi.Params) {
@@ -42,11 +43,20 @@ func CreateApiInfo(action string) (_result *openapi.Params) {
 // CreateClient 创建客户端
 func CreateClient() (_result *openapi.Client, _err error) {
 
+	var (
+		accessKeyId     = config.Conf.Settings["smsAppKey"].(string)
+		accessKeySecret = config.Conf.Settings["smsAppSecret"].(string)
+		endpoint        = config.Conf.Settings["smsEndpoint"].(string)
+	)
+
+	// secret解密
+	str, _ := utils.Decrypt(accessKeySecret)
+
 	// 指定客户端配置
 	conf := &openapi.Config{
-		AccessKeyId:     tea.String(config.Conf.SMS.AppKey),
-		AccessKeySecret: tea.String(config.Conf.SMS.AppSecret),
-		Endpoint:        tea.String(config.Conf.SMS.URL),
+		AccessKeyId:     tea.String(accessKeyId),
+		AccessKeySecret: tea.String(str),
+		Endpoint:        tea.String(endpoint),
 	}
 
 	// 客户端实例化
@@ -57,6 +67,11 @@ func CreateClient() (_result *openapi.Client, _err error) {
 }
 
 func AliyunSend(receiver, templateParas string) (resp *string, err error) {
+
+	var (
+		smsSignature  = config.Conf.Settings["smsSignature"].(string)
+		smsTemplateId = config.Conf.Settings["smsTemplateId"].(string)
+	)
 
 	// 创建客户端
 	client, _err := CreateClient()
@@ -69,8 +84,8 @@ func AliyunSend(receiver, templateParas string) (resp *string, err error) {
 	// 指定请求参数
 	queries := map[string]interface{}{}
 	queries["PhoneNumbers"] = tea.String(receiver)
-	queries["SignName"] = tea.String(config.Conf.SMS.ResetPassword.Signature)
-	queries["TemplateCode"] = tea.String(config.Conf.SMS.ResetPassword.TemplateId)
+	queries["SignName"] = tea.String(smsSignature)
+	queries["TemplateCode"] = tea.String(smsTemplateId)
 	queries["TemplateParam"] = tea.String(fmt.Sprintf("{\"code\":\"%s\"}", templateParas))
 
 	// 指定运行时选项
