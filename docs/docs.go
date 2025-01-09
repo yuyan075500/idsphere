@@ -3189,7 +3189,22 @@ const docTemplate = `{
         "service.SettingsUpdate": {
             "type": "object",
             "properties": {
+                "certificate": {
+                    "type": "string"
+                },
+                "dingdingAppKey": {
+                    "type": "string"
+                },
+                "dingdingAppSecret": {
+                    "type": "string"
+                },
                 "externalUrl": {
+                    "type": "string"
+                },
+                "feishuAppId": {
+                    "type": "string"
+                },
+                "feishuAppSecret": {
                     "type": "string"
                 },
                 "issuer": {
@@ -3210,10 +3225,82 @@ const docTemplate = `{
                 "ldapSearchDn": {
                     "type": "string"
                 },
-                "ldapUserPasswordExpireDate": {
+                "ldapUserPasswordExpireDays": {
+                    "type": "string"
+                },
+                "mailAddress": {
+                    "type": "string"
+                },
+                "mailForm": {
+                    "type": "string"
+                },
+                "mailPassword": {
+                    "type": "string"
+                },
+                "mailPort": {
                     "type": "string"
                 },
                 "mfa": {
+                    "type": "string"
+                },
+                "passwordComplexity": {
+                    "type": "string"
+                },
+                "passwordExpireDays": {
+                    "type": "string"
+                },
+                "passwordExpiryReminderDays": {
+                    "type": "string"
+                },
+                "passwordLength": {
+                    "type": "string"
+                },
+                "privateKey": {
+                    "type": "string"
+                },
+                "publicKey": {
+                    "type": "string"
+                },
+                "secret": {
+                    "type": "string"
+                },
+                "smsAppKey": {
+                    "type": "string"
+                },
+                "smsAppSecret": {
+                    "type": "string"
+                },
+                "smsCallbackUrl": {
+                    "type": "string"
+                },
+                "smsEndpoint": {
+                    "type": "string"
+                },
+                "smsProvider": {
+                    "type": "string"
+                },
+                "smsSender": {
+                    "type": "string"
+                },
+                "smsSignature": {
+                    "type": "string"
+                },
+                "smsTemplateId": {
+                    "type": "string"
+                },
+                "swagger": {
+                    "type": "string"
+                },
+                "tokenExpiresTime": {
+                    "type": "string"
+                },
+                "wechatAgentId": {
+                    "type": "string"
+                },
+                "wechatCorpId": {
+                    "type": "string"
+                },
+                "wechatSecret": {
                     "type": "string"
                 }
             }
