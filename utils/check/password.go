@@ -2,47 +2,57 @@ package check
 
 import (
 	"errors"
-	"unicode"
+	"fmt"
+	"ops-api/config"
+	"strings"
 )
 
 // PasswordCheck 检查密码复杂度，用于检查密码复杂度
 func PasswordCheck(password string) error {
 
-	if len(password) < 10 {
-		return errors.New("密码长度不能少于10个字符")
+	var (
+		passwordLength                            = config.Conf.Settings["passwordLength"].(int)
+		passwordComplexity                        = config.Conf.Settings["passwordComplexity"].([]string)
+		hasUpper, hasLower, hasNumber, hasSpecial bool
+	)
+
+	// 长度检验
+	if len(password) < passwordLength {
+		return errors.New(fmt.Sprintf("密码长度至少为 %d 位", passwordLength))
 	}
 
-	uppercaseCount := 0
-	lowercaseCount := 0
-	digitCount := 0
-	specialCharCount := 0
-
+	// 包含的类型校验
 	for _, char := range password {
-		if unicode.IsUpper(char) {
-			uppercaseCount++
-		}
-		if unicode.IsLower(char) {
-			lowercaseCount++
-		}
-		if unicode.IsDigit(char) {
-			digitCount++
-		}
-		if unicode.IsPunct(char) || unicode.IsSymbol(char) {
-			specialCharCount++
+		switch {
+		case 'A' <= char && char <= 'Z':
+			hasUpper = true
+		case 'a' <= char && char <= 'z':
+			hasLower = true
+		case '0' <= char && char <= '9':
+			hasNumber = true
+		case strings.ContainsAny(string(char), "!@#$%^&*()-_=+[]{}|;:'\",.<>?/"):
+			hasSpecial = true
 		}
 	}
-
-	if uppercaseCount < 2 {
-		return errors.New("至少需要包含两个大写字母")
-	}
-	if lowercaseCount < 2 {
-		return errors.New("至少需要包含两个小写字母")
-	}
-	if digitCount < 2 {
-		return errors.New("至少需要包含两个数字")
-	}
-	if specialCharCount < 2 {
-		return errors.New("至少需要包含两个特殊字符")
+	for _, rule := range passwordComplexity {
+		switch rule {
+		case "numbers":
+			if !hasNumber {
+				return errors.New("必须包含数字")
+			}
+		case "uppercase":
+			if !hasUpper {
+				return errors.New("必须包含大写字母")
+			}
+		case "lowercase":
+			if !hasLower {
+				return errors.New("必须包含小写字母")
+			}
+		case "specialCharacters":
+			if !hasSpecial {
+				return errors.New("必须包含特殊字符")
+			}
+		}
 	}
 
 	return nil
