@@ -2,6 +2,7 @@ package dao
 
 import (
 	"gorm.io/gorm"
+	"ops-api/config"
 	"ops-api/global"
 	"ops-api/model"
 	"ops-api/utils"
@@ -63,13 +64,12 @@ type PasswordExpiredUserList struct {
 
 // UserUpdate 更新构体，定义更新时的字段信息
 type UserUpdate struct {
-	ID                uint       `json:"id" binding:"required"`
-	WwId              *string    `json:"ww_id"`
-	CtyunId           *string    `json:"ctyun_id"`
-	PhoneNumber       string     `json:"phone_number" validate:"omitempty,phone"`
-	Email             string     `json:"email" validate:"omitempty,email"`
-	IsActive          bool       `json:"is_active" validate:"omitempty"`
-	PasswordExpiredAt *time.Time `json:"password_expired_at"`
+	ID          uint    `json:"id" binding:"required"`
+	WwId        *string `json:"ww_id"`
+	CtyunId     *string `json:"ctyun_id"`
+	PhoneNumber string  `json:"phone_number" validate:"omitempty,phone"`
+	Email       string  `json:"email" validate:"omitempty,email"`
+	IsActive    bool    `json:"is_active" validate:"omitempty"`
 }
 
 // UserPasswordUpdate 更改密码结构体
@@ -81,13 +81,12 @@ type UserPasswordUpdate struct {
 
 // UserCreate 创建结构体，定义新增时的字段信息
 type UserCreate struct {
-	Name              string     `json:"name" binding:"required"`
-	Username          string     `json:"username" gorm:"unique" binding:"required"`
-	Password          string     `json:"password" binding:"required"`
-	PhoneNumber       string     `json:"phone_number" binding:"required" validate:"phone"`
-	Email             string     `json:"email" binding:"required" validate:"email"`
-	PasswordExpiredAt *time.Time `json:"password_expired_at"`
-	UserFrom          string     `json:"user_from"`
+	Name        string `json:"name" binding:"required"`
+	Username    string `json:"username" gorm:"unique" binding:"required"`
+	Password    string `json:"password" binding:"required"`
+	PhoneNumber string `json:"phone_number" binding:"required" validate:"phone"`
+	Email       string `json:"email" binding:"required" validate:"email"`
+	UserFrom    string `json:"user_from"`
 }
 
 // GetUserListAll 获取所有用户
@@ -278,8 +277,13 @@ func (u *user) UpdateUserPassword(user *model.AuthUser, data *UserPasswordUpdate
 		return err
 	}
 
+	// 指定新密码有效期
+	currentTime := time.Now()
+	passwordExpiredAtDays := config.Conf.Settings["passwordExpireDays"].(int)
+	passwordExpiredAt := currentTime.AddDate(0, 0, passwordExpiredAtDays)
+
 	// 更新密码
-	return global.MySQLClient.Model(&user).Update("password", cipherText).Error
+	return global.MySQLClient.Model(&user).Updates(map[string]interface{}{"password": cipherText, "password_expired_at": passwordExpiredAt}).Error
 }
 
 // ResetUserMFA 重置MFA
@@ -291,10 +295,13 @@ func (u *user) ResetUserMFA(data *model.AuthUser) (err error) {
 
 // GetPasswordExpiredUserList 获取密码过期用户列表
 func (u *user) GetPasswordExpiredUserList() (userList []*PasswordExpiredUserList, err error) {
+
+	passwordExpiryReminderDays := config.Conf.Settings["passwordExpiryReminderDays"].(int)
+
 	var (
 		results        []*PasswordExpiredUserList
 		now            = time.Now()
-		sevenDaysLater = now.Add(7 * 24 * time.Hour)
+		sevenDaysLater = now.Add(time.Duration(passwordExpiryReminderDays) * 24 * time.Hour)
 	)
 
 	if err := global.MySQLClient.Model(&model.AuthUser{}).Select("name, username, email, password_expired_at").

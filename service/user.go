@@ -208,7 +208,10 @@ func (u *user) AddUser(data *dao.UserCreate) (authUser *model.AuthUser, err erro
 		return nil, err
 	}
 
-	fmt.Printf("Name: %v, Type: %T\n", data.PasswordExpiredAt, data.PasswordExpiredAt)
+	// 获取密码有效期
+	currentTime := time.Now()
+	passwordExpiredAtDays := config.Conf.Settings["passwordExpireDays"].(int)
+	passwordExpiredAt := currentTime.AddDate(0, 0, passwordExpiredAtDays)
 
 	user := &model.AuthUser{
 		Name:              data.Name,
@@ -218,7 +221,7 @@ func (u *user) AddUser(data *dao.UserCreate) (authUser *model.AuthUser, err erro
 		IsActive:          true,
 		Email:             data.Email,
 		UserFrom:          data.UserFrom,
-		PasswordExpiredAt: data.PasswordExpiredAt,
+		PasswordExpiredAt: &passwordExpiredAt,
 	}
 
 	return dao.User.AddUser(user)
