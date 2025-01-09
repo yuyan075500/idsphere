@@ -2,9 +2,11 @@ package service
 
 import (
 	"fmt"
+	"github.com/wonderivan/logger"
 	"mime/multipart"
 	"ops-api/config"
 	"ops-api/dao"
+	"ops-api/db"
 	"ops-api/global"
 	"ops-api/model"
 	"ops-api/utils"
@@ -214,6 +216,11 @@ func (s *settings) UpdateSettingValues(data *SettingsUpdate) (map[string]interfa
 	if err := tx.Commit().Error; err != nil {
 		tx.Rollback()
 		return nil, err
+	}
+
+	// 重新加载配置
+	if err := db.InitConfig(global.MySQLClient); err != nil {
+		logger.Warn("配置加载失败：" + err.Error())
 	}
 
 	return result, nil
