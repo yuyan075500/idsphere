@@ -15,7 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/jwk"
 	"net/url"
-	config2 "ops-api/config"
+	"ops-api/config"
 	"ops-api/dao"
 	"ops-api/middleware"
 	"ops-api/model"
@@ -145,12 +145,13 @@ type OIDCConfig struct {
 
 // GetOIDCConfig 获取OIDC配置信息
 func (s *sso) GetOIDCConfig() (configuration *OIDCConfig, err error) {
+	externalUrl := config.Conf.Settings["externalUrl"].(string)
 	var config = &OIDCConfig{
-		Issuer:                           config2.Conf.ExternalUrl,
-		AuthorizationEndpoint:            config2.Conf.ExternalUrl + "/login",
-		TokenEndpoint:                    config2.Conf.ExternalUrl + "/api/v1/sso/oauth/token",
-		UserInfoEndpoint:                 config2.Conf.ExternalUrl + "/api/v1/sso/oauth/userinfo",
-		JwksURI:                          config2.Conf.ExternalUrl + "/api/v1/sso/oidc/jwks",
+		Issuer:                           externalUrl,
+		AuthorizationEndpoint:            externalUrl + "/login",
+		TokenEndpoint:                    externalUrl + "/api/v1/sso/oauth/token",
+		UserInfoEndpoint:                 externalUrl + "/api/v1/sso/oauth/userinfo",
+		JwksURI:                          externalUrl + "/api/v1/sso/oidc/jwks",
 		ScopesSupported:                  []string{"openid"},
 		ResponseTypesSupported:           []string{"code"},
 		GrantTypesSupported:              []string{"authorization_code"},
@@ -181,7 +182,7 @@ func (s *sso) GetCASAuthorize(data *CASAuthorize, userId uint, username string) 
 	st := fmt.Sprintf("ST-%d-%s", time.Now().Unix(), username)
 
 	// 使用HMAC SHA-256对票据进行签名
-	mac := hmac.New(sha256.New, []byte(config2.Conf.Secret))
+	mac := hmac.New(sha256.New, []byte(config.Conf.Secret))
 	mac.Write([]byte(st))
 	signature := hex.EncodeToString(mac.Sum(nil))
 
@@ -230,7 +231,7 @@ func (s *sso) ServiceValidate(param *CASServiceValidate) (data *CASServiceRespon
 	signature := parts[3]
 
 	// 生成新的签名
-	mac := hmac.New(sha256.New, []byte(config2.Conf.Secret))
+	mac := hmac.New(sha256.New, []byte(config.Conf.Secret))
 	mac.Write([]byte(ticket))
 	newSignature := hex.EncodeToString(mac.Sum(nil))
 
@@ -409,6 +410,8 @@ func (s *sso) GetJwks() ([]byte, error) {
 // GetIdPMetadata 获取SAML2 IDP Metadata
 func (s *sso) GetIdPMetadata() (metadata string, err error) {
 
+	externalUrl := config.Conf.Settings["externalUrl"].(string)
+
 	// 获取证书
 	cert, err := utils.LoadIdpCertificate()
 	if err != nil {
@@ -417,29 +420,29 @@ func (s *sso) GetIdPMetadata() (metadata string, err error) {
 
 	// 创建IDP实例
 	idp := saml.IdentityProvider{
-		IsIdpInitiated:       false,                    // 是否是IdP Initiated模式，true：表示认证请求是通过IdP发起的，false：表示认证请求是客户端（SP）发起的
-		Issuer:               config2.Conf.ExternalUrl, // IDP实体，默认为当前服务器地址
+		IsIdpInitiated:       false,       // 是否是IdP Initiated模式，true：表示认证请求是通过IdP发起的，false：表示认证请求是客户端（SP）发起的
+		Issuer:               externalUrl, // IDP实体，默认为当前服务器地址
 		IDPCert:              base64.StdEncoding.EncodeToString(cert.Raw),
 		NameIdentifierFormat: saml.AttributeFormatUnspecified,
 	}
 
 	// 添加单点登录接口信息
 	idp.AddSingleSignOnService(saml.MetadataBinding{
-		Binding:  saml.HTTPRedirectBinding,            // 由于IDP是前后端分离架构，所以这里使用HTTPRedirectBinding
-		Location: config2.Conf.ExternalUrl + "/login", // 单点登录接口地址
+		Binding:  saml.HTTPRedirectBinding, // 由于IDP是前后端分离架构，所以这里使用HTTPRedirectBinding
+		Location: externalUrl + "/login",   // 单点登录接口地址
 	})
 
 	// 添加IDP组件相关信息
 	idp.AddOrganization(saml.Organization{
 		OrganizationDisplayName: "IDSphere 统一认证平台", // 组织显示名称
 		OrganizationName:        "IDSphere",        // 组织正式名称
-		OrganizationURL:         config2.Conf.ExternalUrl,
+		OrganizationURL:         externalUrl,
 	})
 
 	// 添加单点登录接口信息（实际不支持单点登出）
 	idp.AddSingleSignOutService(saml.MetadataBinding{
 		Binding:  saml.HTTPPostBinding,
-		Location: config2.Conf.ExternalUrl + "/api/auth/logout",
+		Location: externalUrl + "/api/auth/logout",
 	})
 
 	// 生成metadata元数据
@@ -491,6 +494,7 @@ func (s *sso) GetSampleAuthnRequest(samlRequest *SAMLRequest) url.Values {
 func (s *sso) GetSPAuthorize(samlRequest *SAMLRequest, userId uint) (html, siteName string, err error) {
 
 	var b bytes.Buffer
+	externalUrl := config.Conf.Settings["externalUrl"].(string)
 
 	// 获取SAMLRequest数据
 	requestData, err := utils.ParseSAMLRequest(samlRequest.SAMLRequest)
@@ -544,7 +548,7 @@ func (s *sso) GetSPAuthorize(samlRequest *SAMLRequest, userId uint) (html, siteN
 	// 初始化IDP实（注：也可以在结构体中使用IDPCertFilePath和IDPKeyFilePath从指定路径中读取IDP的证书和私钥，但经测试有Bug）
 	idp := saml.IdentityProvider{
 		IsIdpInitiated:       false,                                   // 是否为IDP发起认证
-		Issuer:               config2.Conf.ExternalUrl,                // IDP实体
+		Issuer:               externalUrl,                             // IDP实体
 		Audiences:            []string{requestData.Issuer.Value},      // SP实体
 		IDPKey:               IDPKey,                                  // IDP私钥
 		IDPCert:              IDPCert,                                 // IDP证书

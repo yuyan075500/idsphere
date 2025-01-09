@@ -14,6 +14,8 @@ type WechatClient struct {
 // NewWeChatClient 企业微信实例化，参考文档：https://powerwechat.artisan-cloud.com/zh/wecom/
 func NewWeChatClient() (*WechatClient, error) {
 
+	externalUrl := config.Conf.Settings["externalUrl"].(string)
+
 	// 读取配置信息
 	corpId := config.Conf.Wechat.CorpId   // 企业微信的企业ID。
 	agentId := config.Conf.Wechat.AgentId // 内部应用的AgentId
@@ -25,7 +27,7 @@ func NewWeChatClient() (*WechatClient, error) {
 		AgentID: agentId,
 		Secret:  secret,
 		OAuth: work.OAuth{
-			Callback: config.Conf.ExternalUrl,
+			Callback: externalUrl,
 			Scopes:   nil,
 		},
 		HttpDebug: false,

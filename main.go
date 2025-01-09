@@ -14,8 +14,8 @@ import (
 
 func main() {
 
-	// 配置初始化
-	config.Init()
+	// 配置文件初始化
+	config.InitConfig()
 
 	// 初始化MySQL
 	if err := db.MySQLInit(); err != nil {

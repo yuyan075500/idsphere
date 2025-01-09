@@ -63,6 +63,11 @@ func MySQLInit() error {
 
 	global.MySQLClient = client
 
+	// 初始化配置信息
+	if err := InitConfig(client); err != nil {
+		return err
+	}
+
 	// 创建超级用户
 	if err := createSuperUser(client); err != nil {
 		return err
@@ -127,35 +132,35 @@ func initializeSites(client *gorm.DB) error {
 		{
 			Name:        "密码重置",
 			Description: "密码自助更改平台，支持本地、Windows AD 和 OpenLDAP 用户密码修改",
-			Address:     fmt.Sprintf("%s/reset_password", config.Conf.ExternalUrl),
+			Address:     fmt.Sprintf("/reset_password"),
 			SSO:         false,
 			SiteGroupID: siteGroup.ID,
 		},
 		{
 			Name:        "接口文档",
 			Description: "IDSphere 统一认证平台 Swagger 接口文档",
-			Address:     fmt.Sprintf("%s/swagger/index.html", config.Conf.ExternalUrl),
+			Address:     fmt.Sprintf("/swagger/index.html"),
 			SSO:         false,
 			SiteGroupID: siteGroup.ID,
 		},
 		{
 			Name:        "站点导航",
 			Description: "IDSphere 统一认证平台站点导航页",
-			Address:     fmt.Sprintf("%s/sites", config.Conf.ExternalUrl),
+			Address:     fmt.Sprintf("/sites"),
 			SSO:         false,
 			SiteGroupID: siteGroup.ID,
 		},
 		{
 			Name:        "IDP 元数据",
 			Description: "IDP 元数据配置文件接口，接入 SAML2 SP 使用",
-			Address:     fmt.Sprintf("%s/api/v1/sso/saml/metadata", config.Conf.ExternalUrl),
+			Address:     fmt.Sprintf("/api/v1/sso/saml/metadata"),
 			SSO:         false,
 			SiteGroupID: siteGroup.ID,
 		},
 		{
 			Name:        "OIDC 配置",
 			Description: "OIDC 配置信息接口，接入 OIDC 客户端使用",
-			Address:     fmt.Sprintf("%s/.well-known/openid-configuration", config.Conf.ExternalUrl),
+			Address:     fmt.Sprintf("/.well-known/openid-configuration"),
 			SSO:         false,
 			SiteGroupID: siteGroup.ID,
 		},
@@ -238,5 +243,27 @@ func InitializeScheduledTask(client *gorm.DB) error {
 		client.FirstOrCreate(&task, model.ScheduledTask{BuiltInMethod: task.BuiltInMethod})
 	}
 
+	return nil
+}
+
+// InitConfig 初始化配置
+func InitConfig(client *gorm.DB) error {
+
+	// 加载所有设置项
+	settings := make(map[string]interface{})
+	var configItems []model.Settings
+	if err := client.Find(&configItems).Error; err != nil {
+		return err
+	}
+
+	// 保存配置项
+	for _, item := range configItems {
+		if err := item.ParseValue(); err != nil {
+			continue
+		}
+		settings[item.Key] = item.ParsedValue
+	}
+
+	config.Conf.Settings = settings
 	return nil
 }

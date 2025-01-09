@@ -796,7 +796,9 @@ func (u *user) PasswordExpiredNotice() (map[string]interface{}, error) {
 // PasswordExpiredNoticeHTML 密码过期通知正文
 func PasswordExpiredNoticeHTML(name, username, expiredAt string) string {
 
-	url := config.Conf.ExternalUrl
+	externalUrl := config.Conf.Settings["externalUrl"].(string)
+
+	url := externalUrl
 	if url != "" && url[len(url)-1] != '/' {
 		url += "/"
 	}

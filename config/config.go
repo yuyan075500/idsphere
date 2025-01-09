@@ -10,21 +10,21 @@ var Conf *Config
 
 // Config 配置文件结构体, 与YAML文件对应
 type Config struct {
-	Server      string   `yaml:"server"`
-	ExternalUrl string   `yaml:"externalUrl"`
-	Secret      string   `yaml:"secret"`
-	MFA         MFA      `yaml:"mfa"`
-	MySQL       MySQL    `yaml:"mysql"`
-	JWT         JWT      `yaml:"jwt"`
-	Redis       Redis    `yaml:"redis"`
-	OSS         OSS      `yaml:"oss"`
-	LDAP        LDAP     `yaml:"ldap"`
-	SMS         SMS      `yaml:"sms"`
-	Mail        Mail     `yaml:"mail"`
-	DingTalk    DingTalk `yaml:"dingTalk"`
-	Wechat      Wechat   `yaml:"wechat"`
-	Feishu      Feishu   `yaml:"feishu"`
-	Swagger     bool     `yaml:"swagger"`
+	Server   string   `yaml:"server"`
+	Secret   string   `yaml:"secret"`
+	MFA      MFA      `yaml:"mfa"`
+	MySQL    MySQL    `yaml:"mysql"`
+	JWT      JWT      `yaml:"jwt"`
+	Redis    Redis    `yaml:"redis"`
+	OSS      OSS      `yaml:"oss"`
+	LDAP     LDAP     `yaml:"ldap"`
+	SMS      SMS      `yaml:"sms"`
+	Mail     Mail     `yaml:"mail"`
+	DingTalk DingTalk `yaml:"dingTalk"`
+	Wechat   Wechat   `yaml:"wechat"`
+	Feishu   Feishu   `yaml:"feishu"`
+	Swagger  bool     `yaml:"swagger"`
+	Settings map[string]interface{}
 }
 
 type MySQL struct {
@@ -108,8 +108,8 @@ type JWT struct {
 	Expires int `yaml:"expires"`
 }
 
-// Init 配置文件初始化
-func Init() {
+// InitConfig 配置文件初始化
+func InitConfig() {
 
 	v := viper.New()
 

@@ -48,7 +48,7 @@ func (s *Settings) ParseValue() error {
 			s.ParsedValue = logoPreview.String()
 			return nil
 		} else {
-			s.ParsedValue = s.Value
+			s.ParsedValue = *s.Value
 		}
 	}
 	return nil
