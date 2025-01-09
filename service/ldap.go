@@ -11,6 +11,7 @@ import (
 	"ops-api/config"
 	"ops-api/dao"
 	"ops-api/model"
+	"ops-api/utils"
 	"strconv"
 	"strings"
 	"time"
@@ -46,11 +47,22 @@ type UserList struct {
 
 // Connect 建立LDAP连接
 func (a *ad) Connect() (*LDAPServer, error) {
+
+	var (
+		host     = config.Conf.Settings["ldapAddress"].(string)
+		userDn   = config.Conf.Settings["ldapBindDn"].(string)
+		password = config.Conf.Settings["ldapBindPassword"].(string)
+		searchDn = config.Conf.Settings["ldapSearchDn"].(string)
+	)
+
+	// 密码解密
+	str, _ := utils.Decrypt(password)
+
 	conf := LDAPConfig{
-		Addr:             config.Conf.LDAP.Host,
-		BindUserDN:       config.Conf.LDAP.BindUserDN,
-		BindUserPassword: config.Conf.LDAP.BindUserPassword,
-		SearchDN:         config.Conf.LDAP.SearchDN,
+		Addr:             host,
+		BindUserDN:       userDn,
+		BindUserPassword: str,
+		SearchDN:         searchDn,
 	}
 
 	conn, err := ldap.DialURL(conf.Addr, ldap.DialWithTLSConfig(&tls.Config{InsecureSkipVerify: true}))
@@ -71,6 +83,11 @@ func (a *ad) Connect() (*LDAPServer, error) {
 // LDAPUserSearch 根据用户名查找用户信息
 func (a *ad) LDAPUserSearch(username string) (result *ldap.SearchResult, err error) {
 
+	var (
+		userAttribute = config.Conf.Settings["ldapFilterAttribute"].(string)
+		searchDn      = config.Conf.Settings["ldapSearchDn"].(string)
+	)
+
 	// 建立LDAP连接
 	l, err := a.Connect()
 	if err != nil {
@@ -78,7 +95,7 @@ func (a *ad) LDAPUserSearch(username string) (result *ldap.SearchResult, err err
 	}
 
 	// 查找用户
-	searchDN := strings.Split(config.Conf.LDAP.SearchDN, "&")
+	searchDN := strings.Split(searchDn, "&")
 	for _, dn := range searchDN {
 
 		// 构建查找请求
@@ -89,7 +106,7 @@ func (a *ad) LDAPUserSearch(username string) (result *ldap.SearchResult, err err
 			0,
 			0,
 			false,
-			fmt.Sprintf("(&(objectClass=person)(%s=%s))", config.Conf.LDAP.UserAttribute, username),
+			fmt.Sprintf("(&(objectClass=person)(%s=%s))", userAttribute, username),
 			[]string{},
 			nil,
 		)
@@ -129,7 +146,8 @@ func (a *ad) LDAPUserAuthentication(username, password string) (result *ldap.Sea
 	}
 
 	// 检查账号和密码是否过期
-	if config.Conf.LDAP.UserAttribute == "uid" {
+	userAttribute := config.Conf.Settings["ldapFilterAttribute"].(string)
+	if userAttribute == "uid" {
 		// 获取当前日期距离1970年1月1日之间的天数
 		currentDays := daysSinceEpoch()
 
@@ -197,8 +215,11 @@ func (a *ad) LDAPUserResetPassword(username, password string) (err error) {
 	req := ldap.NewModifyRequest(userDN, []ldap.Control{})
 
 	// 密码修改
-	var passwordExpiredAt *time.Time
-	if config.Conf.LDAP.UserAttribute == "uid" {
+	var (
+		passwordExpiredAt *time.Time
+		userAttribute     = config.Conf.Settings["ldapFilterAttribute"].(string)
+	)
+	if userAttribute == "uid" {
 		// 使用 SHA1 算法对密码进行哈希处理
 		hash := sha1.New()
 		hash.Write([]byte(password))
@@ -292,6 +313,8 @@ func (a *ad) LDAPUserSync() (err error) {
 	var (
 		userList               []UserList
 		createOrUpdateUserList []*model.AuthUser
+		searchDn               = config.Conf.Settings["ldapSearchDn"].(string)
+		userAttribute          = config.Conf.Settings["ldapFilterAttribute"].(string)
 	)
 
 	// 建立LDAP连接
@@ -301,7 +324,7 @@ func (a *ad) LDAPUserSync() (err error) {
 	}
 
 	// 获取所有用户
-	searchDN := strings.Split(config.Conf.LDAP.SearchDN, "&")
+	searchDN := strings.Split(searchDn, "&")
 	for _, dn := range searchDN {
 		// 构建查找请求
 		searchRequest := ldap.NewSearchRequest(
@@ -330,7 +353,7 @@ func (a *ad) LDAPUserSync() (err error) {
 				isActive          bool
 				passwordExpiredAt *time.Time
 			)
-			if config.Conf.LDAP.UserAttribute == "uid" {
+			if userAttribute == "uid" {
 				// 获取账号过期时间并转换为数字
 				shadowExpire := value.GetAttributeValue("shadowExpire")
 				shadowExpireInt, err := strconv.Atoi(shadowExpire)
@@ -389,7 +412,7 @@ func (a *ad) LDAPUserSync() (err error) {
 			// 获取用户信息
 			userInfo := &UserList{
 				Name:              value.GetAttributeValue("cn"),
-				Username:          value.GetAttributeValue(config.Conf.LDAP.UserAttribute),
+				Username:          value.GetAttributeValue(userAttribute),
 				Password:          "",
 				IsActive:          isActive,
 				PhoneNumber:       value.GetAttributeValue("mobile"),
@@ -421,7 +444,12 @@ func (a *ad) LDAPUserSync() (err error) {
 // getPasswordExpiredAt 获取密码过期时间
 func getPasswordExpiredAt(lastChangeString, passwordExpiredString *string) (passwordExpiredAt *time.Time, err error) {
 
-	if config.Conf.LDAP.UserAttribute == "uid" {
+	var (
+		userAttribute = config.Conf.Settings["ldapFilterAttribute"].(string)
+		passwordAge   = config.Conf.Settings["ldapUserPasswordExpireDays"].(int)
+	)
+
+	if userAttribute == "uid" {
 		// OpenLDAP的获取方法
 
 		// 获取密码最后更改时间并转换为数字
@@ -452,7 +480,7 @@ func getPasswordExpiredAt(lastChangeString, passwordExpiredString *string) (pass
 		// Windows AD的获取方法
 
 		// 密码过期时间
-		maxPasswordAge := config.Conf.LDAP.MaxPasswordAge
+		maxPasswordAge := passwordAge
 
 		// 将文件时间转换为Unix时间
 		lastChangeInt, err := strconv.ParseInt(*lastChangeString, 10, 64)

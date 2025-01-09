@@ -15,7 +15,6 @@ type Config struct {
 	JWT      JWT      `yaml:"jwt"`
 	Redis    Redis    `yaml:"redis"`
 	OSS      OSS      `yaml:"oss"`
-	LDAP     LDAP     `yaml:"ldap"`
 	SMS      SMS      `yaml:"sms"`
 	Mail     Mail     `yaml:"mail"`
 	DingTalk DingTalk `yaml:"dingTalk"`
@@ -57,15 +56,6 @@ type Feishu struct {
 type DingTalk struct {
 	AppKey    string `yaml:"appKey"`
 	AppSecret string `yaml:"appSecret"`
-}
-
-type LDAP struct {
-	Host             string `yaml:"host"`
-	BindUserDN       string `yaml:"bindUserDN"`
-	BindUserPassword string `yaml:"bindUserPassword"`
-	SearchDN         string `yaml:"searchDN"`
-	UserAttribute    string `yaml:"userAttribute"`
-	MaxPasswordAge   int    `yaml:"maxPasswordAge"`
 }
 
 type Redis struct {
