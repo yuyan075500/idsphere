@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/ArtisanCloud/PowerWeChat/v3/src/work"
 	"ops-api/config"
+	"ops-api/utils"
 )
 
 // WechatClient 企业微信API客户端
@@ -14,12 +15,20 @@ type WechatClient struct {
 // NewWeChatClient 企业微信实例化，参考文档：https://powerwechat.artisan-cloud.com/zh/wecom/
 func NewWeChatClient() (*WechatClient, error) {
 
-	externalUrl := config.Conf.Settings["externalUrl"].(string)
+	var (
+		wechatCorpId  = config.Conf.Settings["wechatCorpId"].(string)
+		wechatAgentId = config.Conf.Settings["wechatAgentId"].(int)
+		wechatSecret  = config.Conf.Settings["wechatSecret"].(string)
+		externalUrl   = config.Conf.Settings["externalUrl"].(string)
+	)
+
+	// 解密
+	str, _ := utils.Decrypt(wechatSecret)
 
 	// 读取配置信息
-	corpId := config.Conf.Wechat.CorpId   // 企业微信的企业ID。
-	agentId := config.Conf.Wechat.AgentId // 内部应用的AgentId
-	secret := config.Conf.Wechat.Secret   // 内部应用的Secret
+	corpId := wechatCorpId   // 企业微信的企业ID。
+	agentId := wechatAgentId // 内部应用的AgentId
+	secret := str            // 内部应用的Secret
 
 	// 客户端初始化
 	WeComApp, err := work.NewWork(&work.UserConfig{

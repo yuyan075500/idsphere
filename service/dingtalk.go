@@ -7,6 +7,7 @@ import (
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/alibabacloud-go/tea/tea"
 	"ops-api/config"
+	"ops-api/utils"
 )
 
 // DingTalkClient 钉钉API客户端
@@ -40,9 +41,18 @@ func NewDingTalkClient() (*DingTalkClient, error) {
 
 // GetUserAccessToken 获取用户Token
 func (client *DingTalkClient) GetUserAccessToken(code string) (userAccessToken string, err error) {
+
+	var (
+		dingdingAppKey    = config.Conf.Settings["dingdingAppKey"].(string)
+		dingdingAppSecret = config.Conf.Settings["dingdingAppSecret"].(string)
+	)
+
+	// 解密
+	appSecret, _ := utils.Decrypt(dingdingAppSecret)
+
 	request := &dingtalkoauth2_1_0.GetUserTokenRequest{
-		ClientSecret: tea.String(config.Conf.DingTalk.AppSecret),
-		ClientId:     tea.String(config.Conf.DingTalk.AppKey),
+		ClientSecret: tea.String(dingdingAppKey),
+		ClientId:     tea.String(appSecret),
 		Code:         tea.String(code),
 		GrantType:    tea.String("authorization_code"),
 	}

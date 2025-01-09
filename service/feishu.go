@@ -7,6 +7,7 @@ import (
 	larkcore "github.com/larksuite/oapi-sdk-go/v3/core"
 	larkauthen "github.com/larksuite/oapi-sdk-go/v3/service/authen/v1"
 	"ops-api/config"
+	"ops-api/utils"
 )
 
 // FeishuClient 飞书SDK客户端
@@ -17,9 +18,17 @@ type FeishuClient struct {
 // NewFeishuClient 飞书客户端初始化，参考文档：https://github.com/larksuite/oapi-sdk-go
 func NewFeishuClient() (*FeishuClient, error) {
 
+	var (
+		feishuAppId     = config.Conf.Settings["feishuAppId"].(string)
+		feishuAppSecret = config.Conf.Settings["feishuAppSecret"].(string)
+	)
+
+	// 解密
+	secret, _ := utils.Decrypt(feishuAppSecret)
+
 	// 读取配置信息
-	appId := config.Conf.Feishu.AppId         // 自建应用的AppId
-	appSecret := config.Conf.Feishu.AppSecret // 自建应用的appSecret
+	appId := feishuAppId // 自建应用的AppId
+	appSecret := secret  // 自建应用的appSecret
 
 	// 创建客户端
 	client := lark.NewClient(appId, appSecret)

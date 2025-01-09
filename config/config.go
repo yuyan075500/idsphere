@@ -10,15 +10,12 @@ var Conf *Config
 
 // Config 配置文件结构体, 与YAML文件对应
 type Config struct {
-	Server   string   `yaml:"server"`
-	MySQL    MySQL    `yaml:"mysql"`
-	JWT      JWT      `yaml:"jwt"`
-	Redis    Redis    `yaml:"redis"`
-	OSS      OSS      `yaml:"oss"`
-	DingTalk DingTalk `yaml:"dingTalk"`
-	Wechat   Wechat   `yaml:"wechat"`
-	Feishu   Feishu   `yaml:"feishu"`
-	Swagger  bool     `yaml:"swagger"`
+	Server   string `yaml:"server"`
+	MySQL    MySQL  `yaml:"mysql"`
+	JWT      JWT    `yaml:"jwt"`
+	Redis    Redis  `yaml:"redis"`
+	OSS      OSS    `yaml:"oss"`
+	Swagger  bool   `yaml:"swagger"`
 	Settings map[string]interface{}
 }
 
@@ -31,22 +28,6 @@ type MySQL struct {
 	MaxIdleConns int    `yaml:"maxIdleConns"`
 	MaxOpenConns int    `yaml:"maxOpenConns"`
 	MaxLifeTime  int    `yaml:"maxLifeTime"`
-}
-
-type Wechat struct {
-	CorpId  string `yaml:"corpId"`
-	AgentId int    `yaml:"agentId"`
-	Secret  string `yaml:"secret"`
-}
-
-type Feishu struct {
-	AppId     string `yaml:"appId"`
-	AppSecret string `yaml:"appSecret"`
-}
-
-type DingTalk struct {
-	AppKey    string `yaml:"appKey"`
-	AppSecret string `yaml:"appSecret"`
 }
 
 type Redis struct {

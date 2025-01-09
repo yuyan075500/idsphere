@@ -149,5 +149,5 @@ INSERT INTO `settings` VALUES (32, 'dingdingAppSecret', null, 'string');
 INSERT INTO `settings` VALUES (33, 'feishuAppId', null, 'string');
 INSERT INTO `settings` VALUES (34, 'feishuAppSecret', null, 'string');
 INSERT INTO `settings` VALUES (35, 'wechatCorpId', null, 'string');
-INSERT INTO `settings` VALUES (36, 'wechatAgentId', null, 'string');
+INSERT INTO `settings` VALUES (36, 'wechatAgentId', null, 'int');
 INSERT INTO `settings` VALUES (37, 'wechatSecret', null, 'string');
