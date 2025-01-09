@@ -626,7 +626,8 @@ func (u *user) Login(params *UserLogin) (token, redirectUri, application string,
 	}
 
 	// 判断系统是否启用MFA认证
-	if config.Conf.MFA.Enable {
+	mfaEnable := config.Conf.Settings["mfa"].(bool)
+	if mfaEnable {
 		token, nextPage, err := handleMFA(user)
 		if err != nil {
 			return "", "", "", nil, err
@@ -796,7 +797,10 @@ func (u *user) PasswordExpiredNotice() (map[string]interface{}, error) {
 // PasswordExpiredNoticeHTML 密码过期通知正文
 func PasswordExpiredNoticeHTML(name, username, expiredAt string) string {
 
-	externalUrl := config.Conf.Settings["externalUrl"].(string)
+	var (
+		externalUrl = config.Conf.Settings["externalUrl"].(string)
+		issuer      = config.Conf.Settings["issuer"].(string)
+	)
 
 	url := externalUrl
 	if url != "" && url[len(url)-1] != '/' {
@@ -821,5 +825,5 @@ func PasswordExpiredNoticeHTML(name, username, expiredAt string) string {
 			<p style="color: red">此邮件为系统自动发送，请不要回复此邮件。</p>
 		</body>
 		</html>
-	`, username, expiredAt, resetPasswordURL, config.Conf.MFA.Issuer)
+	`, username, expiredAt, resetPasswordURL, issuer)
 }

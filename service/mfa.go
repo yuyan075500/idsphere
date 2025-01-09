@@ -44,8 +44,9 @@ func (m *mfa) GetGoogleQrcode(token string) (image []byte, err error) {
 	}
 
 	// 创建TOTP
+	issuer := config.Conf.Settings["issuer"].(string)
 	key, err := totp.Generate(totp.GenerateOpts{
-		Issuer:      config.Conf.MFA.Issuer,
+		Issuer:      issuer,
 		AccountName: username,
 	})
 	if err != nil {

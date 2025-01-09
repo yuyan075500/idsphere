@@ -11,7 +11,6 @@ var Conf *Config
 // Config 配置文件结构体, 与YAML文件对应
 type Config struct {
 	Server   string   `yaml:"server"`
-	MFA      MFA      `yaml:"mfa"`
 	MySQL    MySQL    `yaml:"mysql"`
 	JWT      JWT      `yaml:"jwt"`
 	Redis    Redis    `yaml:"redis"`
@@ -42,11 +41,6 @@ type Mail struct {
 	SmtpPort int    `yaml:"smtpPort"`
 	From     string `yaml:"from"`
 	Password string `yaml:"password"`
-}
-
-type MFA struct {
-	Enable bool   `yaml:"enable"`
-	Issuer string `yaml:"issuer"`
 }
 
 type Wechat struct {
