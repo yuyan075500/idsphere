@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"github.com/wonderivan/logger"
 	"mime/multipart"
+	"ops-api/config"
 	"ops-api/dao"
 	"ops-api/db"
 	"ops-api/global"
 	"ops-api/model"
 	"ops-api/utils"
+	"ops-api/utils/mail"
 	"time"
 )
 
@@ -56,6 +58,19 @@ type SettingsUpdate struct {
 	WechatSecret               string `json:"wechatSecret"`
 	TokenExpiresTime           string `json:"tokenExpiresTime"`
 	Swagger                    string `json:"swagger"`
+}
+
+type MailTest struct {
+	Receiver string `json:"receiver" binding:"required"`
+}
+
+type SmsTest struct {
+	PhoneNumber string `json:"phone_number" binding:"required"`
+}
+
+type LoginTest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
 // GetAllSettingsWithParsedValues 获取所有配置
@@ -227,4 +242,52 @@ func (s *settings) UpdateSettingValues(data *SettingsUpdate) (map[string]interfa
 	}
 
 	return result, nil
+}
+
+// MailTest 发送邮件测试
+func (s *settings) MailTest(receiver string) error {
+
+	// 生成HTML内容
+	htmlBody := TestHTML()
+
+	time.Sleep(2 * time.Second)
+
+	// 发送
+	if err := mail.Email.SendMsg([]string{receiver}, nil, nil, "配置测试", htmlBody, "html"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// SmsTest 发送短信测试
+func (s *settings) SmsTest(receiver string) error {
+	return nil
+}
+
+// LoginTest LDAP 用户登录测试
+func (s *settings) LoginTest(username, password string) error {
+	return nil
+}
+
+func TestHTML() string {
+
+	issuer := config.Conf.Settings["issuer"].(string)
+
+	return fmt.Sprintf(`
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<title>测试</title>
+		</head>
+		<body>
+			<p>亲爱的同事：</p>
+			<p>恭喜您，收到此邮件表示系统邮件配置正确。</p>
+			<br>
+			<p>此致，<br>%s</p>
+			<p style="color: red">此邮件为测试邮件，请不要回复此邮件。</p>
+		</body>
+		</html>
+	`, issuer)
 }

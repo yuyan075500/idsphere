@@ -1310,6 +1310,111 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/settings/test/ldapLogin": {
+            "post": {
+                "description": "配置相接口",
+                "tags": [
+                    "配置相接口"
+                ],
+                "summary": "用户登录测试",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer 用户令牌",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "用户名密码",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.LoginTest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 0: \"msg\": \"登录成功\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/settings/test/mailSend": {
+            "post": {
+                "description": "配置相接口",
+                "tags": [
+                    "配置相接口"
+                ],
+                "summary": "发送测试邮件",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer 用户令牌",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "接收者邮箱",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.MailTest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 0: \"msg\": \"发送成功\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/settings/test/smsSend": {
+            "post": {
+                "description": "配置相接口",
+                "tags": [
+                    "配置相接口"
+                ],
+                "summary": "发送测试短信",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer 用户令牌",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "接收者手机号",
+                        "name": "task",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/service.SmsTest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 0: \"msg\": \"发送成功\"}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/site": {
             "put": {
                 "description": "站点相关接口",
@@ -2681,9 +2786,6 @@ const docTemplate = `{
                 "password": {
                     "type": "string"
                 },
-                "password_expired_at": {
-                    "type": "string"
-                },
                 "phone_number": {
                     "type": "string"
                 },
@@ -2731,9 +2833,6 @@ const docTemplate = `{
                 },
                 "is_active": {
                     "type": "boolean"
-                },
-                "password_expired_at": {
-                    "type": "string"
                 },
                 "phone_number": {
                     "type": "string"
@@ -3003,6 +3102,21 @@ const docTemplate = `{
                 }
             }
         },
+        "service.LoginTest": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "service.MFAValidate": {
             "type": "object",
             "required": [
@@ -3062,6 +3176,17 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "service.MailTest": {
+            "type": "object",
+            "required": [
+                "receiver"
+            ],
+            "properties": {
+                "receiver": {
                     "type": "string"
                 }
             }
@@ -3418,6 +3543,17 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
+                }
+            }
+        },
+        "service.SmsTest": {
+            "type": "object",
+            "required": [
+                "phone_number"
+            ],
+            "properties": {
+                "phone_number": {
+                    "type": "string"
                 }
             }
         },

@@ -17,5 +17,11 @@ func initSettingsRouters(router *gin.Engine) {
 		settings.GET("/logo", controller.Settings.GetLogo)
 		// 修改配置
 		settings.PUT("", controller.Settings.UpdateSettings)
+		// 发送邮箱测试
+		settings.POST("/test/mailSend", controller.Settings.SendMail)
+		// LDAP 登录测试
+		settings.POST("/test/ldapLogin", controller.Settings.LdapLogin)
+		// 发送短信测试
+		settings.POST("/test/smsSend", controller.Settings.SendSms)
 	}
 }

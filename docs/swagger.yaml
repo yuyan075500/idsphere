@@ -100,8 +100,6 @@ definitions:
         type: string
       password:
         type: string
-      password_expired_at:
-        type: string
       phone_number:
         type: string
       user_from:
@@ -138,8 +136,6 @@ definitions:
         type: integer
       is_active:
         type: boolean
-      password_expired_at:
-        type: string
       phone_number:
         type: string
       ww_id:
@@ -328,6 +324,16 @@ definitions:
     - id
     - users
     type: object
+  service.LoginTest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
   service.MFAValidate:
     properties:
       RelayState:
@@ -373,6 +379,13 @@ definitions:
     - code
     - token
     - username
+    type: object
+  service.MailTest:
+    properties:
+      receiver:
+        type: string
+    required:
+    - receiver
     type: object
   service.OAuthAuthorize:
     properties:
@@ -612,6 +625,13 @@ definitions:
     required:
     - id
     - users
+    type: object
+  service.SmsTest:
+    properties:
+      phone_number:
+        type: string
+    required:
+    - phone_number
     type: object
   service.TaskCreate:
     properties:
@@ -1592,6 +1612,75 @@ paths:
           schema:
             type: string
       summary: 上传 Logo
+      tags:
+      - 配置相接口
+  /api/v1/settings/test/ldapLogin:
+    post:
+      description: 配置相接口
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 用户名密码
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/service.LoginTest'
+      responses:
+        "200":
+          description: '{"code": 0: "msg": "登录成功"}'
+          schema:
+            type: string
+      summary: 用户登录测试
+      tags:
+      - 配置相接口
+  /api/v1/settings/test/mailSend:
+    post:
+      description: 配置相接口
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 接收者邮箱
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/service.MailTest'
+      responses:
+        "200":
+          description: '{"code": 0: "msg": "发送成功"}'
+          schema:
+            type: string
+      summary: 发送测试邮件
+      tags:
+      - 配置相接口
+  /api/v1/settings/test/smsSend:
+    post:
+      description: 配置相接口
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 接收者手机号
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/service.SmsTest'
+      responses:
+        "200":
+          description: '{"code": 0: "msg": "发送成功"}'
+          schema:
+            type: string
+      summary: 发送测试短信
       tags:
       - 配置相接口
   /api/v1/site:
