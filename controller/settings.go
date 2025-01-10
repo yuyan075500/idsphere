@@ -155,28 +155,21 @@ func (s *settings) SendMail(c *gin.Context) {
 // @Description 配置相接口
 // @Tags 配置相接口
 // @Param Authorization header string true "Bearer 用户令牌"
-// @Param task body service.SmsTest true "接收者手机号"
-// @Success 200 {string} json "{"code": 0: "msg": "发送成功"}"
+// @Success 200 {string} json "{"code": 0: "msg": "接口调用成功"}"
 // @Router /api/v1/settings/test/smsSend [post]
 func (s *settings) SendSms(c *gin.Context) {
 
-	var data = &service.SmsTest{}
+	// 获取当前登录用户的用户名
+	username, _ := c.Get("username")
 
-	// 数据绑定
-	if err := c.ShouldBind(&data); err != nil {
-		Response(c, 90400, err.Error())
-		return
-	}
-
-	// 测试
-	if err := service.Settings.SmsTest(data.PhoneNumber); err != nil {
+	if err := service.Settings.SmsTest(username.(string)); err != nil {
 		Response(c, 90500, err.Error())
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"code": 0,
-		"msg":  "发送成功",
+		"msg":  "接口调用成功",
 	})
 }
 

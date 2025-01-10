@@ -11,6 +11,7 @@ import (
 	"ops-api/model"
 	"ops-api/utils"
 	"ops-api/utils/mail"
+	message "ops-api/utils/sms"
 	"time"
 )
 
@@ -250,8 +251,6 @@ func (s *settings) MailTest(receiver string) error {
 	// 生成HTML内容
 	htmlBody := TestHTML()
 
-	time.Sleep(2 * time.Second)
-
 	// 发送
 	if err := mail.Email.SendMsg([]string{receiver}, nil, nil, "配置测试", htmlBody, "html"); err != nil {
 		return err
@@ -261,7 +260,29 @@ func (s *settings) MailTest(receiver string) error {
 }
 
 // SmsTest 发送短信测试
-func (s *settings) SmsTest(receiver string) error {
+func (s *settings) SmsTest(username string) error {
+
+	// 定义用户匹配条件
+	conditions := map[string]interface{}{
+		"username": username,
+	}
+
+	// 在本地数据库中查找匹配的用户
+	user, err := dao.User.GetUser(conditions)
+	if err != nil {
+		return err
+	}
+
+	// 发送短信
+	data := &message.SendData{
+		Note:        "测试",
+		PhoneNumber: user.PhoneNumber,
+		Username:    user.Username,
+	}
+	if _, err := SMS.SMSSend(data); err != nil {
+		return err
+	}
+
 	return nil
 }
 
