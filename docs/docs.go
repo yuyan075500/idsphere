@@ -1394,20 +1394,11 @@ const docTemplate = `{
                         "name": "Authorization",
                         "in": "header",
                         "required": true
-                    },
-                    {
-                        "description": "接收者手机号",
-                        "name": "task",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/service.SmsTest"
-                        }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "{\"code\": 0: \"msg\": \"发送成功\"}",
+                        "description": "{\"code\": 0: \"msg\": \"接口调用成功\"}",
                         "schema": {
                             "type": "string"
                         }
@@ -3543,17 +3534,6 @@ const docTemplate = `{
                     "items": {
                         "type": "integer"
                     }
-                }
-            }
-        },
-        "service.SmsTest": {
-            "type": "object",
-            "required": [
-                "phone_number"
-            ],
-            "properties": {
-                "phone_number": {
-                    "type": "string"
                 }
             }
         },

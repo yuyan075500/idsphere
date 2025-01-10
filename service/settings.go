@@ -288,6 +288,12 @@ func (s *settings) SmsTest(username string) error {
 
 // LoginTest LDAP 用户登录测试
 func (s *settings) LoginTest(username, password string) error {
+
+	// 认证测试
+	if _, err := AD.LDAPUserAuthentication(username, password); err != nil {
+		return err
+	}
+
 	return nil
 }
 
