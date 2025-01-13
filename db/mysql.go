@@ -63,16 +63,6 @@ func MySQLInit() error {
 
 	global.MySQLClient = client
 
-	// 初始化配置信息
-	if err := InitConfig(client); err != nil {
-		return err
-	}
-
-	// 创建超级用户
-	if err := createSuperUser(client); err != nil {
-		return err
-	}
-
 	// 初始化站点信息
 	if err := initializeSites(client); err != nil {
 		return err
@@ -80,6 +70,16 @@ func MySQLInit() error {
 
 	// 初始化基础数据
 	if err := initializeSQL(client); err != nil {
+		return err
+	}
+
+	// 初始化配置信息
+	if err := InitConfig(client); err != nil {
+		return err
+	}
+
+	// 创建超级用户
+	if err := createSuperUser(client); err != nil {
 		return err
 	}
 
