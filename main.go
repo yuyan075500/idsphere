@@ -17,6 +17,12 @@ func main() {
 	// 配置文件初始化
 	config.InitConfig()
 
+	// 初始化Minio
+	if err := db.MinioInit(); err != nil {
+		logger.Error("Minio初始化失败：", err.Error())
+		return
+	}
+
 	// 初始化MySQL
 	if err := db.MySQLInit(); err != nil {
 		logger.Error("MySQL初始化失败：", err.Error())
@@ -26,12 +32,6 @@ func main() {
 	// 初始Redis
 	if err := db.RedisInit(); err != nil {
 		logger.Error("Redis初始化失败：", err.Error())
-		return
-	}
-
-	// 初始化Minio
-	if err := db.MinioInit(); err != nil {
-		logger.Error("Minio初始化失败：", err.Error())
 		return
 	}
 
