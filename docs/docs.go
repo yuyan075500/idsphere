@@ -1251,32 +1251,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/api/v1/settings/logo": {
-            "get": {
-                "description": "配置相接口",
-                "tags": [
-                    "配置相接口"
-                ],
-                "summary": "获取 Logo",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Bearer 用户令牌",
-                        "name": "Authorization",
-                        "in": "header",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "{\"code\": 0, \"path\": logoPreview}",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/settings/logoUpload": {
             "post": {
                 "description": "配置相接口",
@@ -1303,6 +1277,58 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "{\"code\": 0, \"path\": logoPreview}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/settings/site/logo": {
+            "get": {
+                "description": "配置相接口",
+                "tags": [
+                    "配置相接口"
+                ],
+                "summary": "获取 Logo",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer 用户令牌",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 0, \"path\": logoPreview}",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/settings/test/certTest": {
+            "post": {
+                "description": "配置相接口",
+                "tags": [
+                    "配置相接口"
+                ],
+                "summary": "密钥测试",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer 用户令牌",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "{\"code\": 0: \"msg\": \"测试成功\"}",
                         "schema": {
                             "type": "string"
                         }

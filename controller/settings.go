@@ -40,7 +40,7 @@ func (s *settings) GetSettings(c *gin.Context) {
 // @Tags 配置相接口
 // @Param Authorization header string true "Bearer 用户令牌"
 // @Success 200 {string} json "{"code": 0, "path": logoPreview}"
-// @Router /api/v1/settings/logo [get]
+// @Router /api/v1/settings/site/logo [get]
 func (s *settings) GetLogo(c *gin.Context) {
 
 	logoPreview, err := service.Settings.GetLogo()
@@ -167,6 +167,20 @@ func (s *settings) SendSms(c *gin.Context) {
 		return
 	}
 
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"msg":  "接口调用成功",
+	})
+}
+
+// CertTest 密钥测试
+// @Summary 密钥测试
+// @Description 配置相接口
+// @Tags 配置相接口
+// @Param Authorization header string true "Bearer 用户令牌"
+// @Success 200 {string} json "{"code": 0: "msg": "测试成功"}"
+// @Router /api/v1/settings/test/certTest [post]
+func (s *settings) CertTest(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": 0,
 		"msg":  "接口调用成功",

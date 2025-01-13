@@ -1568,23 +1568,6 @@ paths:
       summary: 修改配置
       tags:
       - 配置相接口
-  /api/v1/settings/logo:
-    get:
-      description: 配置相接口
-      parameters:
-      - description: Bearer 用户令牌
-        in: header
-        name: Authorization
-        required: true
-        type: string
-      responses:
-        "200":
-          description: '{"code": 0, "path": logoPreview}'
-          schema:
-            type: string
-      summary: 获取 Logo
-      tags:
-      - 配置相接口
   /api/v1/settings/logoUpload:
     post:
       description: 配置相接口
@@ -1605,6 +1588,40 @@ paths:
           schema:
             type: string
       summary: 上传 Logo
+      tags:
+      - 配置相接口
+  /api/v1/settings/site/logo:
+    get:
+      description: 配置相接口
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{"code": 0, "path": logoPreview}'
+          schema:
+            type: string
+      summary: 获取 Logo
+      tags:
+      - 配置相接口
+  /api/v1/settings/test/certTest:
+    post:
+      description: 配置相接口
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      responses:
+        "200":
+          description: '{"code": 0: "msg": "测试成功"}'
+          schema:
+            type: string
+      summary: 密钥测试
       tags:
       - 配置相接口
   /api/v1/settings/test/ldapLogin:

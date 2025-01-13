@@ -22,7 +22,7 @@ INSERT INTO `system_sub_menu` VALUES (10, '系统配置', 'ConfManagement', 'sub
 INSERT INTO `system_path` VALUES (1, 'AddUser', '/api/v1/user', 'POST', 'UserManagement', '新增用户');
 INSERT INTO `system_path` VALUES (2, 'UpdateUser', '/api/v1/user', 'PUT', 'UserManagement', '修改用户');
 INSERT INTO `system_path` VALUES (3, 'UpdateUserPassword', '/api/v1/user/reset_password', 'PUT', 'UserManagement', '密码重置');
-INSERT INTO `system_path` VALUES (4, 'ResetUserMFA', '/api/v1/user/reset_mfa/:id', 'PUT', 'UserManagement', 'MAF重置');
+INSERT INTO `system_path` VALUES (4, 'ResetUserMFA', '/api/v1/user/reset_mfa/:id', 'PUT', 'UserManagement', 'MAF 重置');
 INSERT INTO `system_path` VALUES (5, 'DeleteUser', '/api/v1/user/:id', 'DELETE', 'UserManagement', '删除用户');
 INSERT INTO `system_path` VALUES (6, 'GetUserList', '/api/v1/users', 'GET', 'UserManagement', '获取用户列表（表格）');
 INSERT INTO `system_path` VALUES (7, 'UserSyncAd', '/api/v1/user/sync/ad', 'POST', 'UserManagement', '用户同步');
@@ -55,8 +55,9 @@ INSERT INTO `system_path` VALUES (33, 'UpdateTask', '/api/v1/task', 'PUT', 'Corn
 INSERT INTO `system_path` VALUES (34, 'DeleteTask', '/api/v1/task/:id', 'DELETE', 'CornManagement', '删除定时任务');
 INSERT INTO `system_path` VALUES (35, 'GetTaskLogList', '/api/v1/task/logs', 'GET', 'CornManagement', '获取定时任务执行日志列表');
 INSERT INTO `system_path` VALUES (36, 'GetSettings', '/api/v1/settings', 'GET', 'ConfManagement', '获取配置信息');
-INSERT INTO `system_path` VALUES (37, 'UpdateLogo', '/api/v1/settings/logoUpload', 'POST', 'ConfManagement', '修改 Logo');
-INSERT INTO `system_path` VALUES (38, 'UpdateSettings', '/api/v1/settings', 'PUT', 'ConfManagement', '修改配置信息');
+INSERT INTO `system_path` VALUES (37, 'UpdateSettings', '/api/v1/settings', 'PUT', 'ConfManagement', '修改配置信息');
+INSERT INTO `system_path` VALUES (38, 'UpdateLogo', '/api/v1/settings/logoUpload', 'POST', 'ConfManagement', '修改 Logo');
+INSERT INTO `system_path` VALUES (39, 'TestSettings', '/api/v1/settings/test/*', 'POST', 'ConfManagement', '测试');
 
 # 系统默认配置
 INSERT INTO `settings` VALUES (1, 'externalUrl', 'https://example.idsphere.cn', 'string');
