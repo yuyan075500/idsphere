@@ -178,12 +178,27 @@ func (s *settings) SendSms(c *gin.Context) {
 // @Description 配置相接口
 // @Tags 配置相接口
 // @Param Authorization header string true "Bearer 用户令牌"
+// @Param task body service.CertTest true "密钥信息"
 // @Success 200 {string} json "{"code": 0: "msg": "测试成功"}"
 // @Router /api/v1/settings/test/certTest [post]
 func (s *settings) CertTest(c *gin.Context) {
+
+	var data = &service.CertTest{}
+
+	// 数据绑定
+	if err := c.ShouldBind(&data); err != nil {
+		Response(c, 90400, err.Error())
+		return
+	}
+
+	if err := service.Settings.CertTest(data.Certificate, data.PrivateKey, data.PublicKey); err != nil {
+		Response(c, 90500, err.Error())
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"code": 0,
-		"msg":  "接口调用成功",
+		"msg":  "测试成功",
 	})
 }
 

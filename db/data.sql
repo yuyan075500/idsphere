@@ -57,7 +57,7 @@ INSERT INTO `system_path` VALUES (35, 'GetTaskLogList', '/api/v1/task/logs', 'GE
 INSERT INTO `system_path` VALUES (36, 'GetSettings', '/api/v1/settings', 'GET', 'ConfManagement', '获取配置信息');
 INSERT INTO `system_path` VALUES (37, 'UpdateSettings', '/api/v1/settings', 'PUT', 'ConfManagement', '修改配置信息');
 INSERT INTO `system_path` VALUES (38, 'UpdateLogo', '/api/v1/settings/logoUpload', 'POST', 'ConfManagement', '修改 Logo');
-INSERT INTO `system_path` VALUES (39, 'TestSettings', '/api/v1/settings/test/*', 'POST', 'ConfManagement', '测试');
+INSERT INTO `system_path` VALUES (39, 'TestSettings', '/api/v1/settings/test/*', 'POST', 'ConfManagement', '功能测试');
 
 # 系统默认配置
 INSERT INTO `settings` VALUES (1, 'externalUrl', 'https://example.idsphere.cn', 'string');

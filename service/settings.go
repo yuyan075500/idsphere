@@ -1,6 +1,10 @@
 package service
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
+	"errors"
 	"fmt"
 	"github.com/wonderivan/logger"
 	"mime/multipart"
@@ -72,6 +76,12 @@ type SmsTest struct {
 type LoginTest struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
+}
+
+type CertTest struct {
+	Certificate string `json:"certificate" binding:"required"`
+	PublicKey   string `json:"publicKey" binding:"required"`
+	PrivateKey  string `json:"privateKey" binding:"required"`
 }
 
 // GetAllSettingsWithParsedValues 获取所有配置
@@ -292,6 +302,73 @@ func (s *settings) LoginTest(username, password string) error {
 	// 认证测试
 	if _, err := AD.LDAPUserAuthentication(username, password); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// CertTest 密钥证书测试
+func (s *settings) CertTest(certificate, privateKey, publicKey string) error {
+
+	// 解析私钥
+	privateKeyBlock, _ := pem.Decode([]byte(privateKey))
+	if privateKeyBlock == nil || privateKeyBlock.Type != "PRIVATE KEY" {
+		return errors.New("无效的私钥")
+	}
+	privInterface, err := x509.ParsePKCS8PrivateKey(privateKeyBlock.Bytes)
+	if err != nil {
+		return errors.New(fmt.Sprintf("无效的私钥: %v", err))
+	}
+
+	// 确保私钥为 RSA
+	priv, ok := privInterface.(*rsa.PrivateKey)
+	if !ok {
+		return errors.New("私钥不是 RSA 类型")
+	}
+
+	// 解析公钥
+	publicKeyBlock, _ := pem.Decode([]byte(publicKey))
+	if publicKeyBlock == nil {
+		return errors.New("无效的公钥")
+	}
+	pubInterface, err := x509.ParsePKIXPublicKey(publicKeyBlock.Bytes)
+	if err != nil {
+		return errors.New(fmt.Sprintf("无效的公钥: %v", err))
+	}
+
+	// 确保公钥为 RSA
+	pub, ok := pubInterface.(*rsa.PublicKey)
+	if !ok {
+		return errors.New("公钥不是 RSA 类型")
+	}
+
+	// 验证私钥和公钥是否匹配
+	privPub := priv.Public()
+	privPubKey, ok := privPub.(*rsa.PublicKey)
+	if !ok {
+		return errors.New(fmt.Sprintf("无法从私钥中提取公钥: %v", err))
+	}
+	if privPubKey.N.Cmp(pub.N) != 0 || privPubKey.E != pub.E {
+		return errors.New("私钥和公钥不匹配")
+	}
+
+	// 解析证书
+	certBlock, _ := pem.Decode([]byte(certificate))
+	if certBlock == nil || certBlock.Type != "CERTIFICATE" {
+		return errors.New("无效的证书")
+	}
+	cert, err := x509.ParseCertificate(certBlock.Bytes)
+	if err != nil {
+		return errors.New(fmt.Sprintf("无效的证书: %v", err))
+	}
+
+	// 验证证书中的公钥是否匹配
+	certPub, ok := cert.PublicKey.(*rsa.PublicKey)
+	if !ok {
+		return errors.New("证书中提取的公钥类型不是 RSA")
+	}
+	if certPub.N.Cmp(pub.N) != 0 || certPub.E != pub.E {
+		return errors.New("证书中提取的公钥和提供的公钥不匹配")
 	}
 
 	return nil
