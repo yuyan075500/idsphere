@@ -17,6 +17,8 @@ func initSettingsRouters(router *gin.Engine) {
 		settings.GET("/site/logo", controller.Settings.GetLogo)
 		// 修改配置
 		settings.PUT("", controller.Settings.UpdateSettings)
+		// 证书替换
+		settings.PUT("/cert", controller.Settings.CertUpdate)
 		// 发送邮箱测试
 		settings.POST("/test/mailSend", controller.Settings.SendMail)
 		// LDAP 登录测试

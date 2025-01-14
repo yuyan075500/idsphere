@@ -39,9 +39,6 @@ type SettingsUpdate struct {
 	PasswordLength             string `json:"passwordLength"`
 	PasswordComplexity         string `json:"passwordComplexity"`
 	PasswordExpiryReminderDays string `json:"passwordExpiryReminderDays"`
-	Certificate                string `json:"certificate"`
-	PublicKey                  string `json:"publicKey"`
-	PrivateKey                 string `json:"privateKey"`
 	MailAddress                string `json:"mailAddress"`
 	MailPort                   string `json:"mailPort"`
 	MailForm                   string `json:"mailForm"`
@@ -184,9 +181,6 @@ func (s *settings) UpdateSettingValues(data *SettingsUpdate) (map[string]interfa
 		"passwordLength":             data.PasswordLength,
 		"passwordComplexity":         data.PasswordComplexity,
 		"passwordExpiryReminderDays": data.PasswordExpiryReminderDays,
-		"certificate":                data.Certificate,
-		"publicKey":                  data.PublicKey,
-		"privateKey":                 data.PrivateKey,
 		"mailAddress":                data.MailAddress,
 		"mailPort":                   data.MailPort,
 		"mailForm":                   data.MailForm,
@@ -372,6 +366,136 @@ func (s *settings) CertTest(certificate, privateKey, publicKey string) error {
 	}
 
 	return nil
+}
+
+// CertUpdate 证书及密钥更新
+func (s *settings) CertUpdate(certificate, privateKey, publicKey string) (map[string]interface{}, error) {
+
+	var (
+		settingsToUpdate = map[string]interface{}{
+			"certificate": certificate,
+			"publicKey":   publicKey,
+			"privateKey":  privateKey,
+		}
+		authUsers []model.AuthUser
+		accounts  []model.Account
+		settings  []model.Settings
+		keys      = []string{"ldapBindPassword", "mailPassword", "smsAppSecret", "dingdingAppSecret", "feishuAppSecret", "wechatSecret"}
+	)
+
+	// 开启事务
+	tx := global.MySQLClient.Begin()
+
+	// 用户密码更新
+	if err := global.MySQLClient.Find(&authUsers).Error; err != nil {
+		return nil, err
+	}
+	for _, user := range authUsers {
+		// 获取明文密码
+		plaintext, err := utils.Decrypt(user.Password)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		// 使用新密钥加密
+		newCiphertext, err := utils.EncryptWithPublicKey(plaintext, publicKey)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		// 保存
+		if err := tx.Model(&user).Where("id = ?", user.ID).Updates(map[string]interface{}{"password": newCiphertext}).Error; err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+
+	// 账号资产密码更新
+	if err := global.MySQLClient.Find(&accounts).Error; err != nil {
+		return nil, err
+
+	}
+	for _, account := range accounts {
+		// 获取明文密码
+		plaintext, err := utils.Decrypt(account.Password)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		// 使用新密钥加密
+		newCiphertext, err := utils.EncryptWithPublicKey(plaintext, publicKey)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+
+		// 保存
+		if err := tx.Model(&account).Where("id = ?", account.ID).Updates(map[string]interface{}{"password": newCiphertext}).Error; err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+
+	// 配置信息加密数据更新
+	if err := global.MySQLClient.Where("`key` IN ?", keys).Find(&settings).Error; err != nil {
+		return nil, err
+	}
+	for _, setting := range settings {
+
+		// 未配置则跳过
+		if setting.Value == nil {
+			continue
+		}
+
+		// 解密当前值
+		plaintext, err := utils.Decrypt(*setting.Value)
+		if err != nil {
+			tx.Rollback()
+			return nil, errors.New(fmt.Sprintf("failed to decrypt value for key %v: %v", setting.Key, err))
+		}
+
+		// 重新加密
+		newCiphertext, err := utils.EncryptWithPublicKey(plaintext, publicKey)
+		if err != nil {
+			tx.Rollback()
+			return nil, errors.New(fmt.Sprintf("failed to decrypt value for key %v: %v", setting.Key, err))
+		}
+
+		// 更新值
+		setting.Value = &newCiphertext
+		if err := tx.Save(&setting).Error; err != nil {
+			tx.Rollback()
+			return nil, err
+		}
+	}
+
+	for key, value := range settingsToUpdate {
+		strValue := fmt.Sprintf("%v", value)
+		settingsToUpdate[key] = strValue
+	}
+
+	// 证书及密钥配置更新
+	result, err := dao.Settings.UpdateSettings(tx, settingsToUpdate)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 提交事务
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	// 重新加载配置
+	if err := db.InitConfig(global.MySQLClient); err != nil {
+		logger.Warn("配置加载失败：" + err.Error())
+	}
+
+	return result, nil
 }
 
 func TestHTML() string {

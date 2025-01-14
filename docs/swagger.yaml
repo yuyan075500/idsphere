@@ -180,6 +180,19 @@ definitions:
     - service
     - ticket
     type: object
+  service.CertTest:
+    properties:
+      certificate:
+        type: string
+      privateKey:
+        type: string
+      publicKey:
+        type: string
+    required:
+    - certificate
+    - privateKey
+    - publicKey
+    type: object
   service.CodeVerification:
     properties:
       code:
@@ -471,8 +484,6 @@ definitions:
     type: object
   service.SettingsUpdate:
     properties:
-      certificate:
-        type: string
       dingdingAppKey:
         type: string
       dingdingAppSecret:
@@ -514,10 +525,6 @@ definitions:
       passwordExpiryReminderDays:
         type: string
       passwordLength:
-        type: string
-      privateKey:
-        type: string
-      publicKey:
         type: string
       secret:
         type: string
@@ -1568,6 +1575,29 @@ paths:
       summary: 修改配置
       tags:
       - 配置相接口
+  /api/v1/settings/cert:
+    put:
+      description: 配置相接口
+      parameters:
+      - description: Bearer 用户令牌
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: 密钥信息
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/service.CertTest'
+      responses:
+        "200":
+          description: '{"code": 0: "msg": "更新成功"}'
+          schema:
+            type: string
+      summary: 密钥及证书替换
+      tags:
+      - 配置相接口
   /api/v1/settings/logoUpload:
     post:
       description: 配置相接口
@@ -1616,12 +1646,18 @@ paths:
         name: Authorization
         required: true
         type: string
+      - description: 密钥信息
+        in: body
+        name: task
+        required: true
+        schema:
+          $ref: '#/definitions/service.CertTest'
       responses:
         "200":
           description: '{"code": 0: "msg": "测试成功"}'
           schema:
             type: string
-      summary: 密钥测试
+      summary: 密钥及证书测试
       tags:
       - 配置相接口
   /api/v1/settings/test/ldapLogin:
