@@ -1,6 +1,4 @@
 server: "0.0.0.0:8000"
-externalUrl: "http://192.168.200.21"
-secret: "swfqezjzoqssvjck"
 mysql:
   host: "mysql"
   port: 3306
@@ -14,47 +12,9 @@ redis:
   host: "redis:6379"
   password: "o0qYcTrt"
   db: 0
-jwt:
-  expires: 6
-mfa:
-  enable: false
-  issuer: "IDSphere 统一认证中心"
 oss:
   endpoint: "192.168.200.21:9000"
   accessKey: "mXBbXV8nhjmLs8Ho"
   secretKey: "Zicc4ifKsX8dGwZHwro1"
   bucketName: "ops-api"
   ssl: false
-ldap:
-  host: ""
-  bindUserDN: ""
-  bindUserPassword: ""
-  searchDN: ""
-  userAttribute: "uid"
-  maxPasswordAge: 90
-sms:
-  provider: ""
-  url: ""
-  appKey: ""
-  appSecret: ""
-  callbackUrl: ""
-  resetPassword:
-    sender: ""
-    templateId: ""
-    signature: ""
-mail:
-  smtpHost: ""
-  smtpPort: 587
-  from: ""
-  password: ""
-dingTalk:
-  appKey: ""
-  appSecret: ""
-wechat:
-  corpId: ""
-  agentId: ""
-  secret: ""
-feishu:
-  appId: ""
-  appSecret: ""
-swagger: true
