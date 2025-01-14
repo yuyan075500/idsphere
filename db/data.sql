@@ -55,9 +55,10 @@ INSERT INTO `system_path` VALUES (33, 'UpdateTask', '/api/v1/task', 'PUT', 'Corn
 INSERT INTO `system_path` VALUES (34, 'DeleteTask', '/api/v1/task/:id', 'DELETE', 'CornManagement', '删除定时任务');
 INSERT INTO `system_path` VALUES (35, 'GetTaskLogList', '/api/v1/task/logs', 'GET', 'CornManagement', '获取定时任务执行日志列表');
 INSERT INTO `system_path` VALUES (36, 'GetSettings', '/api/v1/settings', 'GET', 'ConfManagement', '获取配置信息');
-INSERT INTO `system_path` VALUES (37, 'UpdateSettings', '/api/v1/settings*', 'PUT', 'ConfManagement', '修改配置信息');
-INSERT INTO `system_path` VALUES (38, 'UpdateLogo', '/api/v1/settings/logoUpload', 'POST', 'ConfManagement', '修改 Logo');
-INSERT INTO `system_path` VALUES (39, 'TestSettings', '/api/v1/settings/test/*', 'POST', 'ConfManagement', '功能测试');
+INSERT INTO `system_path` VALUES (37, 'UpdateSettings', '/api/v1/settings*', 'PUT', 'ConfManagement', '基本配置更新');
+INSERT INTO `system_path` VALUES (38, 'UpdateCert', '/api/v1/settings/cert', 'PUT', 'ConfManagement', '证书密钥更新');
+INSERT INTO `system_path` VALUES (39, 'UpdateLogo', '/api/v1/settings/logoUpload', 'POST', 'ConfManagement', '修改 Logo');
+INSERT INTO `system_path` VALUES (40, 'TestSettings', '/api/v1/settings/test/*', 'POST', 'ConfManagement', '功能测试');
 
 # 系统默认配置
 INSERT INTO `settings` VALUES (1, 'externalUrl', 'https://example.idsphere.cn', 'string');
