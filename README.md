@@ -73,9 +73,9 @@
 * 支持用户密码自助更改：部署成功后访问地址：`/reset_password`，无需要登录。
 * 支持企业网站导航：部署成功后访问地址：`/sites`，无需要登录。
 # 项目部署
-参考 [Docker Compose部署](https://github.com/yuyan075500/idsphere/wiki/%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2#docker-compose-%E9%83%A8%E7%BD%B2 "docker-compose部署") 和 [Kubernetes部署](https://github.com/yuyan075500/idsphere/wiki/%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2#kubernetes-%E9%83%A8%E7%BD%B2 "Kubernetes部署")。
+参考 [Docker Compose部署](https://github.com/yuyan075500/idsphere/wiki/2%E3%80%81%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2#docker-compose-%E9%83%A8%E7%BD%B2 "docker-compose部署") 和 [Kubernetes部署](https://github.com/yuyan075500/idsphere/wiki/2%E3%80%81%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2#kubernetes-%E9%83%A8%E7%BD%B2 "Kubernetes部署")。
 # 开发环境搭建
-参考 [开发环境搭建](https://github.com/yuyan075500/idsphere/wiki/%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA "开发环境搭建")。
+参考 [开发环境搭建](https://github.com/yuyan075500/idsphere/wiki/3%E3%80%81%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E6%90%AD%E5%BB%BA "开发环境搭建")。
 # 项目交流
 如果你对此项目感兴趣，可添加作者联系方式
 WeChat：270142877。  
