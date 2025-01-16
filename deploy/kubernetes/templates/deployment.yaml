@@ -30,15 +30,6 @@ spec:
             - name: config
               mountPath: /app/config/config.yaml
               subPath: config.yaml
-            - name: config
-              mountPath: /data/certs/private.key
-              subPath: private.key
-            - name: config
-              mountPath: /data/certs/public.key
-              subPath: public.key
-            - name: config
-              mountPath: /data/certs/certificate.crt
-              subPath: certificate.crt
           imagePullPolicy: Always
       restartPolicy: Always
 

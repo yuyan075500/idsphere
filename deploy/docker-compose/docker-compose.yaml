@@ -57,9 +57,6 @@ services:
       - ops_network
     volumes:
       - ./conf/config.yaml:/app/config/config.yaml
-      - ./certs/certificate.crt:/data/certs/certificate.crt
-      - ./certs/private.key:/data/certs/private.key
-      - ./certs/public.key:/data/certs/public.key
   ops-web:
     image: ${OPS_WEB_IMAGE}:${OPS_WEB_VERSION}
     container_name: ops-web
