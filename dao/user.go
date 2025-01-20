@@ -233,6 +233,28 @@ func (u *user) SyncUsers(users []*model.AuthUser) (err error) {
 				continue
 			}
 		}
+
+		// 获取当前数据库中所有来源为 LDAP 的用户
+		var localLDAPUsers []model.AuthUser
+		if err := tx.Where("user_from = ?", "LDAP").Find(&localLDAPUsers).Error; err != nil {
+			return err
+		}
+
+		// 提取传入的 LDAP 用户名集合
+		usernamesFromInput := make(map[string]bool)
+		for _, user := range users {
+			usernamesFromInput[user.Username] = true
+		}
+
+		// 禁用本地存在但不在传入列表中的 LDAP 用户
+		for _, localUser := range localLDAPUsers {
+			if !usernamesFromInput[localUser.Username] {
+				if err := tx.Model(&localUser).Update("is_active", false).Error; err != nil {
+					return err
+				}
+			}
+		}
+
 		return nil
 	}); err != nil {
 		return err
