@@ -271,6 +271,9 @@ func (u *user) UpdateUser(user *model.AuthUser, data *UserUpdate) (*model.AuthUs
 	if *data.WwId == "" {
 		userinfo.WwId = nil
 	}
+	if *data.CtyunId == "" {
+		userinfo.CtyunId = nil
+	}
 
 	// 当is_active=0，需要使用Select选中对应字段进行更新，否则无法设置为0
 	if err := global.MySQLClient.Model(user).Select("*").Updates(data).Error; err != nil {
