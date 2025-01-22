@@ -51,8 +51,8 @@ func (client *DingTalkClient) GetUserAccessToken(code string) (userAccessToken s
 	appSecret, _ := utils.Decrypt(dingdingAppSecret)
 
 	request := &dingtalkoauth2_1_0.GetUserTokenRequest{
-		ClientSecret: tea.String(dingdingAppKey),
-		ClientId:     tea.String(appSecret),
+		ClientSecret: tea.String(appSecret),
+		ClientId:     tea.String(dingdingAppKey),
 		Code:         tea.String(code),
 		GrantType:    tea.String("authorization_code"),
 	}
