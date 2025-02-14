@@ -56,6 +56,7 @@ func main() {
 		IgnorePaths("/api/auth/login").
 		IgnorePaths("/health").
 		IgnorePaths("/swagger/").
+		IgnorePaths("/debug/pprof/").
 		IgnorePaths("/api/v1/sms/huawei/callback").
 		IgnorePaths("/api/v1/sms/reset_password").
 		IgnorePaths("/api/v1/reset_password").

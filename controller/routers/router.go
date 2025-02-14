@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -21,6 +22,9 @@ func (r *router) InitRouter(router *gin.Engine) {
 		docs.SwaggerInfo.BasePath = ""
 		router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 	}
+
+	// 注册 pprof 路由
+	pprof.Register(router)
 
 	// 初始化不同类型路由
 	initUserRouters(router)
