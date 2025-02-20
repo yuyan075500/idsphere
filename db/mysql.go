@@ -6,6 +6,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	logger2 "gorm.io/gorm/logger"
+	"gorm.io/plugin/prometheus"
 	"ops-api/config"
 	"ops-api/global"
 	"ops-api/model"
@@ -31,6 +32,17 @@ func MySQLInit() error {
 		Logger: logger2.Default.LogMode(logger2.Silent),
 	})
 	if err != nil {
+		return err
+	}
+
+	// 启动 Prometheus GORM 监控
+	if err := client.Use(prometheus.New(prometheus.Config{
+		DBName:          "IDSphere",
+		RefreshInterval: 5,    // 指标刷新频率（单位：秒）
+		StartServer:     true, // 启用一个 HTTP 服务来暴露指标
+		HTTPServerPort:  8080, // 配置 HTTP 服务监听端口
+	})); err != nil {
+		logger.Error("启动 Prometheus GORM 监控失败：", err.Error())
 		return err
 	}
 
