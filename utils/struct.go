@@ -15,6 +15,8 @@ var excludedFields = map[string]struct{}{
 	"dingdingAppSecret": {},
 	"feishuAppSecret":   {},
 	"wechatSecret":      {},
+	"access_key":        {},
+	"secret_key":        {},
 }
 
 // FilterFields 递归过滤敏感字段
