@@ -4,11 +4,20 @@ import (
 	"ops-api/dao"
 	"ops-api/model"
 	"ops-api/utils"
+	"time"
 )
 
 var Domain domain
 
 type domain struct{}
+
+// DomainCreate 创建域名数据结构体
+type DomainCreate struct {
+	Name                    string     `json:"name" binding:"required"`
+	RegistrationAt          *time.Time `json:"registration_at" binding:"required"`
+	ExpirationAt            *time.Time `json:"expiration_at" binding:"required"`
+	DomainServiceProviderID uint       `json:"domain_service_provider_id" binding:"required"`
+}
 
 // DomainServiceProviderCreate 创建域名服务商数据结构体
 type DomainServiceProviderCreate struct {
@@ -73,4 +82,32 @@ func (d *domain) UpdateDomainServiceProviderList(data *dao.ProviderUpdate) (*mod
 // GetDomainServiceProviderList 获取域名服务商列表
 func (d *domain) GetDomainServiceProviderList() ([]model.DomainServiceProvider, error) {
 	return dao.Domain.GetDomainServiceProviderList()
+}
+
+// AddDomain 创建域名
+func (d *domain) AddDomain(data *DomainCreate) (res *model.Domain, err error) {
+
+	domain := &model.Domain{
+		Name:                    data.Name,
+		RegistrationAt:          data.RegistrationAt,
+		ExpirationAt:            data.ExpirationAt,
+		DomainServiceProviderID: data.DomainServiceProviderID,
+	}
+
+	return dao.Domain.AddDomain(domain)
+}
+
+// DeleteDomain 删除域名
+func (d *domain) DeleteDomain(id int) (err error) {
+	return dao.Domain.DeleteDomain(id)
+}
+
+// UpdateDomain 更新域名
+func (d *domain) UpdateDomain(data *dao.DomainUpdate) (*model.Domain, error) {
+	return dao.Domain.UpdateDomain(data)
+}
+
+// GetDomainList 获取域名列表
+func (d *domain) GetDomainList(name string, page, limit int) (data *dao.DomainList, err error) {
+	return dao.Domain.GetDomainList(name, page, limit)
 }

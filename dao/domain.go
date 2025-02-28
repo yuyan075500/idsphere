@@ -1,13 +1,30 @@
 package dao
 
 import (
+	"gorm.io/gorm"
 	"ops-api/global"
 	"ops-api/model"
+	"time"
 )
 
 var Domain domain
 
 type domain struct{}
+
+// DomainList 返回给前端表格的数据结构体
+type DomainList struct {
+	Items []*model.Domain `json:"items"`
+	Total int64           `json:"total"`
+}
+
+// DomainUpdate 更新域名结构体
+type DomainUpdate struct {
+	ID                      uint       `json:"id" binding:"required"`
+	Name                    string     `json:"name" binding:"required"`
+	RegistrationAt          *time.Time `json:"registration_at" binding:"required"`
+	ExpirationAt            *time.Time `json:"expiration_at" binding:"required"`
+	DomainServiceProviderID uint       `json:"domain_service_provider_id" binding:"required"`
+}
 
 // ProviderUpdate 更新域名服务商结构体
 type ProviderUpdate struct {
@@ -62,4 +79,61 @@ func (d *domain) GetDomainServiceProviderList() ([]model.DomainServiceProvider, 
 	}
 
 	return providers, nil
+}
+
+// AddDomain 新增域名
+func (d *domain) AddDomain(data *model.Domain) (provider *model.Domain, err error) {
+	if err := global.MySQLClient.Create(&data).Error; err != nil {
+		return nil, err
+	}
+	return provider, nil
+}
+
+// DeleteDomain 删除域名
+func (d *domain) DeleteDomain(id int) (err error) {
+	return global.MySQLClient.Where("id = ?", id).Unscoped().Delete(&model.Domain{}).Error
+}
+
+// UpdateDomain 修改域名
+func (d *domain) UpdateDomain(data *DomainUpdate) (*model.Domain, error) {
+
+	domain := &model.Domain{}
+
+	if err := global.MySQLClient.Model(domain).Select("*").Where("id = ?", data.ID).Updates(data).Error; err != nil {
+		return nil, err
+	}
+
+	// 查询更新后的账号信息并返回
+	if err := global.MySQLClient.First(domain, data.ID).Error; err != nil {
+		return nil, err
+	}
+	return domain, nil
+}
+
+// GetDomainList 获取域名列表
+func (d *domain) GetDomainList(name string, page, limit int) (*DomainList, error) {
+
+	var (
+		startSet = (page - 1) * limit
+		domains  []*model.Domain
+		total    int64
+	)
+
+	if err := global.MySQLClient.
+		Model(&model.Domain{}).
+		Preload("DomainServiceProvider", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, name")
+		}).
+		Where("name like ?", "%"+name+"%").
+		Count(&total).
+		Limit(limit).
+		Offset(startSet).
+		Find(&domains).Error; err != nil {
+		return nil, err
+	}
+
+	return &DomainList{
+		Items: domains,
+		Total: total,
+	}, nil
 }
