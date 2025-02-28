@@ -108,6 +108,6 @@ func (d *domain) UpdateDomain(data *dao.DomainUpdate) (*model.Domain, error) {
 }
 
 // GetDomainList 获取域名列表
-func (d *domain) GetDomainList(name string, page, limit int) (data *dao.DomainList, err error) {
-	return dao.Domain.GetDomainList(name, page, limit)
+func (d *domain) GetDomainList(name string, providerId uint, page, limit int) (data *dao.DomainList, err error) {
+	return dao.Domain.GetDomainList(name, providerId, page, limit)
 }

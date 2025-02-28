@@ -1,9 +1,11 @@
 package dao
 
 import (
+	"errors"
 	"gorm.io/gorm"
 	"ops-api/global"
 	"ops-api/model"
+	"ops-api/utils"
 	"time"
 )
 
@@ -45,7 +47,13 @@ func (d *domain) AddDomainServiceProvider(data *model.DomainServiceProvider) (pr
 
 // DeleteDomainServiceProvider 删除域名服务商
 func (d *domain) DeleteDomainServiceProvider(id int) (err error) {
-	return global.MySQLClient.Where("id = ?", id).Unscoped().Delete(&model.DomainServiceProvider{}).Error
+	if err := global.MySQLClient.Where("id = ?", id).Unscoped().Delete(&model.DomainServiceProvider{}).Error; err != nil {
+		if utils.IsForeignKeyConstraintError(err) {
+			return errors.New("请确保服务商下不存在域名")
+		}
+		return err
+	}
+	return nil
 }
 
 // UpdateDomainServiceProvider 修改域名服务商
@@ -111,24 +119,26 @@ func (d *domain) UpdateDomain(data *DomainUpdate) (*model.Domain, error) {
 }
 
 // GetDomainList 获取域名列表
-func (d *domain) GetDomainList(name string, page, limit int) (*DomainList, error) {
-
+func (d *domain) GetDomainList(name string, providerId uint, page, limit int) (*DomainList, error) {
 	var (
 		startSet = (page - 1) * limit
 		domains  []*model.Domain
 		total    int64
 	)
 
-	if err := global.MySQLClient.
-		Model(&model.Domain{}).
+	// 初始化查询
+	query := global.MySQLClient.Model(&model.Domain{}).
 		Preload("DomainServiceProvider", func(db *gorm.DB) *gorm.DB {
 			return db.Select("id, name")
-		}).
-		Where("name like ?", "%"+name+"%").
-		Count(&total).
-		Limit(limit).
-		Offset(startSet).
-		Find(&domains).Error; err != nil {
+		}).Where("name LIKE ?", "%"+name+"%")
+
+	// 过滤服务商
+	if providerId != 0 {
+		query = query.Where("domain_service_provider_id = ?", providerId)
+	}
+
+	// 执行查询
+	if err := query.Count(&total).Limit(limit).Offset(startSet).Find(&domains).Error; err != nil {
 		return nil, err
 	}
 

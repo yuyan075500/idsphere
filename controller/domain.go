@@ -195,9 +195,10 @@ func (d *domain) UpdateDomain(c *gin.Context) {
 func (d *domain) GetDomainList(c *gin.Context) {
 
 	params := new(struct {
-		Name  string `form:"name"`
-		Page  int    `form:"page" binding:"required"`
-		Limit int    `form:"limit" binding:"required"`
+		Name       string `form:"name"`
+		ProviderId uint   `form:"provider_id"`
+		Page       int    `form:"page" binding:"required"`
+		Limit      int    `form:"limit" binding:"required"`
 	})
 
 	if err := c.Bind(params); err != nil {
@@ -205,7 +206,7 @@ func (d *domain) GetDomainList(c *gin.Context) {
 		return
 	}
 
-	data, err := service.Domain.GetDomainList(params.Name, params.Page, params.Limit)
+	data, err := service.Domain.GetDomainList(params.Name, params.ProviderId, params.Page, params.Limit)
 	if err != nil {
 		Response(c, 90500, err.Error())
 		return
