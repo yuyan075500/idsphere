@@ -89,12 +89,69 @@ func (d *domain) GetDomainServiceProviderList() ([]model.DomainServiceProvider, 
 	return providers, nil
 }
 
+// GetDomainServiceProviderForID 根据 ID 获取域名服务商量
+func (d *domain) GetDomainServiceProviderForID(id int) (*model.DomainServiceProvider, error) {
+	var provider model.DomainServiceProvider
+	if err := global.MySQLClient.First(&provider, id).Error; err != nil {
+		return nil, err
+	}
+	return &provider, nil
+}
+
 // AddDomain 新增域名
 func (d *domain) AddDomain(data *model.Domain) (provider *model.Domain, err error) {
 	if err := global.MySQLClient.Create(&data).Error; err != nil {
 		return nil, err
 	}
 	return provider, nil
+}
+
+// SyncDomains 同步域名
+func (d *domain) SyncDomains(domains []*model.Domain) error {
+	return global.MySQLClient.Transaction(func(tx *gorm.DB) error {
+		for _, result := range domains {
+			// 查找当前服务商下是否已存在相同的域名
+			var existing model.Domain
+			if err := tx.Where("name = ? AND domain_service_provider_id = ?", result.Name, result.DomainServiceProviderID).First(&existing).Error; err != nil {
+				if errors.Is(err, gorm.ErrRecordNotFound) {
+					// 不存在则创建
+					if err := tx.Create(result).Error; err != nil {
+						return err
+					}
+				} else {
+					return err
+				}
+			} else {
+				// 存在则更新
+				if err := tx.Model(&existing).Updates(map[string]interface{}{
+					"registration_at": result.RegistrationAt,
+					"expiration_at":   result.ExpirationAt,
+				}).Error; err != nil {
+					return err
+				}
+			}
+		}
+
+		// 生成一个所有域名的名称列表
+		var domainNames []string
+		for _, result := range domains {
+			domainNames = append(domainNames, result.Name)
+		}
+
+		// 删除数据库中多余的域名记录
+		if len(domainNames) > 0 {
+			if err := tx.Where("name NOT IN (?)", domainNames).Delete(&model.Domain{}).Error; err != nil {
+				return err
+			}
+		} else {
+			// 如果为空，删除所有数据
+			if err := tx.Delete(&model.Domain{}).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
 }
 
 // DeleteDomain 删除域名
@@ -146,4 +203,13 @@ func (d *domain) GetDomainList(name string, providerId uint, page, limit int) (*
 		Items: domains,
 		Total: total,
 	}, nil
+}
+
+// GetDomainForID 根据 ID 获取域名
+func (d *domain) GetDomainForID(id uint) (*model.Domain, error) {
+	var result model.Domain
+	if err := global.MySQLClient.Preload("DomainServiceProvider").First(&result, id).Error; err != nil {
+		return nil, err
+	}
+	return &result, nil
 }

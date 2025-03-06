@@ -34,5 +34,11 @@ func initDomainRouters(router *gin.Engine) {
 
 		// 修改域名
 		domain.PUT("", controller.Domain.UpdateDomain)
+
+		// 同步域名
+		domain.POST("/sync", controller.Domain.SyncDomain)
+
+		// 获取域名DNS解析列表
+		domain.GET("/dns", controller.Domain.GetDomainDnsList)
 	}
 }

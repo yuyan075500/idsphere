@@ -189,6 +189,7 @@ func (d *domain) UpdateDomain(c *gin.Context) {
 // @Param Authorization header string true "Bearer 用户令牌"
 // @Param page query int true "分页"
 // @Param limit query int true "分页大小"
+// @Param provider_id query int false "域名服务提供商"
 // @Param name query string false "域名信息"
 // @Success 200 {string} json "{"code": 0, "data": []}"
 // @Router /api/v1/domains [get]
@@ -207,6 +208,72 @@ func (d *domain) GetDomainList(c *gin.Context) {
 	}
 
 	data, err := service.Domain.GetDomainList(params.Name, params.ProviderId, params.Page, params.Limit)
+	if err != nil {
+		Response(c, 90500, err.Error())
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"code": 0,
+		"data": data,
+	})
+}
+
+// SyncDomain 同步域名
+// @Summary 同步域名
+// @Description 域名相关
+// @Tags 域名管理
+// @Accept application/json
+// @Produce application/json
+// @Param provider_id query int true "域名服务提供商ID"
+// @Param Authorization header string true "Bearer 用户令牌"
+// @Success 200 {string} json "{"code": 0, "msg": "同步完成"}"
+// @Router /api/v1/domain/sync [post]
+func (d *domain) SyncDomain(c *gin.Context) {
+
+	params := new(struct {
+		ProviderId uint `form:"provider_id" binding:"required"`
+	})
+
+	if err := c.Bind(params); err != nil {
+		Response(c, 90400, err.Error())
+		return
+	}
+
+	if err := service.Domain.SyncDomain(params.ProviderId); err != nil {
+		Response(c, 90500, err.Error())
+		return
+	}
+
+	Response(c, 0, "同步完成")
+}
+
+// GetDomainDnsList 获取域名DNS解析列表
+// @Summary 获取域名DNS解析列表
+// @Description 域名相关
+// @Tags 域名管理
+// @Param Authorization header string true "Bearer 用户令牌"
+// @Param page query int true "分页"
+// @Param limit query int true "分页大小"
+// @Param ID query uint true "域名 id"
+// @Param KeyWord query string false "关键字"
+// @Success 200 {string} json "{"code": 0, "data": []}"
+// @Router /api/v1/domain/dns [get]
+func (d *domain) GetDomainDnsList(c *gin.Context) {
+
+	params := new(struct {
+		KeyWord string `form:"keyWord"`
+		ID      uint   `form:"id" binding:"required"`
+		Page    int    `form:"page" binding:"required"`
+		Limit   int    `form:"limit" binding:"required"`
+	})
+
+	if err := c.Bind(params); err != nil {
+		Response(c, 90400, err.Error())
+		return
+	}
+
+	data, err := service.Domain.GetDomainDnsList(params.KeyWord, params.ID, params.Page, params.Limit)
 	if err != nil {
 		Response(c, 90500, err.Error())
 		return

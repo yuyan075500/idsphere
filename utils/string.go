@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"net"
 	"strings"
+	"time"
 )
 
 // Contains 查询字符串在一个列表中是否存在
@@ -62,4 +63,16 @@ func GetSubdomain(host string) (string, error) {
 
 	// 返回最后两部分作为二级域名
 	return strings.Join(parts[len(parts)-2:], "."), nil
+}
+
+// ParseTime 解析日期字符串为 *time.Time
+func ParseTime(dateStr string) *time.Time {
+	if dateStr == "" {
+		return nil
+	}
+	parsedTime, err := time.Parse("2006-01-02 15:04:05", dateStr)
+	if err != nil {
+		return nil
+	}
+	return &parsedTime
 }

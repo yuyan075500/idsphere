@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"ops-api/dao"
 	"ops-api/model"
 	"ops-api/utils"
@@ -110,4 +111,86 @@ func (d *domain) UpdateDomain(data *dao.DomainUpdate) (*model.Domain, error) {
 // GetDomainList 获取域名列表
 func (d *domain) GetDomainList(name string, providerId uint, page, limit int) (data *dao.DomainList, err error) {
 	return dao.Domain.GetDomainList(name, providerId, page, limit)
+}
+
+// SyncDomain 同步域名
+func (d *domain) SyncDomain(ProviderId uint) error {
+
+	// 获取域名服务商配置信息
+	provider, err := dao.Domain.GetDomainServiceProviderForID(int(ProviderId))
+	if err != nil {
+		return err
+	}
+
+	if provider.Type == 4 {
+		return errors.New("不支持的服务商类型")
+	}
+
+	// 域名服务商未配置 AccessKey 或 SecretKey
+	if provider.AccessKey == nil || provider.SecretKey == nil {
+		return errors.New("域名服务商配置信息错误")
+	}
+
+	// 域名服务商 AccessKey 和 SecretKey 解密
+	ak, _ := utils.Decrypt(*provider.AccessKey)
+	sk, _ := utils.Decrypt(*provider.SecretKey)
+
+	client, err := utils.CreateDomainClient(ak, sk)
+	if err != nil {
+		return err
+	}
+
+	// 获取域名列表
+	domains, err := client.GetDomains(provider.Id)
+	if err != nil {
+		return err
+	}
+
+	// 将获取到的域名列表转换为 []*model.Domain
+	var modelDomains []*model.Domain
+	for _, d := range domains {
+		modelDomains = append(modelDomains, &model.Domain{
+			Name:                    d.Name,
+			RegistrationAt:          d.RegistrationAt,
+			ExpirationAt:            d.ExpirationAt,
+			DomainServiceProviderID: d.DomainServiceProviderID,
+		})
+	}
+
+	return dao.Domain.SyncDomains(modelDomains)
+}
+
+// GetDomainDnsList 获取域名DNS解析列表
+func (d *domain) GetDomainDnsList(keyWord string, ID uint, page, limit int) (*utils.DnsList, error) {
+	// 获取域名信息
+	result, err := dao.Domain.GetDomainForID(ID)
+	if err != nil {
+		return nil, err
+	}
+
+	if result.DomainServiceProvider.Type == 4 {
+		return nil, errors.New("不支持的服务商类型")
+	}
+
+	// 域名服务商未配置 AccessKey 或 SecretKey
+	if result.DomainServiceProvider.AccessKey == nil || result.DomainServiceProvider.SecretKey == nil {
+		return nil, errors.New("域名服务商配置信息错误")
+	}
+
+	// 域名服务商 AccessKey 和 SecretKey 解密
+	ak, _ := utils.Decrypt(*result.DomainServiceProvider.AccessKey)
+	sk, _ := utils.Decrypt(*result.DomainServiceProvider.SecretKey)
+
+	client, err := utils.CreateDnsClient(ak, sk)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取域名DNS解析列表
+	data, err := client.GetDns(int64(page), int64(limit), result.Name, keyWord)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
