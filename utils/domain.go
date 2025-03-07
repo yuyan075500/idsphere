@@ -41,6 +41,8 @@ type DNS struct {
 	Status   string `json:"status"`
 	CreateAt string `json:"create_at"`
 	Remark   string `json:"remark"`
+	RecordId string `json:"record_id"`
+	Priority int    `json:"priority"`
 }
 
 // CreateDomainClient 创建域名管理客户端
@@ -59,9 +61,7 @@ func CreateDomainClient(accessKey, secretKey string) (*AliyunClient, error) {
 		return nil, err
 	}
 
-	return &AliyunClient{
-		DomainClient: domainClient,
-	}, nil
+	return &AliyunClient{DomainClient: domainClient}, nil
 }
 
 // CreateDnsClient 创建DNS管理客户端
@@ -80,12 +80,10 @@ func CreateDnsClient(accessKey, secretKey string) (*AliyunClient, error) {
 		return nil, err
 	}
 
-	return &AliyunClient{
-		DnsClient: dnsClient,
-	}, nil
+	return &AliyunClient{DnsClient: dnsClient}, nil
 }
 
-// GetDomains 获取所有域名
+// GetDomains 获取域名列表
 func (client *AliyunClient) GetDomains(serviceProviderID uint) ([]DomainList, error) {
 
 	// 初始化分页参数
@@ -103,27 +101,12 @@ func (client *AliyunClient) GetDomains(serviceProviderID uint) ([]DomainList, er
 			PageSize: tea.Int32(pageSize),
 		}
 
-		// 创建运行时
-		runtime := &util.RuntimeOptions{}
-
 		// 创建查询请求
-		resp, err := client.DomainClient.QueryDomainListWithOptions(req, runtime)
+		resp, err := client.DomainClient.QueryDomainListWithOptions(req, &util.RuntimeOptions{})
 
 		// 错误处理
 		if err != nil {
-			var sdkError *tea.SDKError
-			if e, ok := err.(*tea.SDKError); ok {
-				sdkError = e
-			} else {
-				sdkError = &tea.SDKError{Message: tea.String(err.Error())}
-			}
-			logger.Error("Error:", tea.StringValue(sdkError.Message))
-			if sdkError.Data != nil {
-				var data interface{}
-				_ = json.NewDecoder(strings.NewReader(tea.StringValue(sdkError.Data))).Decode(&data)
-				logger.Info("Recommend:", data)
-			}
-			return nil, err
+			return nil, handleError(err)
 		}
 
 		// 账号下没有域名
@@ -151,6 +134,7 @@ func (client *AliyunClient) GetDomains(serviceProviderID uint) ([]DomainList, er
 	return domains, nil
 }
 
+// GetDns 获取域名 DNS 记录
 func (client *AliyunClient) GetDns(pageNum, pageSize int64, domainName, keyWord string) (*DnsList, error) {
 
 	// 初始化请求参数
@@ -162,27 +146,12 @@ func (client *AliyunClient) GetDns(pageNum, pageSize int64, domainName, keyWord 
 		KeyWord:    tea.String(keyWord),    // 查询关键字
 	}
 
-	// 创建运行时
-	runtime := &util.RuntimeOptions{}
-
 	// 创建查询请求
-	resp, err := client.DnsClient.DescribeDomainRecordsWithOptions(describeDomainRecordsRequest, runtime)
+	resp, err := client.DnsClient.DescribeDomainRecordsWithOptions(describeDomainRecordsRequest, &util.RuntimeOptions{})
 
 	// 错误处理
 	if err != nil {
-		var sdkError *tea.SDKError
-		if e, ok := err.(*tea.SDKError); ok {
-			sdkError = e
-		} else {
-			sdkError = &tea.SDKError{Message: tea.String(err.Error())}
-		}
-		logger.Error("Error:", tea.StringValue(sdkError.Message))
-		if sdkError.Data != nil {
-			var data interface{}
-			_ = json.NewDecoder(strings.NewReader(tea.StringValue(sdkError.Data))).Decode(&data)
-			logger.Info("Recommend:", data)
-		}
-		return nil, err
+		return nil, handleError(err)
 	}
 
 	// 构造返回的 DnsList
@@ -200,10 +169,100 @@ func (client *AliyunClient) GetDns(pageNum, pageSize int64, domainName, keyWord 
 				Status:   tea.StringValue(record.Status),
 				CreateAt: time.Unix(tea.Int64Value(record.CreateTimestamp)/1000, 0).Format(time.RFC3339),
 				Remark:   tea.StringValue(record.Remark),
+				RecordId: tea.StringValue(record.RecordId),
+			}
+			if record.Priority != nil {
+				dns.Priority = int(tea.Int64Value(record.Priority))
 			}
 			dnsList.Items = append(dnsList.Items, dns)
 		}
 	}
 
 	return &dnsList, nil
+}
+
+// AddDns 添加域名 DNS 记录
+func (client *AliyunClient) AddDns(domainName, rrType, rr, value string, ttl, priority int64) error {
+
+	// 初始化请求参数
+	addDomainRecordRequest := &alidns20150109.AddDomainRecordRequest{
+		DomainName: tea.String(domainName),
+		RR:         tea.String(rr),
+		Type:       tea.String(rrType),
+		Value:      tea.String(value),
+		TTL:        tea.Int64(ttl),
+	}
+
+	// 设置 MX 类型的优先级
+	if rrType == "MX" {
+		addDomainRecordRequest.Priority = tea.Int64(priority)
+	}
+
+	// 创建查询请求
+	_, err := client.DnsClient.AddDomainRecordWithOptions(addDomainRecordRequest, &util.RuntimeOptions{})
+
+	if err != nil {
+		return handleError(err)
+	}
+	return nil
+}
+
+// UpdateDns 修改域名 DNS 记录
+func (client *AliyunClient) UpdateDns(recordId, rrType, rr, value string, ttl, priority int64) error {
+
+	// 初始化请求参数
+	updateDomainRecordRequest := &alidns20150109.UpdateDomainRecordRequest{
+		RecordId: tea.String(recordId),
+		RR:       tea.String(rr),
+		Type:     tea.String(rrType),
+		Value:    tea.String(value),
+		TTL:      tea.Int64(ttl),
+	}
+
+	// 设置 MX 类型的优先级
+	if rrType == "MX" {
+		updateDomainRecordRequest.Priority = tea.Int64(priority)
+	}
+
+	// 创建查询请求
+	_, err := client.DnsClient.UpdateDomainRecordWithOptions(updateDomainRecordRequest, &util.RuntimeOptions{})
+
+	if err != nil {
+		return handleError(err)
+	}
+	return nil
+}
+
+// DeleteDns 删除域名 DNS 记录
+func (client *AliyunClient) DeleteDns(recordId string) error {
+
+	// 初始化请求参数
+	deleteDomainRecordRequest := &alidns20150109.DeleteDomainRecordRequest{
+		RecordId: tea.String(recordId),
+	}
+
+	// 创建查询请求
+	_, err := client.DnsClient.DeleteDomainRecordWithOptions(deleteDomainRecordRequest, &util.RuntimeOptions{})
+
+	if err != nil {
+		return handleError(err)
+	}
+	return nil
+}
+
+// handleError 统一错误处理
+func handleError(err error) error {
+	var sdkError *tea.SDKError
+	if e, ok := err.(*tea.SDKError); ok {
+		sdkError = e
+	} else {
+		sdkError = &tea.SDKError{Message: tea.String(err.Error())}
+	}
+	logger.Error("Error:", tea.StringValue(sdkError.Message))
+	if sdkError.Data != nil {
+		var data interface{}
+		_ = json.NewDecoder(strings.NewReader(tea.StringValue(sdkError.Data))).Decode(&data)
+		logger.Info("Recommend:", data)
+	}
+	return err
 }

@@ -40,5 +40,14 @@ func initDomainRouters(router *gin.Engine) {
 
 		// 获取域名DNS解析列表
 		domain.GET("/dns", controller.Domain.GetDomainDnsList)
+
+		// 新增域名DNS解析
+		domain.POST("/dns", controller.Domain.AddDomainDns)
+
+		// 修改域名
+		domain.PUT("/dns", controller.Domain.UpdateDns)
+
+		// 删除域名
+		domain.DELETE("/dns", controller.Domain.DeleteDns)
 	}
 }

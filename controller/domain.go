@@ -284,3 +284,76 @@ func (d *domain) GetDomainDnsList(c *gin.Context) {
 		"data": data,
 	})
 }
+
+// AddDomainDns 新增域名DNS解析
+// @Summary 新增域名DNS解析
+// @Description 域名相关
+// @Tags 域名管理
+// @Accept application/json
+// @Produce application/json
+// @Param Authorization header string true "Bearer 用户令牌"
+// @Param user body service.DnsCreate true "DNS记录信息"
+// @Success 200 {string} json "{"code": 0, "msg": "创建成功", "data": nil}"
+// @Router /api/v1/domain/dns [post]
+func (d *domain) AddDomainDns(c *gin.Context) {
+
+	var dns = &service.DnsCreate{}
+
+	if err := c.ShouldBind(dns); err != nil {
+		Response(c, 90400, err.Error())
+		return
+	}
+
+	if err := service.Domain.AddDomainDns(dns); err != nil {
+		Response(c, 90500, err.Error())
+		return
+	}
+
+	Response(c, 0, "创建成功")
+}
+
+// UpdateDns 修改域名DNS解析
+// @Summary 修改域名DNS解析
+// @Description 域名相关
+// @Tags 域名管理
+// @Param Authorization header string true "Bearer 用户令牌"
+// @Param task body service.DnsUpdate true "域名信息"
+// @Success 200 {string} json "{"code": 0, "msg": "更新成功"}"
+// @Router /api/v1/domain/dns [put]
+func (d *domain) UpdateDns(c *gin.Context) {
+	var data = &service.DnsUpdate{}
+	if err := c.ShouldBind(&data); err != nil {
+		Response(c, 90400, err.Error())
+		return
+	}
+
+	if err := service.Domain.UpdateDomainDns(data); err != nil {
+		Response(c, 90500, err.Error())
+		return
+	}
+
+	Response(c, 0, "更新成功")
+}
+
+// DeleteDns 删除域名DNS解析
+// @Summary 删除域名DNS解析
+// @Description 域名相关
+// @Tags 域名管理
+// @Param Authorization header string true "Bearer 用户令牌"
+// @Param task body service.DnsDelete true "域名信息"
+// @Success 200 {string} json "{"code": 0, "msg": "更新成功"}"
+// @Router /api/v1/domain/dns [delete]
+func (d *domain) DeleteDns(c *gin.Context) {
+	var data = &service.DnsDelete{}
+	if err := c.ShouldBind(&data); err != nil {
+		Response(c, 90400, err.Error())
+		return
+	}
+
+	if err := service.Domain.DeleteDns(data); err != nil {
+		Response(c, 90500, err.Error())
+		return
+	}
+
+	Response(c, 0, "删除成功")
+}

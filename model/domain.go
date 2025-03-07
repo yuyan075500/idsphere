@@ -38,7 +38,7 @@ func (d *DomainServiceProvider) BeforeCreate(tx *gorm.DB) (err error) {
 // Domain 域名
 type Domain struct {
 	Id                      uint                  `json:"id" gorm:"primaryKey;autoIncrement"`
-	Name                    string                `json:"name"`
+	Name                    string                `json:"name" gorm:"unique"`
 	RegistrationAt          *time.Time            `json:"registration_at"`
 	ExpirationAt            *time.Time            `json:"expiration_at"`
 	DomainServiceProviderID uint                  `json:"domain_service_provider_id"`

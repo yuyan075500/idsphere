@@ -28,6 +28,33 @@ type DomainServiceProviderCreate struct {
 	Type      uint    `json:"type" binding:"required"`
 }
 
+// DnsCreate 创建DNS记录结构体
+type DnsCreate struct {
+	DomainId uint   `json:"domain_id" binding:"required"`
+	RR       string `json:"rr" binding:"required"`
+	Type     string `json:"type" binding:"required"`
+	TTL      int    `json:"ttl" binding:"required"`
+	Value    string `json:"value" binding:"required"`
+	Priority int    `json:"priority"`
+}
+
+// DnsUpdate 修改DNS记录结构体
+type DnsUpdate struct {
+	DomainId uint   `json:"domain_id" binding:"required"`
+	RecordId string `json:"record_id" binding:"required"`
+	RR       string `json:"rr" binding:"required"`
+	Type     string `json:"type" binding:"required"`
+	Value    string `json:"value" binding:"required"`
+	TTL      int    `json:"ttl" binding:"required"`
+	Priority int    `json:"priority"`
+}
+
+// DnsDelete 删除DNS记录结构体
+type DnsDelete struct {
+	DomainId uint   `json:"domain_id" binding:"required"`
+	RecordId string `json:"record_id" binding:"required"`
+}
+
 // AddDomainServiceProvider 创建域名服务商
 func (d *domain) AddDomainServiceProvider(data *DomainServiceProviderCreate) (res *model.DomainServiceProvider, err error) {
 
@@ -193,4 +220,94 @@ func (d *domain) GetDomainDnsList(keyWord string, ID uint, page, limit int) (*ut
 	}
 
 	return data, nil
+}
+
+// AddDomainDns 新增域名DNS解析
+func (d *domain) AddDomainDns(dns *DnsCreate) error {
+	// 获取域名信息
+	result, err := dao.Domain.GetDomainForID(dns.DomainId)
+	if err != nil {
+		return err
+	}
+
+	if result.DomainServiceProvider.Type == 4 {
+		return errors.New("不支持的服务商类型")
+	}
+
+	// 域名服务商未配置 AccessKey 或 SecretKey
+	if result.DomainServiceProvider.AccessKey == nil || result.DomainServiceProvider.SecretKey == nil {
+		return errors.New("域名服务商配置信息错误")
+	}
+
+	// 域名服务商 AccessKey 和 SecretKey 解密
+	ak, _ := utils.Decrypt(*result.DomainServiceProvider.AccessKey)
+	sk, _ := utils.Decrypt(*result.DomainServiceProvider.SecretKey)
+
+	client, err := utils.CreateDnsClient(ak, sk)
+	if err != nil {
+		return err
+	}
+
+	// 获取域名DNS解析列表
+	return client.AddDns(result.Name, dns.Type, dns.RR, dns.Value, int64(dns.TTL), int64(dns.Priority))
+}
+
+// UpdateDomainDns 修改域名DNS解析
+func (d *domain) UpdateDomainDns(dns *DnsUpdate) error {
+	// 获取域名信息
+	result, err := dao.Domain.GetDomainForID(dns.DomainId)
+	if err != nil {
+		return err
+	}
+
+	if result.DomainServiceProvider.Type == 4 {
+		return errors.New("不支持的服务商类型")
+	}
+
+	// 域名服务商未配置 AccessKey 或 SecretKey
+	if result.DomainServiceProvider.AccessKey == nil || result.DomainServiceProvider.SecretKey == nil {
+		return errors.New("域名服务商配置信息错误")
+	}
+
+	// 域名服务商 AccessKey 和 SecretKey 解密
+	ak, _ := utils.Decrypt(*result.DomainServiceProvider.AccessKey)
+	sk, _ := utils.Decrypt(*result.DomainServiceProvider.SecretKey)
+
+	client, err := utils.CreateDnsClient(ak, sk)
+	if err != nil {
+		return err
+	}
+
+	// 获取域名DNS解析列表
+	return client.UpdateDns(dns.RecordId, dns.Type, dns.RR, dns.Value, int64(dns.TTL), int64(dns.Priority))
+}
+
+// DeleteDns 删除域名DNS解析
+func (d *domain) DeleteDns(dns *DnsDelete) error {
+	// 获取域名信息
+	result, err := dao.Domain.GetDomainForID(dns.DomainId)
+	if err != nil {
+		return err
+	}
+
+	if result.DomainServiceProvider.Type == 4 {
+		return errors.New("不支持的服务商类型")
+	}
+
+	// 域名服务商未配置 AccessKey 或 SecretKey
+	if result.DomainServiceProvider.AccessKey == nil || result.DomainServiceProvider.SecretKey == nil {
+		return errors.New("域名服务商配置信息错误")
+	}
+
+	// 域名服务商 AccessKey 和 SecretKey 解密
+	ak, _ := utils.Decrypt(*result.DomainServiceProvider.AccessKey)
+	sk, _ := utils.Decrypt(*result.DomainServiceProvider.SecretKey)
+
+	client, err := utils.CreateDnsClient(ak, sk)
+	if err != nil {
+		return err
+	}
+
+	// 获取域名DNS解析列表
+	return client.DeleteDns(dns.RecordId)
 }
