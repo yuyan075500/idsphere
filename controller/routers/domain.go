@@ -44,10 +44,13 @@ func initDomainRouters(router *gin.Engine) {
 		// 新增域名DNS解析
 		domain.POST("/dns", controller.Domain.AddDomainDns)
 
-		// 修改域名
+		// 修改域名DNS解析
 		domain.PUT("/dns", controller.Domain.UpdateDns)
 
-		// 删除域名
+		// 删除域名DNS解析
 		domain.DELETE("/dns", controller.Domain.DeleteDns)
+
+		// 修改域名DNS解析状态
+		domain.PUT("/dns_status", controller.Domain.SetDomainStatus)
 	}
 }

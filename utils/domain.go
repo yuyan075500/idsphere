@@ -250,6 +250,24 @@ func (client *AliyunClient) DeleteDns(recordId string) error {
 	return nil
 }
 
+// SetDnsStatus 设置域名 DNS 状态
+func (client *AliyunClient) SetDnsStatus(recordId, status string) error {
+
+	// 初始化请求参数
+	setDomainRecordStatusRequest := &alidns20150109.SetDomainRecordStatusRequest{
+		RecordId: tea.String(recordId),
+		Status:   tea.String(status),
+	}
+
+	// 创建查询请求
+	_, err := client.DnsClient.SetDomainRecordStatusWithOptions(setDomainRecordStatusRequest, &util.RuntimeOptions{})
+
+	if err != nil {
+		return handleError(err)
+	}
+	return nil
+}
+
 // handleError 统一错误处理
 func handleError(err error) error {
 	var sdkError *tea.SDKError

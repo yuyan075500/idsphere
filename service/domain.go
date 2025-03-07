@@ -55,6 +55,13 @@ type DnsDelete struct {
 	RecordId string `json:"record_id" binding:"required"`
 }
 
+// SetDnsStatus 设置DNS状态记录结构体
+type SetDnsStatus struct {
+	DomainId uint   `json:"domain_id" binding:"required"`
+	RecordId string `json:"record_id" binding:"required"`
+	Status   string `json:"status" binding:"required"`
+}
+
 // AddDomainServiceProvider 创建域名服务商
 func (d *domain) AddDomainServiceProvider(data *DomainServiceProviderCreate) (res *model.DomainServiceProvider, err error) {
 
@@ -213,7 +220,6 @@ func (d *domain) GetDomainDnsList(keyWord string, ID uint, page, limit int) (*ut
 		return nil, err
 	}
 
-	// 获取域名DNS解析列表
 	data, err := client.GetDns(int64(page), int64(limit), result.Name, keyWord)
 	if err != nil {
 		return nil, err
@@ -248,7 +254,6 @@ func (d *domain) AddDomainDns(dns *DnsCreate) error {
 		return err
 	}
 
-	// 获取域名DNS解析列表
 	return client.AddDns(result.Name, dns.Type, dns.RR, dns.Value, int64(dns.TTL), int64(dns.Priority))
 }
 
@@ -278,7 +283,6 @@ func (d *domain) UpdateDomainDns(dns *DnsUpdate) error {
 		return err
 	}
 
-	// 获取域名DNS解析列表
 	return client.UpdateDns(dns.RecordId, dns.Type, dns.RR, dns.Value, int64(dns.TTL), int64(dns.Priority))
 }
 
@@ -308,6 +312,34 @@ func (d *domain) DeleteDns(dns *DnsDelete) error {
 		return err
 	}
 
-	// 获取域名DNS解析列表
 	return client.DeleteDns(dns.RecordId)
+}
+
+// SetDnsStatus 设置域名DNS状态
+func (d *domain) SetDnsStatus(dns *SetDnsStatus) error {
+	// 获取域名信息
+	result, err := dao.Domain.GetDomainForID(dns.DomainId)
+	if err != nil {
+		return err
+	}
+
+	if result.DomainServiceProvider.Type == 4 {
+		return errors.New("不支持的服务商类型")
+	}
+
+	// 域名服务商未配置 AccessKey 或 SecretKey
+	if result.DomainServiceProvider.AccessKey == nil || result.DomainServiceProvider.SecretKey == nil {
+		return errors.New("域名服务商配置信息错误")
+	}
+
+	// 域名服务商 AccessKey 和 SecretKey 解密
+	ak, _ := utils.Decrypt(*result.DomainServiceProvider.AccessKey)
+	sk, _ := utils.Decrypt(*result.DomainServiceProvider.SecretKey)
+
+	client, err := utils.CreateDnsClient(ak, sk)
+	if err != nil {
+		return err
+	}
+
+	return client.SetDnsStatus(dns.RecordId, dns.Status)
 }

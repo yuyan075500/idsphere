@@ -357,3 +357,30 @@ func (d *domain) DeleteDns(c *gin.Context) {
 
 	Response(c, 0, "删除成功")
 }
+
+// SetDomainStatus 设置域名DNS状态
+// @Summary 设置域名DNS状态
+// @Description 域名相关
+// @Tags 域名管理
+// @Accept application/json
+// @Produce application/json
+// @Param Authorization header string true "Bearer 用户令牌"
+// @Param user body service.SetDnsStatus true "DN状态信息"
+// @Success 200 {string} json "{"code": 0, "msg": "设置成功", "data": nil}"
+// @Router /api/v1/domain/dns_status [put]
+func (d *domain) SetDomainStatus(c *gin.Context) {
+
+	var dns = &service.SetDnsStatus{}
+
+	if err := c.ShouldBind(dns); err != nil {
+		Response(c, 90400, err.Error())
+		return
+	}
+
+	if err := service.Domain.SetDnsStatus(dns); err != nil {
+		Response(c, 90500, err.Error())
+		return
+	}
+
+	Response(c, 0, "设置成功")
+}
