@@ -45,42 +45,36 @@ type DNS struct {
 	Priority int    `json:"priority"`
 }
 
-// CreateDomainClient 创建域名管理客户端
-func CreateDomainClient(accessKey, secretKey string) (*AliyunClient, error) {
+// CreateClient 创建请求客户端
+func CreateClient(accessKey, secretKey, endpoint string) (*AliyunClient, error) {
 
 	// 定义客户端配置
 	config := &openapi.Config{
 		AccessKeyId:     tea.String(accessKey),
 		AccessKeySecret: tea.String(secretKey),
-		Endpoint:        tea.String("domain.aliyuncs.com"),
+		Endpoint:        tea.String(endpoint),
 	}
 
-	// 初始化域名客户端
-	domainClient, err := domain20180129.NewClient(config)
-	if err != nil {
-		return nil, err
+	switch endpoint {
+
+	// 域名管理
+	case "domain.aliyuncs.com":
+		client, err := domain20180129.NewClient(config)
+		if err != nil {
+			return nil, err
+		}
+		return &AliyunClient{DomainClient: client}, nil
+
+	// DNS管理
+	case "alidns.cn-hangzhou.aliyuncs.com":
+		client, err := alidns20150109.NewClient(config)
+		if err != nil {
+			return nil, err
+		}
+		return &AliyunClient{DnsClient: client}, nil
 	}
 
-	return &AliyunClient{DomainClient: domainClient}, nil
-}
-
-// CreateDnsClient 创建DNS管理客户端
-func CreateDnsClient(accessKey, secretKey string) (*AliyunClient, error) {
-
-	// 定义客户端配置
-	config := &openapi.Config{
-		AccessKeyId:     tea.String(accessKey),
-		AccessKeySecret: tea.String(secretKey),
-		Endpoint:        tea.String("alidns.cn-hangzhou.aliyuncs.com"),
-	}
-
-	// 初始化域名客户端
-	dnsClient, err := alidns20150109.NewClient(config)
-	if err != nil {
-		return nil, err
-	}
-
-	return &AliyunClient{DnsClient: dnsClient}, nil
+	return nil, nil
 }
 
 // GetDomains 获取域名列表

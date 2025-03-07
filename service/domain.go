@@ -156,20 +156,8 @@ func (d *domain) SyncDomain(ProviderId uint) error {
 		return err
 	}
 
-	if provider.Type == 4 {
-		return errors.New("不支持的服务商类型")
-	}
-
-	// 域名服务商未配置 AccessKey 或 SecretKey
-	if provider.AccessKey == nil || provider.SecretKey == nil {
-		return errors.New("域名服务商配置信息错误")
-	}
-
-	// 域名服务商 AccessKey 和 SecretKey 解密
-	ak, _ := utils.Decrypt(*provider.AccessKey)
-	sk, _ := utils.Decrypt(*provider.SecretKey)
-
-	client, err := utils.CreateDomainClient(ak, sk)
+	// 创建请求客户端
+	client, err := d.createClient(provider, "domain.aliyuncs.com")
 	if err != nil {
 		return err
 	}
@@ -202,20 +190,14 @@ func (d *domain) GetDomainDnsList(keyWord string, ID uint, page, limit int) (*ut
 		return nil, err
 	}
 
-	if result.DomainServiceProvider.Type == 4 {
-		return nil, errors.New("不支持的服务商类型")
+	// 获取域名服务商配置信息
+	provider, err := dao.Domain.GetDomainServiceProviderForID(int(result.DomainServiceProviderID))
+	if err != nil {
+		return nil, err
 	}
 
-	// 域名服务商未配置 AccessKey 或 SecretKey
-	if result.DomainServiceProvider.AccessKey == nil || result.DomainServiceProvider.SecretKey == nil {
-		return nil, errors.New("域名服务商配置信息错误")
-	}
-
-	// 域名服务商 AccessKey 和 SecretKey 解密
-	ak, _ := utils.Decrypt(*result.DomainServiceProvider.AccessKey)
-	sk, _ := utils.Decrypt(*result.DomainServiceProvider.SecretKey)
-
-	client, err := utils.CreateDnsClient(ak, sk)
+	// 创建请求客户端
+	client, err := d.createClient(provider, "alidns.cn-hangzhou.aliyuncs.com")
 	if err != nil {
 		return nil, err
 	}
@@ -236,20 +218,14 @@ func (d *domain) AddDomainDns(dns *DnsCreate) error {
 		return err
 	}
 
-	if result.DomainServiceProvider.Type == 4 {
-		return errors.New("不支持的服务商类型")
+	// 获取域名服务商配置信息
+	provider, err := dao.Domain.GetDomainServiceProviderForID(int(result.DomainServiceProviderID))
+	if err != nil {
+		return err
 	}
 
-	// 域名服务商未配置 AccessKey 或 SecretKey
-	if result.DomainServiceProvider.AccessKey == nil || result.DomainServiceProvider.SecretKey == nil {
-		return errors.New("域名服务商配置信息错误")
-	}
-
-	// 域名服务商 AccessKey 和 SecretKey 解密
-	ak, _ := utils.Decrypt(*result.DomainServiceProvider.AccessKey)
-	sk, _ := utils.Decrypt(*result.DomainServiceProvider.SecretKey)
-
-	client, err := utils.CreateDnsClient(ak, sk)
+	// 创建请求客户端
+	client, err := d.createClient(provider, "alidns.cn-hangzhou.aliyuncs.com")
 	if err != nil {
 		return err
 	}
@@ -265,20 +241,14 @@ func (d *domain) UpdateDomainDns(dns *DnsUpdate) error {
 		return err
 	}
 
-	if result.DomainServiceProvider.Type == 4 {
-		return errors.New("不支持的服务商类型")
+	// 获取域名服务商配置信息
+	provider, err := dao.Domain.GetDomainServiceProviderForID(int(result.DomainServiceProviderID))
+	if err != nil {
+		return err
 	}
 
-	// 域名服务商未配置 AccessKey 或 SecretKey
-	if result.DomainServiceProvider.AccessKey == nil || result.DomainServiceProvider.SecretKey == nil {
-		return errors.New("域名服务商配置信息错误")
-	}
-
-	// 域名服务商 AccessKey 和 SecretKey 解密
-	ak, _ := utils.Decrypt(*result.DomainServiceProvider.AccessKey)
-	sk, _ := utils.Decrypt(*result.DomainServiceProvider.SecretKey)
-
-	client, err := utils.CreateDnsClient(ak, sk)
+	// 创建请求客户端
+	client, err := d.createClient(provider, "alidns.cn-hangzhou.aliyuncs.com")
 	if err != nil {
 		return err
 	}
@@ -294,20 +264,14 @@ func (d *domain) DeleteDns(dns *DnsDelete) error {
 		return err
 	}
 
-	if result.DomainServiceProvider.Type == 4 {
-		return errors.New("不支持的服务商类型")
+	// 获取域名服务商配置信息
+	provider, err := dao.Domain.GetDomainServiceProviderForID(int(result.DomainServiceProviderID))
+	if err != nil {
+		return err
 	}
 
-	// 域名服务商未配置 AccessKey 或 SecretKey
-	if result.DomainServiceProvider.AccessKey == nil || result.DomainServiceProvider.SecretKey == nil {
-		return errors.New("域名服务商配置信息错误")
-	}
-
-	// 域名服务商 AccessKey 和 SecretKey 解密
-	ak, _ := utils.Decrypt(*result.DomainServiceProvider.AccessKey)
-	sk, _ := utils.Decrypt(*result.DomainServiceProvider.SecretKey)
-
-	client, err := utils.CreateDnsClient(ak, sk)
+	// 创建请求客户端
+	client, err := d.createClient(provider, "alidns.cn-hangzhou.aliyuncs.com")
 	if err != nil {
 		return err
 	}
@@ -323,23 +287,47 @@ func (d *domain) SetDnsStatus(dns *SetDnsStatus) error {
 		return err
 	}
 
-	if result.DomainServiceProvider.Type == 4 {
-		return errors.New("不支持的服务商类型")
+	// 获取域名服务商配置信息
+	provider, err := dao.Domain.GetDomainServiceProviderForID(int(result.DomainServiceProviderID))
+	if err != nil {
+		return err
 	}
 
-	// 域名服务商未配置 AccessKey 或 SecretKey
-	if result.DomainServiceProvider.AccessKey == nil || result.DomainServiceProvider.SecretKey == nil {
-		return errors.New("域名服务商配置信息错误")
-	}
-
-	// 域名服务商 AccessKey 和 SecretKey 解密
-	ak, _ := utils.Decrypt(*result.DomainServiceProvider.AccessKey)
-	sk, _ := utils.Decrypt(*result.DomainServiceProvider.SecretKey)
-
-	client, err := utils.CreateDnsClient(ak, sk)
+	// 创建请求客户端
+	client, err := d.createClient(provider, "alidns.cn-hangzhou.aliyuncs.com")
 	if err != nil {
 		return err
 	}
 
 	return client.SetDnsStatus(dns.RecordId, dns.Status)
+}
+
+// createClient 创建客户端
+func (d *domain) createClient(provider *model.DomainServiceProvider, endpoint string) (*utils.AliyunClient, error) {
+	if err := d.validateProvider(provider); err != nil {
+		return nil, err
+	}
+
+	// 解密AccessKey和SecretKey
+	ak, sk := d.decryptKeys(provider.AccessKey, provider.SecretKey)
+
+	return utils.CreateClient(ak, sk, endpoint)
+}
+
+// validateProvider 校验服务商
+func (d *domain) validateProvider(provider *model.DomainServiceProvider) error {
+	if provider.Type == 4 {
+		return errors.New("不支持的服务商类型")
+	}
+	if provider.AccessKey == nil || provider.SecretKey == nil {
+		return errors.New("域名服务商配置信息错误")
+	}
+	return nil
+}
+
+// decryptKeys 解密 AccessKey 和 SecretKey
+func (d *domain) decryptKeys(accessKey, secretKey *string) (string, string) {
+	ak, _ := utils.Decrypt(*accessKey)
+	sk, _ := utils.Decrypt(*secretKey)
+	return ak, sk
 }
