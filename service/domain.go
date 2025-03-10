@@ -17,8 +17,8 @@ type domain struct{}
 type CloudProvider interface {
 	SyncDomains(serviceProviderID uint) ([]public_cloud.DomainList, error)
 	GetDns(pageNum, pageSize int64, domainName, keyWord string) (*public_cloud.DnsList, error)
-	AddDns(domainName, rrType, rr, value string, ttl, priority int64) error
-	UpdateDns(domainName, recordId, rrType, rr, value string, ttl, priority int64) error
+	AddDns(domainName, rrType, rr, value, remark string, ttl, weight, priority int64) error
+	UpdateDns(domainName, recordId, rrType, rr, value, remark string, ttl, weight, priority int64) error
 	DeleteDns(domainName, recordId string) error
 	SetDnsStatus(domainName, recordId, status string) error
 }
@@ -47,6 +47,8 @@ type DnsCreate struct {
 	TTL      int    `json:"ttl" binding:"required"`
 	Value    string `json:"value" binding:"required"`
 	Priority int    `json:"priority"`
+	Weight   int    `json:"weight"`
+	Remark   string `json:"remark"`
 }
 
 // DnsUpdate 修改DNS记录结构体
@@ -58,6 +60,8 @@ type DnsUpdate struct {
 	Value    string `json:"value" binding:"required"`
 	TTL      int    `json:"ttl" binding:"required"`
 	Priority int    `json:"priority"`
+	Weight   int    `json:"weight"`
+	Remark   string `json:"remark"`
 }
 
 // DnsDelete 删除DNS记录结构体
@@ -264,7 +268,7 @@ func (d *domain) AddDns(dns *DnsCreate) error {
 		return err
 	}
 
-	return client.AddDns(result.Name, dns.Type, dns.RR, dns.Value, int64(dns.TTL), int64(dns.Priority))
+	return client.AddDns(result.Name, dns.Type, dns.RR, dns.Value, dns.Remark, int64(dns.TTL), int64(dns.Weight), int64(dns.Priority))
 }
 
 // UpdateDomainDns 修改域名DNS解析
@@ -287,7 +291,7 @@ func (d *domain) UpdateDomainDns(dns *DnsUpdate) error {
 		return err
 	}
 
-	return client.UpdateDns(result.Name, dns.RecordId, dns.Type, dns.RR, dns.Value, int64(dns.TTL), int64(dns.Priority))
+	return client.UpdateDns(result.Name, dns.RecordId, dns.Type, dns.RR, dns.Value, dns.Remark, int64(dns.TTL), int64(dns.Weight), int64(dns.Priority))
 }
 
 // DeleteDns 删除域名DNS解析

@@ -27,4 +27,5 @@ type DNS struct {
 	Remark   string `json:"remark"`
 	RecordId string `json:"record_id"`
 	Priority int    `json:"priority"`
+	Weight   int    `json:"weight"`
 }

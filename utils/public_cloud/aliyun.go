@@ -134,6 +134,9 @@ func (client *AliyunClient) GetDns(pageNum, pageSize int64, domainName, keyWord 
 				Remark:   tea.StringValue(record.Remark),
 				RecordId: tea.StringValue(record.RecordId),
 			}
+			if record.Weight != nil {
+				dns.Weight = int(*record.Weight)
+			}
 			if record.Priority != nil {
 				dns.Priority = int(tea.Int64Value(record.Priority))
 			}
@@ -145,7 +148,7 @@ func (client *AliyunClient) GetDns(pageNum, pageSize int64, domainName, keyWord 
 }
 
 // AddDns 添加域名 DNS 记录
-func (client *AliyunClient) AddDns(domainName, rrType, rr, value string, ttl, priority int64) error {
+func (client *AliyunClient) AddDns(domainName, rrType, rr, value, remark string, ttl, weight, priority int64) error {
 
 	// 初始化请求参数
 	addDomainRecordRequest := &alidns20150109.AddDomainRecordRequest{
@@ -171,7 +174,7 @@ func (client *AliyunClient) AddDns(domainName, rrType, rr, value string, ttl, pr
 }
 
 // UpdateDns 修改域名 DNS 记录
-func (client *AliyunClient) UpdateDns(domainName, recordId, rrType, rr, value string, ttl, priority int64) error {
+func (client *AliyunClient) UpdateDns(domainName, recordId, rrType, rr, value, remark string, ttl, weight, priority int64) error {
 
 	// 初始化请求参数
 	updateDomainRecordRequest := &alidns20150109.UpdateDomainRecordRequest{
