@@ -1,4 +1,4 @@
-package utils
+package public_cloud
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 	util "github.com/alibabacloud-go/tea-utils/v2/service"
 	"github.com/alibabacloud-go/tea/tea"
 	"github.com/wonderivan/logger"
+	"ops-api/utils"
 	"strings"
 	"time"
 )
@@ -18,67 +19,35 @@ type AliyunClient struct {
 	DnsClient    *alidns20150109.Client
 }
 
-// DomainList 域名列表
-type DomainList struct {
-	Name                    string     `json:"name"`
-	RegistrationAt          *time.Time `json:"registration_at"`
-	ExpirationAt            *time.Time `json:"expiration_at"`
-	DomainServiceProviderID uint       `json:"domain_service_provider_id"`
-}
-
-// DnsList 域名DNS解析列表
-type DnsList struct {
-	Items []*DNS `json:"items"`
-	Total int64  `json:"total"`
-}
-
-// DNS DNS记录
-type DNS struct {
-	RR       string `json:"rr"`
-	Type     string `json:"type"`
-	Value    string `json:"value"`
-	TTL      int    `json:"ttl"`
-	Status   string `json:"status"`
-	CreateAt string `json:"create_at"`
-	Remark   string `json:"remark"`
-	RecordId string `json:"record_id"`
-	Priority int    `json:"priority"`
-}
-
-// CreateClient 创建请求客户端
-func CreateClient(accessKey, secretKey, endpoint string) (*AliyunClient, error) {
+// CreateAliyunClient 创建请求客户端
+func CreateAliyunClient(accessKey, secretKey string) (*AliyunClient, error) {
 
 	// 定义客户端配置
 	config := &openapi.Config{
 		AccessKeyId:     tea.String(accessKey),
 		AccessKeySecret: tea.String(secretKey),
-		Endpoint:        tea.String(endpoint),
 	}
 
-	switch endpoint {
-
-	// 域名管理
-	case "domain.aliyuncs.com":
-		client, err := domain20180129.NewClient(config)
-		if err != nil {
-			return nil, err
-		}
-		return &AliyunClient{DomainClient: client}, nil
-
-	// DNS管理
-	case "alidns.cn-hangzhou.aliyuncs.com":
-		client, err := alidns20150109.NewClient(config)
-		if err != nil {
-			return nil, err
-		}
-		return &AliyunClient{DnsClient: client}, nil
+	config.Endpoint = tea.String("domain.aliyuncs.com")
+	domainClient, err := domain20180129.NewClient(config)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil, nil
+	config.Endpoint = tea.String("alidns.cn-hangzhou.aliyuncs.com")
+	dnsClient, err := alidns20150109.NewClient(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return &AliyunClient{
+		DomainClient: domainClient,
+		DnsClient:    dnsClient,
+	}, nil
 }
 
-// GetDomains 获取域名列表
-func (client *AliyunClient) GetDomains(serviceProviderID uint) ([]DomainList, error) {
+// SyncDomains 域名同步
+func (client *AliyunClient) SyncDomains(serviceProviderID uint) ([]DomainList, error) {
 
 	// 初始化分页参数
 	var (
@@ -113,8 +82,8 @@ func (client *AliyunClient) GetDomains(serviceProviderID uint) ([]DomainList, er
 		for _, domain := range resp.Body.Data.Domain {
 			domains = append(domains, DomainList{
 				Name:                    tea.StringValue(domain.DomainName),
-				RegistrationAt:          ParseTime(tea.StringValue(domain.RegistrationDate)),
-				ExpirationAt:            ParseTime(tea.StringValue(domain.ExpirationDate)),
+				RegistrationAt:          utils.ParseTime(tea.StringValue(domain.RegistrationDate)),
+				ExpirationAt:            utils.ParseTime(tea.StringValue(domain.ExpirationDate)),
 				DomainServiceProviderID: serviceProviderID,
 			})
 		}
@@ -202,7 +171,7 @@ func (client *AliyunClient) AddDns(domainName, rrType, rr, value string, ttl, pr
 }
 
 // UpdateDns 修改域名 DNS 记录
-func (client *AliyunClient) UpdateDns(recordId, rrType, rr, value string, ttl, priority int64) error {
+func (client *AliyunClient) UpdateDns(domainName, recordId, rrType, rr, value string, ttl, priority int64) error {
 
 	// 初始化请求参数
 	updateDomainRecordRequest := &alidns20150109.UpdateDomainRecordRequest{
@@ -228,7 +197,7 @@ func (client *AliyunClient) UpdateDns(recordId, rrType, rr, value string, ttl, p
 }
 
 // DeleteDns 删除域名 DNS 记录
-func (client *AliyunClient) DeleteDns(recordId string) error {
+func (client *AliyunClient) DeleteDns(domainName, recordId string) error {
 
 	// 初始化请求参数
 	deleteDomainRecordRequest := &alidns20150109.DeleteDomainRecordRequest{
@@ -245,7 +214,7 @@ func (client *AliyunClient) DeleteDns(recordId string) error {
 }
 
 // SetDnsStatus 设置域名 DNS 状态
-func (client *AliyunClient) SetDnsStatus(recordId, status string) error {
+func (client *AliyunClient) SetDnsStatus(domainName, recordId, status string) error {
 
 	// 初始化请求参数
 	setDomainRecordStatusRequest := &alidns20150109.SetDomainRecordStatusRequest{

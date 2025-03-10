@@ -5,12 +5,23 @@ import (
 	"ops-api/dao"
 	"ops-api/model"
 	"ops-api/utils"
+	"ops-api/utils/public_cloud"
 	"time"
 )
 
 var Domain domain
 
 type domain struct{}
+
+// CloudProvider 云服务商相关接口
+type CloudProvider interface {
+	SyncDomains(serviceProviderID uint) ([]public_cloud.DomainList, error)
+	GetDns(pageNum, pageSize int64, domainName, keyWord string) (*public_cloud.DnsList, error)
+	AddDns(domainName, rrType, rr, value string, ttl, priority int64) error
+	UpdateDns(domainName, recordId, rrType, rr, value string, ttl, priority int64) error
+	DeleteDns(domainName, recordId string) error
+	SetDnsStatus(domainName, recordId, status string) error
+}
 
 // DomainCreate 创建域名数据结构体
 type DomainCreate struct {
@@ -60,6 +71,29 @@ type SetDnsStatus struct {
 	DomainId uint   `json:"domain_id" binding:"required"`
 	RecordId string `json:"record_id" binding:"required"`
 	Status   string `json:"status" binding:"required"`
+}
+
+// GetCloudProviderClient 获取云服务商客户端
+func (d *domain) GetCloudProviderClient(provider *model.DomainServiceProvider) (CloudProvider, error) {
+
+	if provider.AccessKey == nil || provider.SecretKey == nil {
+		return nil, errors.New("服务商配置信息错误")
+	}
+
+	// 解密AccessKey和SecretKey
+	ak, sk := decryptKeys(provider.AccessKey, provider.SecretKey)
+
+	// 根据服务商类型创建客户端
+	switch provider.Type {
+	case 1:
+		return public_cloud.CreateAliyunClient(ak, sk)
+	case 2:
+		return nil, errors.New("暂不支持")
+	case 3:
+		return public_cloud.CreateTencentClient(ak, sk)
+	default:
+		return nil, errors.New("不支持的服务商类型")
+	}
 }
 
 // AddDomainServiceProvider 创建域名服务商
@@ -157,13 +191,13 @@ func (d *domain) SyncDomain(ProviderId uint) error {
 	}
 
 	// 创建请求客户端
-	client, err := d.createClient(provider, "domain.aliyuncs.com")
+	client, err := d.GetCloudProviderClient(provider)
 	if err != nil {
 		return err
 	}
 
 	// 获取域名列表
-	domains, err := client.GetDomains(provider.Id)
+	domains, err := client.SyncDomains(provider.Id)
 	if err != nil {
 		return err
 	}
@@ -179,11 +213,11 @@ func (d *domain) SyncDomain(ProviderId uint) error {
 		})
 	}
 
-	return dao.Domain.SyncDomains(modelDomains)
+	return dao.Domain.SyncDomains(modelDomains, provider.Id)
 }
 
-// GetDomainDnsList 获取域名DNS解析列表
-func (d *domain) GetDomainDnsList(keyWord string, ID uint, page, limit int) (*utils.DnsList, error) {
+// GetDnsList 获取域名DNS解析列表
+func (d *domain) GetDnsList(keyWord string, ID uint, page, limit int) (*public_cloud.DnsList, error) {
 	// 获取域名信息
 	result, err := dao.Domain.GetDomainForID(ID)
 	if err != nil {
@@ -197,7 +231,7 @@ func (d *domain) GetDomainDnsList(keyWord string, ID uint, page, limit int) (*ut
 	}
 
 	// 创建请求客户端
-	client, err := d.createClient(provider, "alidns.cn-hangzhou.aliyuncs.com")
+	client, err := d.GetCloudProviderClient(provider)
 	if err != nil {
 		return nil, err
 	}
@@ -210,8 +244,8 @@ func (d *domain) GetDomainDnsList(keyWord string, ID uint, page, limit int) (*ut
 	return data, nil
 }
 
-// AddDomainDns 新增域名DNS解析
-func (d *domain) AddDomainDns(dns *DnsCreate) error {
+// AddDns 新增域名DNS解析
+func (d *domain) AddDns(dns *DnsCreate) error {
 	// 获取域名信息
 	result, err := dao.Domain.GetDomainForID(dns.DomainId)
 	if err != nil {
@@ -225,7 +259,7 @@ func (d *domain) AddDomainDns(dns *DnsCreate) error {
 	}
 
 	// 创建请求客户端
-	client, err := d.createClient(provider, "alidns.cn-hangzhou.aliyuncs.com")
+	client, err := d.GetCloudProviderClient(provider)
 	if err != nil {
 		return err
 	}
@@ -248,12 +282,12 @@ func (d *domain) UpdateDomainDns(dns *DnsUpdate) error {
 	}
 
 	// 创建请求客户端
-	client, err := d.createClient(provider, "alidns.cn-hangzhou.aliyuncs.com")
+	client, err := d.GetCloudProviderClient(provider)
 	if err != nil {
 		return err
 	}
 
-	return client.UpdateDns(dns.RecordId, dns.Type, dns.RR, dns.Value, int64(dns.TTL), int64(dns.Priority))
+	return client.UpdateDns(result.Name, dns.RecordId, dns.Type, dns.RR, dns.Value, int64(dns.TTL), int64(dns.Priority))
 }
 
 // DeleteDns 删除域名DNS解析
@@ -271,12 +305,12 @@ func (d *domain) DeleteDns(dns *DnsDelete) error {
 	}
 
 	// 创建请求客户端
-	client, err := d.createClient(provider, "alidns.cn-hangzhou.aliyuncs.com")
+	client, err := d.GetCloudProviderClient(provider)
 	if err != nil {
 		return err
 	}
 
-	return client.DeleteDns(dns.RecordId)
+	return client.DeleteDns(result.Name, dns.RecordId)
 }
 
 // SetDnsStatus 设置域名DNS状态
@@ -294,39 +328,16 @@ func (d *domain) SetDnsStatus(dns *SetDnsStatus) error {
 	}
 
 	// 创建请求客户端
-	client, err := d.createClient(provider, "alidns.cn-hangzhou.aliyuncs.com")
+	client, err := d.GetCloudProviderClient(provider)
 	if err != nil {
 		return err
 	}
 
-	return client.SetDnsStatus(dns.RecordId, dns.Status)
-}
-
-// createClient 创建客户端
-func (d *domain) createClient(provider *model.DomainServiceProvider, endpoint string) (*utils.AliyunClient, error) {
-	if err := d.validateProvider(provider); err != nil {
-		return nil, err
-	}
-
-	// 解密AccessKey和SecretKey
-	ak, sk := d.decryptKeys(provider.AccessKey, provider.SecretKey)
-
-	return utils.CreateClient(ak, sk, endpoint)
-}
-
-// validateProvider 校验服务商
-func (d *domain) validateProvider(provider *model.DomainServiceProvider) error {
-	if provider.Type == 4 {
-		return errors.New("不支持的服务商类型")
-	}
-	if provider.AccessKey == nil || provider.SecretKey == nil {
-		return errors.New("域名服务商配置信息错误")
-	}
-	return nil
+	return client.SetDnsStatus(result.Name, dns.RecordId, dns.Status)
 }
 
 // decryptKeys 解密 AccessKey 和 SecretKey
-func (d *domain) decryptKeys(accessKey, secretKey *string) (string, string) {
+func decryptKeys(accessKey, secretKey *string) (string, string) {
 	ak, _ := utils.Decrypt(*accessKey)
 	sk, _ := utils.Decrypt(*secretKey)
 	return ak, sk

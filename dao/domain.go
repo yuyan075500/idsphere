@@ -107,8 +107,9 @@ func (d *domain) AddDomain(data *model.Domain) (provider *model.Domain, err erro
 }
 
 // SyncDomains 同步域名
-func (d *domain) SyncDomains(domains []*model.Domain) error {
+func (d *domain) SyncDomains(domains []*model.Domain, providerId uint) error {
 	return global.MySQLClient.Transaction(func(tx *gorm.DB) error {
+
 		for _, result := range domains {
 			// 查找当前服务商下是否已存在相同的域名
 			var existing model.Domain
@@ -140,12 +141,12 @@ func (d *domain) SyncDomains(domains []*model.Domain) error {
 
 		// 删除数据库中多余的域名记录
 		if len(domainNames) > 0 {
-			if err := tx.Where("name NOT IN (?)", domainNames).Delete(&model.Domain{}).Error; err != nil {
+			if err := tx.Where("name NOT IN (?) AND domain_service_provider_id = ?", domainNames, providerId).Delete(&model.Domain{}).Error; err != nil {
 				return err
 			}
 		} else {
-			// 如果为空，删除所有数据
-			if err := tx.Delete(&model.Domain{}).Error; err != nil {
+			// 如果为空，仅删除当前服务商的数据
+			if err := tx.Where("domain_service_provider_id = ?", providerId).Delete(&model.Domain{}).Error; err != nil {
 				return err
 			}
 		}

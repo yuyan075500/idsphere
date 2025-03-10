@@ -273,7 +273,7 @@ func (d *domain) GetDomainDnsList(c *gin.Context) {
 		return
 	}
 
-	data, err := service.Domain.GetDomainDnsList(params.KeyWord, params.ID, params.Page, params.Limit)
+	data, err := service.Domain.GetDnsList(params.KeyWord, params.ID, params.Page, params.Limit)
 	if err != nil {
 		Response(c, 90500, err.Error())
 		return
@@ -304,7 +304,7 @@ func (d *domain) AddDomainDns(c *gin.Context) {
 		return
 	}
 
-	if err := service.Domain.AddDomainDns(dns); err != nil {
+	if err := service.Domain.AddDns(dns); err != nil {
 		Response(c, 90500, err.Error())
 		return
 	}
