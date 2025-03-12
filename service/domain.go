@@ -92,7 +92,7 @@ func (d *domain) GetCloudProviderClient(provider *model.DomainServiceProvider) (
 	case 1:
 		return public_cloud.CreateAliyunClient(ak, sk)
 	case 2:
-		return nil, errors.New("暂不支持")
+		return public_cloud.CreateHuaweiClient(ak, sk)
 	case 3:
 		return public_cloud.CreateTencentClient(ak, sk)
 	default:

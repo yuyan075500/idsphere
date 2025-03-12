@@ -2,9 +2,10 @@ package public_cloud
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common"
-	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
+	sdkerror "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/errors"
 	"github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/common/profile"
 	dnspod "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/dnspod/v20210323"
 	domain "github.com/tencentcloud/tencentcloud-sdk-go/tencentcloud/domain/v20180808"
@@ -59,8 +60,8 @@ func (client *TencentClient) SyncDomains(serviceProviderID uint) ([]DomainList, 
 		// 发送请求
 		response, err := client.DomainClient.DescribeDomainNameList(request)
 		if err != nil {
-			if _, ok := err.(*errors.TencentCloudSDKError); ok {
-				return nil, err
+			if err, ok := err.(*sdkerror.TencentCloudSDKError); ok {
+				return nil, errors.New(err.GetMessage())
 			}
 			return nil, err
 		}
@@ -121,6 +122,9 @@ func (client *TencentClient) GetDns(pageNum, pageSize int64, domainName, keyWord
 	// 发送请求
 	response, err := client.DNSClient.DescribeRecordList(request)
 	if err != nil {
+		if err, ok := err.(*sdkerror.TencentCloudSDKError); ok {
+			return nil, errors.New(err.GetMessage())
+		}
 		return nil, err
 	}
 
@@ -145,7 +149,13 @@ func (client *TencentClient) GetDns(pageNum, pageSize int64, domainName, keyWord
 			Remark:   *record.Remark,
 			RecordId: fmt.Sprintf("%d", *record.RecordId),
 			Priority: int(*record.MX),
-			Weight:   int(getInt64(record.Weight)),
+		}
+
+		if record.Weight != nil {
+			dnsItem.Weight = new(int)
+			*dnsItem.Weight = int(*record.Weight)
+		} else {
+			dnsItem.Weight = nil
 		}
 
 		dnsItems = append(dnsItems, dnsItem)
@@ -182,6 +192,9 @@ func (client *TencentClient) AddDns(domainName, rrType, rr, value, remark string
 	// 发送请求
 	_, err := client.DNSClient.CreateRecord(request)
 	if err != nil {
+		if err, ok := err.(*sdkerror.TencentCloudSDKError); ok {
+			return errors.New(err.GetMessage())
+		}
 		return err
 	}
 
@@ -217,6 +230,9 @@ func (client *TencentClient) UpdateDns(domainName, recordId, rrType, rr, value, 
 	// 发送请求
 	_, err = client.DNSClient.ModifyRecord(request)
 	if err != nil {
+		if err, ok := err.(*sdkerror.TencentCloudSDKError); ok {
+			return errors.New(err.GetMessage())
+		}
 		return err
 	}
 
@@ -240,6 +256,9 @@ func (client *TencentClient) DeleteDns(domainName, recordId string) error {
 	// 发送请求
 	_, err = client.DNSClient.DeleteRecord(request)
 	if err != nil {
+		if err, ok := err.(*sdkerror.TencentCloudSDKError); ok {
+			return errors.New(err.GetMessage())
+		}
 		return err
 	}
 
@@ -264,6 +283,9 @@ func (client *TencentClient) SetDnsStatus(domainName, recordId, status string) e
 	// 发送请求
 	_, err = client.DNSClient.ModifyRecordStatus(request)
 	if err != nil {
+		if err, ok := err.(*sdkerror.TencentCloudSDKError); ok {
+			return errors.New(err.GetMessage())
+		}
 		return err
 	}
 
@@ -277,12 +299,4 @@ func formatTime(timeStr string) string {
 		return timeStr
 	}
 	return parsedTime.Format(time.RFC3339)
-}
-
-// 处理可能为空的 int64
-func getInt64(ptr *uint64) uint64 {
-	if ptr != nil {
-		return *ptr
-	}
-	return 0
 }

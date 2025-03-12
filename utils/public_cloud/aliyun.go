@@ -135,7 +135,10 @@ func (client *AliyunClient) GetDns(pageNum, pageSize int64, domainName, keyWord 
 				RecordId: tea.StringValue(record.RecordId),
 			}
 			if record.Weight != nil {
-				dns.Weight = int(*record.Weight)
+				dns.Weight = new(int)
+				*dns.Weight = int(*record.Weight)
+			} else {
+				dns.Weight = nil
 			}
 			if record.Priority != nil {
 				dns.Priority = int(tea.Int64Value(record.Priority))
