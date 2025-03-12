@@ -377,14 +377,89 @@ func (s *settings) CertUpdate(certificate, privateKey, publicKey string) (map[st
 			"publicKey":   publicKey,
 			"privateKey":  privateKey,
 		}
-		authUsers []model.AuthUser
-		accounts  []model.Account
-		settings  []model.Settings
-		keys      = []string{"ldapBindPassword", "mailPassword", "smsAppSecret", "dingdingAppSecret", "feishuAppSecret", "wechatSecret"}
+		authUsers      []model.AuthUser
+		accounts       []model.Account
+		cfgs           []model.Settings
+		domainProvider []model.DomainServiceProvider
+		keys           = []string{"ldapBindPassword", "mailPassword", "smsAppSecret", "dingdingAppSecret", "feishuAppSecret", "wechatSecret"}
 	)
 
 	// 开启事务
 	tx := global.MySQLClient.Begin()
+
+	// 域名提供商密码更新
+	if err := global.MySQLClient.Find(&domainProvider).Error; err != nil {
+		return nil, err
+	}
+	for _, provider := range domainProvider {
+
+		if provider.AccessKey == nil && provider.SecretKey == nil && provider.IamPassword == nil {
+			continue
+		}
+
+		if provider.AccessKey != nil {
+			ak := *provider.AccessKey
+			// 获取明文AK
+			plaintextAK, err := utils.Decrypt(ak)
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			// 使用新密钥加密
+			newCiphertextAK, err := utils.EncryptWithPublicKey(plaintextAK, publicKey)
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			// 保存
+			if err := tx.Model(&provider).Where("id = ?", provider.Id).Updates(map[string]interface{}{"access_key": newCiphertextAK}).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		}
+
+		if provider.SecretKey != nil {
+			sk := *provider.SecretKey
+			// 获取明文SK
+			plaintextSK, err := utils.Decrypt(sk)
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			// 使用新密钥加密
+			newCiphertextSK, err := utils.EncryptWithPublicKey(plaintextSK, publicKey)
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			// 保存
+			if err := tx.Model(&provider).Where("id = ?", provider.Id).Updates(map[string]interface{}{"secret_key": newCiphertextSK}).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		}
+
+		if provider.IamPassword != nil {
+			iamPassword := *provider.IamPassword
+			// 获取明文密码
+			plaintextPassword, err := utils.Decrypt(iamPassword)
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			// 使用新密钥加密
+			newCiphertextPassword, err := utils.EncryptWithPublicKey(plaintextPassword, publicKey)
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+			// 保存
+			if err := tx.Model(&provider).Where("id = ?", provider.Id).Updates(map[string]interface{}{"iam_password": newCiphertextPassword}).Error; err != nil {
+				tx.Rollback()
+				return nil, err
+			}
+		}
+	}
 
 	// 用户密码更新
 	if err := global.MySQLClient.Find(&authUsers).Error; err != nil {
@@ -440,10 +515,10 @@ func (s *settings) CertUpdate(certificate, privateKey, publicKey string) (map[st
 	}
 
 	// 配置信息加密数据更新
-	if err := global.MySQLClient.Where("`key` IN ?", keys).Find(&settings).Error; err != nil {
+	if err := global.MySQLClient.Where("`key` IN ?", keys).Find(&cfgs).Error; err != nil {
 		return nil, err
 	}
-	for _, setting := range settings {
+	for _, setting := range cfgs {
 
 		// 未配置则跳过
 		if setting.Value == nil {
