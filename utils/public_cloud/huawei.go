@@ -142,7 +142,7 @@ func (client *HuaweiClient) SyncDomains(serviceProviderID uint) ([]DomainList, e
 	token, err := global.RedisClient.Get("hw_iam_user_token").Result()
 	if err != nil {
 		// 从华为云获取用户Token
-		t, err := client.GetToken("hw-ylsk", "yuyan", "Yup-09Yan@")
+		t, err := client.GetToken("hsw-sdfasdf", "sdfasdf", "Ysdfasdfasdf")
 		if err != nil {
 			return nil, err
 		}
@@ -298,7 +298,7 @@ func (client *HuaweiClient) GetDns(pageNum, pageSize int64, domainName, keyWord 
 }
 
 // AddDns 添加域名 DNS 记录
-func (client *HuaweiClient) AddDns(domainName, rrType, rr, value, remark string, ttl, weight, priority int64) error {
+func (client *HuaweiClient) AddDns(domainName, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) error {
 
 	// 获取Zone ID
 	zoneID, err := client.GetZoneID(domainName)
@@ -312,8 +312,7 @@ func (client *HuaweiClient) AddDns(domainName, rrType, rr, value, remark string,
 	// 将value 转换为数组
 	listRecordsbody := strings.Split(value, ",")
 
-	ttlCreateRecordSetRequestBody := int32(ttl)
-	weightCreateRecordSetRequestBody := int32(weight)
+	ttlCreateRecordSetRequestBody := ttl
 
 	descriptionCreateRecordSetRequestBody := remark
 
@@ -323,7 +322,7 @@ func (client *HuaweiClient) AddDns(domainName, rrType, rr, value, remark string,
 		Type:        rrType,
 		Description: &descriptionCreateRecordSetRequestBody,
 		Name:        fmt.Sprintf("%s.%s", rr, domainName),
-		Weight:      &weightCreateRecordSetRequestBody,
+		Weight:      weight,
 	}
 
 	_, err = client.DNSClient.CreateRecordSetWithLine(request)
@@ -335,7 +334,7 @@ func (client *HuaweiClient) AddDns(domainName, rrType, rr, value, remark string,
 }
 
 // UpdateDns 修改域名 DNS 记录
-func (client *HuaweiClient) UpdateDns(domainName, recordId, rrType, rr, value, remark string, ttl, weight, priority int64) error {
+func (client *HuaweiClient) UpdateDns(domainName, recordId, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) error {
 
 	// 获取Zone ID
 	zoneID, err := client.GetZoneID(domainName)
@@ -350,10 +349,10 @@ func (client *HuaweiClient) UpdateDns(domainName, recordId, rrType, rr, value, r
 	// 将value 转换为数组
 	listRecordsbody := strings.Split(value, ",")
 
-	ttlCreateRecordSetRequestBody := int32(ttl)
-	weightCreateRecordSetRequestBody := int32(weight)
+	ttlCreateRecordSetRequestBody := ttl
 
 	descriptionCreateRecordSetRequestBody := remark
+	fmt.Println(weight)
 
 	request.Body = &dnsModel.UpdateRecordSetsReq{
 		Records:     &listRecordsbody,
@@ -361,7 +360,7 @@ func (client *HuaweiClient) UpdateDns(domainName, recordId, rrType, rr, value, r
 		Type:        rrType,
 		Description: &descriptionCreateRecordSetRequestBody,
 		Name:        fmt.Sprintf("%s.%s", rr, domainName),
-		Weight:      &weightCreateRecordSetRequestBody,
+		Weight:      weight,
 	}
 	_, err = client.DNSClient.UpdateRecordSets(request)
 	if err != nil {

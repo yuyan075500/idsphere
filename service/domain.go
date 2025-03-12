@@ -17,8 +17,8 @@ type domain struct{}
 type CloudProvider interface {
 	SyncDomains(serviceProviderID uint) ([]public_cloud.DomainList, error)
 	GetDns(pageNum, pageSize int64, domainName, keyWord string) (*public_cloud.DnsList, error)
-	AddDns(domainName, rrType, rr, value, remark string, ttl, weight, priority int64) error
-	UpdateDns(domainName, recordId, rrType, rr, value, remark string, ttl, weight, priority int64) error
+	AddDns(domainName, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) error
+	UpdateDns(domainName, recordId, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) error
 	DeleteDns(domainName, recordId string) error
 	SetDnsStatus(domainName, recordId, status string) error
 }
@@ -44,10 +44,10 @@ type DnsCreate struct {
 	DomainId uint   `json:"domain_id" binding:"required"`
 	RR       string `json:"rr" binding:"required"`
 	Type     string `json:"type" binding:"required"`
-	TTL      int    `json:"ttl" binding:"required"`
+	TTL      int32  `json:"ttl" binding:"required"`
 	Value    string `json:"value" binding:"required"`
-	Priority int    `json:"priority"`
-	Weight   int    `json:"weight"`
+	Priority int32  `json:"priority"`
+	Weight   *int32 `json:"weight"`
 	Remark   string `json:"remark"`
 }
 
@@ -58,9 +58,9 @@ type DnsUpdate struct {
 	RR       string `json:"rr" binding:"required"`
 	Type     string `json:"type" binding:"required"`
 	Value    string `json:"value" binding:"required"`
-	TTL      int    `json:"ttl" binding:"required"`
-	Priority int    `json:"priority"`
-	Weight   int    `json:"weight"`
+	TTL      int32  `json:"ttl" binding:"required"`
+	Priority int32  `json:"priority"`
+	Weight   *int32 `json:"weight"`
 	Remark   string `json:"remark"`
 }
 
@@ -268,7 +268,7 @@ func (d *domain) AddDns(dns *DnsCreate) error {
 		return err
 	}
 
-	return client.AddDns(result.Name, dns.Type, dns.RR, dns.Value, dns.Remark, int64(dns.TTL), int64(dns.Weight), int64(dns.Priority))
+	return client.AddDns(result.Name, dns.Type, dns.RR, dns.Value, dns.Remark, dns.TTL, dns.Weight, dns.Priority)
 }
 
 // UpdateDomainDns 修改域名DNS解析
@@ -291,7 +291,7 @@ func (d *domain) UpdateDomainDns(dns *DnsUpdate) error {
 		return err
 	}
 
-	return client.UpdateDns(result.Name, dns.RecordId, dns.Type, dns.RR, dns.Value, dns.Remark, int64(dns.TTL), int64(dns.Weight), int64(dns.Priority))
+	return client.UpdateDns(result.Name, dns.RecordId, dns.Type, dns.RR, dns.Value, dns.Remark, dns.TTL, dns.Weight, dns.Priority)
 }
 
 // DeleteDns 删除域名DNS解析

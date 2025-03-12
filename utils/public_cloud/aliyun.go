@@ -151,7 +151,7 @@ func (client *AliyunClient) GetDns(pageNum, pageSize int64, domainName, keyWord 
 }
 
 // AddDns 添加域名 DNS 记录
-func (client *AliyunClient) AddDns(domainName, rrType, rr, value, remark string, ttl, weight, priority int64) error {
+func (client *AliyunClient) AddDns(domainName, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) error {
 
 	// 初始化请求参数
 	addDomainRecordRequest := &alidns20150109.AddDomainRecordRequest{
@@ -159,12 +159,12 @@ func (client *AliyunClient) AddDns(domainName, rrType, rr, value, remark string,
 		RR:         tea.String(rr),
 		Type:       tea.String(rrType),
 		Value:      tea.String(value),
-		TTL:        tea.Int64(ttl),
+		TTL:        tea.Int64(int64(ttl)),
 	}
 
 	// 设置 MX 类型的优先级
 	if rrType == "MX" {
-		addDomainRecordRequest.Priority = tea.Int64(priority)
+		addDomainRecordRequest.Priority = tea.Int64(int64(priority))
 	}
 
 	// 创建查询请求
@@ -177,7 +177,7 @@ func (client *AliyunClient) AddDns(domainName, rrType, rr, value, remark string,
 }
 
 // UpdateDns 修改域名 DNS 记录
-func (client *AliyunClient) UpdateDns(domainName, recordId, rrType, rr, value, remark string, ttl, weight, priority int64) error {
+func (client *AliyunClient) UpdateDns(domainName, recordId, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) error {
 
 	// 初始化请求参数
 	updateDomainRecordRequest := &alidns20150109.UpdateDomainRecordRequest{
@@ -185,12 +185,12 @@ func (client *AliyunClient) UpdateDns(domainName, recordId, rrType, rr, value, r
 		RR:       tea.String(rr),
 		Type:     tea.String(rrType),
 		Value:    tea.String(value),
-		TTL:      tea.Int64(ttl),
+		TTL:      tea.Int64(int64(priority)),
 	}
 
 	// 设置 MX 类型的优先级
 	if rrType == "MX" {
-		updateDomainRecordRequest.Priority = tea.Int64(priority)
+		updateDomainRecordRequest.Priority = tea.Int64(int64(priority))
 	}
 
 	// 创建查询请求

@@ -171,7 +171,7 @@ func (client *TencentClient) GetDns(pageNum, pageSize int64, domainName, keyWord
 }
 
 // AddDns 添加域名 DNS 记录
-func (client *TencentClient) AddDns(domainName, rrType, rr, value, remark string, ttl, weight, priority int64) error {
+func (client *TencentClient) AddDns(domainName, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) error {
 
 	// 构造请求
 	request := dnspod.NewCreateRecordRequest()
@@ -181,8 +181,11 @@ func (client *TencentClient) AddDns(domainName, rrType, rr, value, remark string
 	request.Value = common.StringPtr(value)
 	request.SubDomain = common.StringPtr(rr)
 	request.TTL = common.Uint64Ptr(uint64(ttl))
-	request.Weight = common.Uint64Ptr(uint64(weight))
 	request.Remark = common.StringPtr(remark)
+
+	if weight != nil {
+		request.Weight = common.Uint64Ptr(uint64(*weight))
+	}
 
 	// 设置 MX 类型的优先级
 	if rrType == "MX" {
@@ -202,7 +205,7 @@ func (client *TencentClient) AddDns(domainName, rrType, rr, value, remark string
 }
 
 // UpdateDns 修改域名 DNS 记录
-func (client *TencentClient) UpdateDns(domainName, recordId, rrType, rr, value, remark string, ttl, weight, priority int64) error {
+func (client *TencentClient) UpdateDns(domainName, recordId, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) error {
 
 	// 将 recordId 从字符串转换为 uint64
 	recordIdUint, err := strconv.ParseUint(recordId, 10, 64)
@@ -219,8 +222,11 @@ func (client *TencentClient) UpdateDns(domainName, recordId, rrType, rr, value, 
 	request.RecordId = common.Uint64Ptr(recordIdUint)
 	request.SubDomain = common.StringPtr(rr)
 	request.TTL = common.Uint64Ptr(uint64(ttl))
-	request.Weight = common.Uint64Ptr(uint64(weight))
 	request.Remark = common.StringPtr(remark)
+
+	if weight != nil {
+		request.Weight = common.Uint64Ptr(uint64(*weight))
+	}
 
 	// 设置 MX 类型的优先级
 	if rrType == "MX" {
