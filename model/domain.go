@@ -8,12 +8,16 @@ import (
 
 // DomainServiceProvider 域名服务提供商
 type DomainServiceProvider struct {
-	Id        uint     `json:"id" gorm:"primaryKey;autoIncrement"`
-	Name      string   `json:"name"`
-	AccessKey *string  `json:"access_key"`
-	SecretKey *string  `json:"secret_key"`
-	Type      uint     `json:"type"`
-	Domains   []Domain `gorm:"foreignKey:DomainServiceProviderID"`
+	Id          uint     `json:"id" gorm:"primaryKey;autoIncrement"`
+	Name        string   `json:"name"`
+	AccessKey   *string  `json:"access_key"`
+	SecretKey   *string  `json:"secret_key"`
+	Type        uint     `json:"type"`
+	AutoSync    bool     `json:"auto_sync"`
+	AccountName *string  `json:"account_name"`
+	IamUsername *string  `json:"iam_username"`
+	IamPassword *string  `json:"iam_password"`
+	Domains     []Domain `gorm:"foreignKey:DomainServiceProviderID"`
 }
 
 // BeforeCreate 创建时对敏感信息加密
@@ -32,6 +36,14 @@ func (d *DomainServiceProvider) BeforeCreate(tx *gorm.DB) (err error) {
 		}
 		d.SecretKey = &sk
 	}
+	if d.IamPassword != nil {
+		password, err := utils.Encrypt(*d.IamPassword)
+		if err != nil {
+			return err
+		}
+		d.IamPassword = &password
+	}
+
 	return nil
 }
 

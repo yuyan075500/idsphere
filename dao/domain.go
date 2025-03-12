@@ -30,11 +30,15 @@ type DomainUpdate struct {
 
 // ProviderUpdate 更新域名服务商结构体
 type ProviderUpdate struct {
-	ID        uint    `json:"id" binding:"required"`
-	Name      string  `json:"name" binding:"required"`
-	AccessKey *string `json:"access_key"`
-	SecretKey *string `json:"secret_key"`
-	Type      uint    `json:"type" binding:"required"`
+	ID          uint    `json:"id" binding:"required"`
+	Name        string  `json:"name" binding:"required"`
+	AccessKey   *string `json:"access_key"`
+	SecretKey   *string `json:"secret_key"`
+	Type        uint    `json:"type" binding:"required"`
+	AutoSync    bool    `json:"auto_sync"`
+	AccountName *string `json:"account_name"`
+	IamUsername *string `json:"iam_username"`
+	IamPassword *string `json:"iam_password"`
 }
 
 // AddDomainServiceProvider 新增域名服务商
@@ -82,7 +86,7 @@ func (d *domain) GetDomainServiceProviderList() ([]model.DomainServiceProvider, 
 	var providers []model.DomainServiceProvider
 
 	// 不返回敏感信息
-	if err := global.MySQLClient.Omit("AccessKey", "SecretKey").Find(&providers).Error; err != nil {
+	if err := global.MySQLClient.Omit("AccessKey", "SecretKey", "IamPassword").Find(&providers).Error; err != nil {
 		return nil, err
 	}
 

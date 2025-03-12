@@ -33,10 +33,14 @@ type DomainCreate struct {
 
 // DomainServiceProviderCreate 创建域名服务商数据结构体
 type DomainServiceProviderCreate struct {
-	Name      string  `json:"name" binding:"required"`
-	AccessKey *string `json:"access_key"`
-	SecretKey *string `json:"secret_key"`
-	Type      uint    `json:"type" binding:"required"`
+	Name        string  `json:"name" binding:"required"`
+	AccessKey   *string `json:"access_key"`
+	SecretKey   *string `json:"secret_key"`
+	Type        uint    `json:"type" binding:"required"`
+	AutoSync    bool    `json:"auto_sync"`
+	AccountName *string `json:"account_name"`
+	IamUsername *string `json:"iam_username"`
+	IamPassword *string `json:"iam_password"`
 }
 
 // DnsCreate 创建DNS记录结构体
@@ -108,6 +112,13 @@ func (d *domain) AddDomainServiceProvider(data *DomainServiceProviderCreate) (re
 		Type:      data.Type,
 		AccessKey: data.AccessKey,
 		SecretKey: data.SecretKey,
+		AutoSync:  data.AutoSync,
+	}
+
+	if data.Type == 2 {
+		provider.AccountName = data.AccountName
+		provider.IamUsername = data.IamUsername
+		provider.IamPassword = data.IamPassword
 	}
 
 	return dao.Domain.AddDomainServiceProvider(provider)
@@ -125,6 +136,9 @@ func (d *domain) UpdateDomainServiceProviderList(data *dao.ProviderUpdate) (*mod
 	updates["id"] = data.ID
 	updates["name"] = data.Name
 	updates["type"] = data.Type
+	updates["auto_sync"] = data.AutoSync
+	updates["account_name"] = data.AccountName
+	updates["iam_username"] = data.IamUsername
 
 	if data.AccessKey != nil {
 		// 加密
@@ -133,9 +147,6 @@ func (d *domain) UpdateDomainServiceProviderList(data *dao.ProviderUpdate) (*mod
 			return nil, err
 		}
 		updates["access_key"] = ak
-	} else {
-		// 重置为空
-		updates["access_key"] = nil
 	}
 	if data.SecretKey != nil {
 		// 加密
@@ -144,9 +155,14 @@ func (d *domain) UpdateDomainServiceProviderList(data *dao.ProviderUpdate) (*mod
 			return nil, err
 		}
 		updates["secret_key"] = sk
-	} else {
-		// 重置为空
-		updates["secret_key"] = nil
+	}
+	if data.IamPassword != nil {
+		// 加密
+		ip, err := utils.Encrypt(*data.IamPassword)
+		if err != nil {
+			return nil, err
+		}
+		updates["iam_password"] = ip
 	}
 
 	return dao.Domain.UpdateDomainServiceProvider(updates)

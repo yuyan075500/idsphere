@@ -13,7 +13,9 @@ import (
 	iamRegion "github.com/huaweicloud/huaweicloud-sdk-go-v3/services/iam/v3/region"
 	"io"
 	"net/http"
+	"ops-api/dao"
 	"ops-api/global"
+	"ops-api/utils"
 	"strings"
 	"time"
 )
@@ -138,11 +140,23 @@ func (client *HuaweiClient) SyncDomains(serviceProviderID uint) ([]DomainList, e
 		limit   = uint64(100)
 	)
 
+	// 获取服务商信息
+	provider, err := dao.Domain.GetDomainServiceProviderForID(int(serviceProviderID))
+	if err != nil {
+		return nil, err
+	}
+	if provider.AccountName == nil || provider.IamUsername == nil || provider.IamPassword == nil {
+		return nil, fmt.Errorf("域名服务商配置信息不完整")
+	}
+	accountName := *provider.AccountName
+	iamUsername := *provider.IamUsername
+	iamPassword, _ := utils.Decrypt(*provider.IamPassword)
+
 	// 从缓存用户Token
 	token, err := global.RedisClient.Get("hw_iam_user_token").Result()
 	if err != nil {
 		// 从华为云获取用户Token
-		t, err := client.GetToken("hsw-sdfasdf", "sdfasdf", "Ysdfasdfasdf")
+		t, err := client.GetToken(accountName, iamUsername, iamPassword)
 		if err != nil {
 			return nil, err
 		}
