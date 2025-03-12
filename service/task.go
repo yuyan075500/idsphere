@@ -222,6 +222,8 @@ func executeURLTask() {}
 // executeBuiltInMethod 内置方法调用
 func executeBuiltInMethod(task model.ScheduledTask, execLog *model.ScheduledTaskExecLog) {
 
+	logger.Info("正在执行内置方法:", task.BuiltInMethod)
+
 	defer func() {
 		finishTime := time.Now()
 		global.MySQLClient.Model(execLog).Updates(map[string]interface{}{
@@ -240,6 +242,30 @@ func executeBuiltInMethod(task model.ScheduledTask, execLog *model.ScheduledTask
 			global.MySQLClient.Model(&task).Update("LastRunResult", "成功")
 		}
 
+	}
+
+	// 域名同步
+	if task.BuiltInMethod == "domain_sync" {
+		var (
+			domainProvider []model.DomainServiceProvider
+			errInfo        error
+		)
+		// 获取域名服务提供商
+		_ = global.MySQLClient.Model(&model.DomainServiceProvider{}).Where("auto_sync = ?", true).Find(&domainProvider)
+		for _, provider := range domainProvider {
+			logger.Info("执行域名同步，服务提供商为：", provider.Name)
+			if err := Domain.SyncDomain(provider.Id); err != nil {
+				errInfo = err
+			}
+		}
+		if errInfo != nil {
+			global.MySQLClient.Model(execLog).Update("result", errInfo.Error())
+			global.MySQLClient.Model(&task).Update("LastRunResult", "失败")
+			logger.Warn("任务执行失败:", errInfo.Error())
+		} else {
+			global.MySQLClient.Model(execLog).Update("result", "成功")
+			global.MySQLClient.Model(&task).Update("LastRunResult", "成功")
+		}
 	}
 
 	// 密码过期提醒
