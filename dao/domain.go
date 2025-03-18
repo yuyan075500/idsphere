@@ -93,7 +93,7 @@ func (d *domain) GetDomainServiceProviderList() ([]model.DomainServiceProvider, 
 	return providers, nil
 }
 
-// GetDomainServiceProviderForID 根据 ID 获取域名服务商量
+// GetDomainServiceProviderForID 根据 ID 获取域名服务商
 func (d *domain) GetDomainServiceProviderForID(id int) (*model.DomainServiceProvider, error) {
 	var provider model.DomainServiceProvider
 	if err := global.MySQLClient.First(&provider, id).Error; err != nil {
