@@ -15,6 +15,29 @@ type DomainCertificateList struct {
 	Total int64                      `json:"total"`
 }
 
+// DomainCertificateRequestList 返回给前端表格的证书申请列表
+type DomainCertificateRequestList struct {
+	Items []*model.DomainCertificateRequestRecord `json:"items"`
+	Total int64                                   `json:"total"`
+}
+
+// CreateDomainCertificateRequest 创建证书申请记录
+func (c *certificate) CreateDomainCertificateRequest(data *model.DomainCertificateRequestRecord) (request *model.DomainCertificateRequestRecord, err error) {
+	if err := global.MySQLClient.Create(&data).Error; err != nil {
+		return nil, err
+	}
+	return request, nil
+}
+
+// GetCertificateRequestForID 根据 ID 获取证书申请记录
+func (c *certificate) GetCertificateRequestForID(id int) (*model.DomainCertificateRequestRecord, error) {
+	var record model.DomainCertificateRequestRecord
+	if err := global.MySQLClient.First(&record, id).Error; err != nil {
+		return nil, err
+	}
+	return &record, nil
+}
+
 // UploadDomainCertificate 上传证书
 func (c *certificate) UploadDomainCertificate(data *model.DomainCertificate) (provider *model.DomainCertificate, err error) {
 	if err := global.MySQLClient.Create(&data).Error; err != nil {

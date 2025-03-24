@@ -11,13 +11,16 @@ func initDomainCertificateRouters(router *gin.Engine) {
 
 	certificate := router.Group("/api/v1/certificate")
 	{
-		// 上传域名证书
+		// 上传证书
 		certificate.POST("/upload", controller.Certificate.UploadDomainCertificate)
 
-		// 删除域名证书
+		// 删除证书
 		certificate.DELETE("/:id", controller.Certificate.DeleteDomainCertificate)
 
 		// 证书下载
 		certificate.GET("/:id", controller.Certificate.DownloadDomainCertificate)
+
+		// 申请证书
+		certificate.POST("/request", controller.Certificate.RequestDomainCertificate)
 	}
 }

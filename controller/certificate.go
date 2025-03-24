@@ -12,6 +12,47 @@ var Certificate certificate
 
 type certificate struct{}
 
+// RequestDomainCertificate 申请域名证书
+// @Summary 申请域名证书
+// @Description 域名证书相关
+// @Tags 域名证书相关
+// @Accept application/json
+// @Produce application/json
+// @Param Authorization header string true "Bearer 用户令牌"
+// @Param user body service.DomainCertificateRequest true "申请证书信息"
+// @Success 200 {string} json "{"code": 0, "msg": "请求成功", "data": nil}"
+// @Router /api/v1/certificate/request [post]
+func (cert *certificate) RequestDomainCertificate(c *gin.Context) {
+
+	var data = &service.DomainCertificateRequest{}
+
+	if err := c.ShouldBind(data); err != nil {
+		Response(c, 90400, err.Error())
+		return
+	}
+
+	if *data.Email == "" {
+		// 获取当前登录用户信息
+		user, err := service.User.GetUser(c.GetUint("id"))
+		if err != nil {
+			Response(c, 90500, err.Error())
+			return
+		}
+		data.Email = &user.Email
+	}
+	if *data.Email == "" {
+		Response(c, 90500, "邮箱不能为空")
+		return
+	}
+
+	if err := service.Certificate.RequestDomainCertificate(data); err != nil {
+		Response(c, 90500, err.Error())
+		return
+	}
+
+	Response(c, 500, "证书申请成功")
+}
+
 // UploadDomainCertificate 上传域名证书
 // @Summary 新增域名证书
 // @Description 域名证书相关
@@ -21,7 +62,7 @@ type certificate struct{}
 // @Param Authorization header string true "Bearer 用户令牌"
 // @Param user body service.DomainCertificateCreate true "域名证书信息"
 // @Success 200 {string} json "{"code": 0, "msg": "创建成功", "data": nil}"
-// @Router /api/v1/certificate [post]
+// @Router /api/v1/certificate/upload [post]
 func (cert *certificate) UploadDomainCertificate(c *gin.Context) {
 	var provider = &service.DomainCertificateCreate{}
 
