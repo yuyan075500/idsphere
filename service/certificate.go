@@ -18,6 +18,7 @@ import (
 	"github.com/go-acme/lego/v4/lego"
 	"github.com/go-acme/lego/v4/registration"
 	"ops-api/dao"
+	"ops-api/global"
 	"ops-api/model"
 	"os"
 	"strings"
@@ -37,12 +38,15 @@ type DomainCertificateCreate struct {
 	ServerType   uint      `json:"server_type" binding:"required"`
 	StartAt      time.Time `json:"start_at"`
 	ExpirationAt time.Time `json:"expiration_at"`
+	Status       string    `json:"status"`
 }
 
 // DomainCertificateRequest 证书申请
 type DomainCertificateRequest struct {
-	Email  *string `json:"email"`
-	Domain string  `json:"domain" binding:"required"`
+	Email      *string `json:"email"`
+	Domain     string  `json:"domain" binding:"required"`
+	RR         string  `json:"rr" binding:"required"`
+	ProviderID uint    `json:"provider_id" binding:"required"`
 }
 
 type AcmeUser struct {
@@ -61,37 +65,59 @@ func (u *AcmeUser) GetPrivateKey() crypto.PrivateKey {
 	return u.key
 }
 
-type plainDnsProvider struct{}
+type dnsProvider struct {
+	providerClient CloudProvider
+	rr             string
+	domain         string
+	RecordId       string
+}
 
-func (p *plainDnsProvider) Present(domain, token, keyAuth string) error {
-
+func (p *dnsProvider) Present(domain, token, keyAuth string) error {
 	// 获取DNS记录信息
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	// 将申请信息存入数据库
-	_, err := dao.Certificate.CreateDomainCertificateRequest(&model.DomainCertificateRequestRecord{
-		Domain:    domain,
-		TxtRecord: info.FQDN,
-		TxtValue:  info.Value,
-	})
+	// 组装DNS记录名称
+	rr := fmt.Sprintf("_acme-challenge.%s", p.rr)
+
+	// 添加DNS记录
+	recordId, err := p.providerClient.AddDns(p.domain, "TXT", rr, info.Value, "DNS-01挑战", 600, nil, 0)
 	if err != nil {
 		return err
 	}
 
-	// 验证
-	_, err = dns01.FindZoneByFqdn(info.EffectiveFQDN)
-	if err != nil {
-		return err
-	}
+	p.RecordId = recordId
 
 	return nil
 }
-func (p *plainDnsProvider) CleanUp(domain, token, keyAuth string) error {
-	return nil
+
+func (p *dnsProvider) CleanUp(domain, token, keyAuth string) error {
+	// 删除DNS记录
+	return p.providerClient.DeleteDns(p.domain, p.RecordId)
 }
 
 // RequestDomainCertificate 完成证书申请
 func (c *certificate) RequestDomainCertificate(data *DomainCertificateRequest) error {
+
+	// 创建数据库记录
+	crt := &model.DomainCertificate{
+		Domain: fmt.Sprintf("%s.%s", data.RR, data.Domain),
+		Status: "pending",
+	}
+	if err := global.MySQLClient.Create(crt).Error; err != nil {
+		return nil
+	}
+
+	// 获取域名服务商配置信息
+	provider, err := dao.Domain.GetDomainServiceProviderForID(int(data.ProviderID))
+	if err != nil {
+		return err
+	}
+
+	// 创建请求客户端
+	providerClient, err := Domain.GetCloudProviderClient(provider)
+	if err != nil {
+		return err
+	}
 
 	// 创建私钥
 	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
@@ -111,7 +137,6 @@ func (c *certificate) RequestDomainCertificate(data *DomainCertificateRequest) e
 	config.CADirURL = lego.LEDirectoryStaging
 
 	// 设置证书类型
-
 	config.Certificate.KeyType = certcrypto.RSA2048
 
 	client, err := lego.NewClient(config)
@@ -125,28 +150,43 @@ func (c *certificate) RequestDomainCertificate(data *DomainCertificateRequest) e
 		return err
 	}
 	acmeUser.Registration = reg
+	acmeUser.GetRegistration()
 
 	// 验证DNS，设置验证超时时间为15分钟
-	dnsProvider := plainDnsProvider{}
-	err = client.Challenge.SetDNS01Provider(&dnsProvider, dns01.AddDNSTimeout(time.Minute*5))
+	customDnsProvider := dnsProvider{
+		providerClient: providerClient,
+		domain:         data.Domain,
+		rr:             data.RR,
+	}
+	err = client.Challenge.SetDNS01Provider(&customDnsProvider)
 	if err != nil {
 		return err
 	}
 
 	// 申请证书
 	request := cert.ObtainRequest{
-		Domains: []string{data.Domain},
+		Domains: []string{fmt.Sprintf("%s.%s", data.RR, data.Domain)},
 		Bundle:  true,
 	}
+
 	certificates, err := client.Certificate.Obtain(request)
 	if err != nil {
 		return err
 	}
 
-	// 返回证书和私钥
-	fmt.Println(string(certificates.Certificate))
-	fmt.Println(string(certificates.PrivateKey))
-	return nil
+	// 将证书和私钥存储到数据库中
+	crt.Certificate = string(certificates.Certificate)
+	crt.PrivateKey = string(certificates.PrivateKey)
+	crt.Status = "active"
+
+	// 解析证书信息
+	certInfo, err := parseCertificate(string(certificates.Certificate))
+	if err != nil {
+		return err
+	}
+	crt.StartAt = &certInfo.NotBefore
+	crt.ExpirationAt = &certInfo.NotAfter
+	return dao.Certificate.UpdateDomainCertificate(crt)
 }
 
 // UploadDomainCertificate 上传证书
@@ -169,17 +209,23 @@ func (c *certificate) UploadDomainCertificate(data *DomainCertificateCreate) (re
 		return nil, err
 	}
 
+	// 判断证书是否过期
+	if certInfo.NotAfter.Before(time.Now()) {
+		return nil, errors.New("证书已过期")
+	}
+
 	// 获取绑定的域名
 	boundDomains := getCertificateDomains(certInfo)
 
 	crt := &model.DomainCertificate{
 		Certificate:  data.Certificate,
 		Domain:       strings.Join(boundDomains, " | "),
-		ExpirationAt: certInfo.NotAfter,
+		ExpirationAt: &certInfo.NotAfter,
 		PrivateKey:   data.PrivateKey,
 		ServerType:   data.ServerType,
-		StartAt:      certInfo.NotBefore,
+		StartAt:      &certInfo.NotBefore,
 		Type:         data.Type,
+		Status:       "active",
 	}
 
 	return dao.Certificate.UploadDomainCertificate(crt)

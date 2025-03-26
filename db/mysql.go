@@ -68,7 +68,6 @@ func MySQLInit() error {
 		&model.DomainServiceProvider{},
 		&model.Domain{},
 		&model.DomainCertificate{},
-		&model.DomainCertificateRequestRecord{},
 	)
 
 	// 设置数据库连接池

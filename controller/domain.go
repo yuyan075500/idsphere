@@ -198,8 +198,8 @@ func (d *domain) GetDomainList(c *gin.Context) {
 	params := new(struct {
 		Name       string `form:"name"`
 		ProviderId uint   `form:"provider_id"`
-		Page       int    `form:"page" binding:"required"`
-		Limit      int    `form:"limit" binding:"required"`
+		Page       *int   `form:"page"`
+		Limit      *int   `form:"limit"`
 	})
 
 	if err := c.Bind(params); err != nil {

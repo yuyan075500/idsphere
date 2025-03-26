@@ -17,7 +17,7 @@ type domain struct{}
 type CloudProvider interface {
 	SyncDomains(serviceProviderID uint) ([]public_cloud.DomainList, error)
 	GetDns(pageNum, pageSize int64, domainName, keyWord string) (*public_cloud.DnsList, error)
-	AddDns(domainName, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) error
+	AddDns(domainName, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) (recordId string, err error)
 	UpdateDns(domainName, recordId, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) error
 	DeleteDns(domainName, recordId string) error
 	SetDnsStatus(domainName, recordId, status string) error
@@ -197,7 +197,7 @@ func (d *domain) UpdateDomain(data *dao.DomainUpdate) (*model.Domain, error) {
 }
 
 // GetDomainList 获取域名列表
-func (d *domain) GetDomainList(name string, providerId uint, page, limit int) (data *dao.DomainList, err error) {
+func (d *domain) GetDomainList(name string, providerId uint, page, limit *int) (data *dao.DomainList, err error) {
 	return dao.Domain.GetDomainList(name, providerId, page, limit)
 }
 
@@ -284,7 +284,8 @@ func (d *domain) AddDns(dns *DnsCreate) error {
 		return err
 	}
 
-	return client.AddDns(result.Name, dns.Type, dns.RR, dns.Value, dns.Remark, dns.TTL, dns.Weight, dns.Priority)
+	_, err = client.AddDns(result.Name, dns.Type, dns.RR, dns.Value, dns.Remark, dns.TTL, dns.Weight, dns.Priority)
+	return err
 }
 
 // UpdateDomainDns 修改域名DNS解析

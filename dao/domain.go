@@ -181,11 +181,10 @@ func (d *domain) UpdateDomain(data *DomainUpdate) (*model.Domain, error) {
 }
 
 // GetDomainList 获取域名列表
-func (d *domain) GetDomainList(name string, providerId uint, page, limit int) (*DomainList, error) {
+func (d *domain) GetDomainList(name string, providerId uint, page, limit *int) (*DomainList, error) {
 	var (
-		startSet = (page - 1) * limit
-		domains  []*model.Domain
-		total    int64
+		domains []*model.Domain
+		total   int64
 	)
 
 	// 初始化查询
@@ -200,8 +199,17 @@ func (d *domain) GetDomainList(name string, providerId uint, page, limit int) (*
 	}
 
 	// 执行查询
-	if err := query.Count(&total).Limit(limit).Offset(startSet).Find(&domains).Error; err != nil {
-		return nil, err
+	if page == nil && limit == nil {
+		// 不分页
+		if err := query.Count(&total).Find(&domains).Error; err != nil {
+			return nil, err
+		}
+	} else {
+		// 分页
+		startSet := (*page - 1) * *limit
+		if err := query.Count(&total).Limit(*limit).Offset(startSet).Find(&domains).Error; err != nil {
+			return nil, err
+		}
 	}
 
 	return &DomainList{

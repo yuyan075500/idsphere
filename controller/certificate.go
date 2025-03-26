@@ -50,7 +50,7 @@ func (cert *certificate) RequestDomainCertificate(c *gin.Context) {
 		return
 	}
 
-	Response(c, 500, "证书申请成功")
+	Response(c, 0, "证书申请成功")
 }
 
 // UploadDomainCertificate 上传域名证书

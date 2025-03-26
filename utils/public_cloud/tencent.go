@@ -171,7 +171,7 @@ func (client *TencentClient) GetDns(pageNum, pageSize int64, domainName, keyWord
 }
 
 // AddDns 添加域名 DNS 记录
-func (client *TencentClient) AddDns(domainName, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) error {
+func (client *TencentClient) AddDns(domainName, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) (recordId string, err error) {
 
 	// 构造请求
 	request := dnspod.NewCreateRecordRequest()
@@ -193,15 +193,15 @@ func (client *TencentClient) AddDns(domainName, rrType, rr, value, remark string
 	}
 
 	// 发送请求
-	_, err := client.DNSClient.CreateRecord(request)
+	res, err := client.DNSClient.CreateRecord(request)
 	if err != nil {
 		if err, ok := err.(*sdkerror.TencentCloudSDKError); ok {
-			return errors.New(err.GetMessage())
+			return "", errors.New(err.GetMessage())
 		}
-		return err
+		return "", err
 	}
 
-	return nil
+	return strconv.Itoa(int(*res.Response.RecordId)), nil
 }
 
 // UpdateDns 修改域名 DNS 记录

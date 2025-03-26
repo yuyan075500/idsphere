@@ -312,12 +312,20 @@ func (client *HuaweiClient) GetDns(pageNum, pageSize int64, domainName, keyWord 
 }
 
 // AddDns 添加域名 DNS 记录
-func (client *HuaweiClient) AddDns(domainName, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) error {
+func (client *HuaweiClient) AddDns(domainName, rrType, rr, value, remark string, ttl int32, weight *int32, priority int32) (recordId string, err error) {
+
+	// 如果value两端没有双引号，则加上双引号
+	if !strings.HasPrefix(value, "\"") {
+		value = "\"" + value
+	}
+	if !strings.HasSuffix(value, "\"") {
+		value = value + "\""
+	}
 
 	// 获取Zone ID
 	zoneID, err := client.GetZoneID(domainName)
 	if err != nil {
-		return err
+		return "", err
 	}
 
 	request := &dnsModel.CreateRecordSetWithLineRequest{}
@@ -339,12 +347,12 @@ func (client *HuaweiClient) AddDns(domainName, rrType, rr, value, remark string,
 		Weight:      weight,
 	}
 
-	_, err = client.DNSClient.CreateRecordSetWithLine(request)
+	res, err := client.DNSClient.CreateRecordSetWithLine(request)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	return nil
+	return *res.Id, nil
 }
 
 // UpdateDns 修改域名 DNS 记录
@@ -366,7 +374,6 @@ func (client *HuaweiClient) UpdateDns(domainName, recordId, rrType, rr, value, r
 	ttlCreateRecordSetRequestBody := ttl
 
 	descriptionCreateRecordSetRequestBody := remark
-	fmt.Println(weight)
 
 	request.Body = &dnsModel.UpdateRecordSetsReq{
 		Records:     &listRecordsbody,
