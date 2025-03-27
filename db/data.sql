@@ -19,7 +19,8 @@ INSERT INTO `system_sub_menu` VALUES (8, '菜单管理', 'MenuManagement', 'sub-
 INSERT INTO `system_sub_menu` VALUES (9, '定时任务', 'CornManagement', 'sub-menu-corn', 'corn', 'system/corn/index', 2, null, 4);
 INSERT INTO `system_sub_menu` VALUES (10, '系统配置', 'ConfManagement', 'sub-menu-conf', 'conf', 'system/settings/index', 3, null, 4);
 INSERT INTO `system_sub_menu` VALUES (11, '域名管理', 'DomainManagement', 'sub-menu-domain', 'domain', 'domain/domain/index', 1, null, 5);
-INSERT INTO `system_sub_menu` VALUES (12, '站点监控', 'SiteMonitoring', 'sub-menu-monitoring', 'monitoring', 'domain/monitoring/index', 2, null, 5);
+INSERT INTO `system_sub_menu` VALUES (12, '证书管理', 'CertificateManagement', 'sub-menu-certificate', 'certificate', 'domain/certificate/index', 2, null, 5);
+-- INSERT INTO `system_sub_menu` VALUES (13, '站点监控', 'SiteMonitoring', 'sub-menu-monitoring', 'monitoring', 'domain/monitoring/index', 3, null, 5);
 
 # API接口
 INSERT INTO `system_path` VALUES (1, 'AddUser', '/api/v1/user', 'POST', 'UserManagement', '新增用户');
@@ -62,6 +63,26 @@ INSERT INTO `system_path` VALUES (37, 'UpdateSettings', '/api/v1/settings*', 'PU
 INSERT INTO `system_path` VALUES (38, 'UpdateCert', '/api/v1/settings/cert', 'PUT', 'ConfManagement', '证书密钥更新');
 INSERT INTO `system_path` VALUES (39, 'UpdateLogo', '/api/v1/settings/logoUpload', 'POST', 'ConfManagement', '修改 Logo');
 INSERT INTO `system_path` VALUES (40, 'TestSettings', '/api/v1/settings/test/*', 'POST', 'ConfManagement', '功能测试');
+
+
+INSERT INTO `system_path` VALUES (41, 'GetDomainServiceProviderList', '/api/v1/domain/providers', 'GET', 'DomainManagement', '获取服务商列表');
+INSERT INTO `system_path` VALUES (42, 'AddDomainServiceProvider', '/api/v1/domain/provider', 'POST', 'DomainManagement', '新增服务商');
+INSERT INTO `system_path` VALUES (43, 'DeleteDomainServiceProvider', '/api/v1/domain/provider/:id', 'DELETE', 'DomainManagement', '删除服务商');
+INSERT INTO `system_path` VALUES (44, 'UpdateDomainServiceProvider', '/api/v1/domain/provider', 'PUT', 'DomainManagement', '修改服务商');
+INSERT INTO `system_path` VALUES (45, 'SyncDomain', '/api/v1/domain/sync', 'POST', 'DomainManagement', '同步域名');
+INSERT INTO `system_path` VALUES (46, 'GetDomainList', '/api/v1/domains', 'GET', 'DomainManagement', '获取域名列表');
+INSERT INTO `system_path` VALUES (47, 'AddDomain', '/api/v1/domain', 'POST', 'DomainManagement', '新增域名');
+INSERT INTO `system_path` VALUES (48, 'DeleteDomain', '/api/v1/domain/:id', 'DELETE', 'DomainManagement', '删除域名');
+INSERT INTO `system_path` VALUES (49, 'UpdateDomain', '/api/v1/domain', 'PUT', 'DomainManagement', '修改域名');
+INSERT INTO `system_path` VALUES (50, 'GetDomainDnsList', '/api/v1/dns', 'GET', 'DomainManagement', '获取DNS列表');
+INSERT INTO `system_path` VALUES (51, 'AddDomainDns', '/api/v1/dns', 'POST', 'DomainManagement', '新增DNS');
+INSERT INTO `system_path` VALUES (52, 'DeleteDns', '/api/v1/dns', 'DELETE', 'DomainManagement', '删除DNS');
+INSERT INTO `system_path` VALUES (53, 'UpdateDns', '/api/v1/dns*', 'PUT', 'DomainManagement', '修改DNS');
+INSERT INTO `system_path` VALUES (54, 'GetDomainCertificateList', '/api/v1/certificates', 'GET', 'CertificateManagement', '获取证书列表');
+INSERT INTO `system_path` VALUES (55, 'UploadDomainCertificate', '/api/v1/certificate/upload', 'POST', 'CertificateManagement', '上传证书');
+INSERT INTO `system_path` VALUES (56, 'DeleteDomainCertificate', '/api/v1/certificate/:id', 'DELETE', 'CertificateManagement', '删除证书');
+INSERT INTO `system_path` VALUES (57, 'DownloadDomainCertificate', '/api/v1/certificate/:id', 'GET', 'CertificateManagement', '下载证书');
+INSERT INTO `system_path` VALUES (58, 'RequestDomainCertificate', '/api/v1/certificate/request', 'POST', 'CertificateManagement', '申请证书');
 
 # 系统默认配置
 INSERT INTO `settings` VALUES (1, 'externalUrl', 'https://example.idsphere.cn', 'string');

@@ -185,7 +185,7 @@ func (client *AliyunClient) UpdateDns(domainName, recordId, rrType, rr, value, r
 		RR:       tea.String(rr),
 		Type:     tea.String(rrType),
 		Value:    tea.String(value),
-		TTL:      tea.Int64(int64(priority)),
+		TTL:      tea.Int64(int64(ttl)),
 	}
 
 	// 设置 MX 类型的优先级

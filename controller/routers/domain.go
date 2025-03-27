@@ -37,20 +37,23 @@ func initDomainRouters(router *gin.Engine) {
 
 		// 同步域名
 		domain.POST("/sync", controller.Domain.SyncDomain)
+	}
 
+	dns := router.Group("/api/v1/dns")
+	{
 		// 获取域名DNS解析列表
-		domain.GET("/dns", controller.Domain.GetDomainDnsList)
+		dns.GET("", controller.Domain.GetDomainDnsList)
 
 		// 新增域名DNS解析
-		domain.POST("/dns", controller.Domain.AddDomainDns)
+		dns.POST("", controller.Domain.AddDomainDns)
 
 		// 修改域名DNS解析
-		domain.PUT("/dns", controller.Domain.UpdateDns)
+		dns.PUT("", controller.Domain.UpdateDns)
 
 		// 删除域名DNS解析
-		domain.DELETE("/dns", controller.Domain.DeleteDns)
+		dns.DELETE("", controller.Domain.DeleteDns)
 
 		// 修改域名DNS解析状态
-		domain.PUT("/dns_status", controller.Domain.SetDomainStatus)
+		dns.PUT("/status", controller.Domain.SetDomainStatus)
 	}
 }
