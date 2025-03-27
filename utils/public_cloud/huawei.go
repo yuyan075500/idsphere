@@ -286,7 +286,7 @@ func (client *HuaweiClient) GetDns(pageNum, pageSize int64, domainName, keyWord 
 			Type:     *record.Type,
 			TTL:      int(*record.Ttl),
 			Status:   getStatus(record.Status),
-			CreateAt: *record.CreatedAt,
+			CreateAt: formatTime8(*record.CreatedAt),
 			Remark:   getString(record.Description),
 			Value:    getValue(record.Records),
 			RecordId: *record.Id,
@@ -455,4 +455,12 @@ func getValue(value *[]string) string {
 		return v[0]
 	}
 	return ""
+}
+
+func formatTime8(timeStr string) string {
+	parsedTime, err := time.Parse("2006-01-02T15:04:05.999", timeStr) // 匹配毫秒
+	if err != nil {
+		return timeStr
+	}
+	return parsedTime.Format(time.RFC3339)
 }

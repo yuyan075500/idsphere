@@ -300,7 +300,8 @@ func (client *TencentClient) SetDnsStatus(domainName, recordId, status string) e
 
 // 时间处理
 func formatTime(timeStr string) string {
-	parsedTime, err := time.Parse("2006-01-02 15:04:05", timeStr)
+	loc, _ := time.LoadLocation("Asia/Shanghai")
+	parsedTime, err := time.ParseInLocation("2006-01-02 15:04:05", timeStr, loc)
 	if err != nil {
 		return timeStr
 	}
