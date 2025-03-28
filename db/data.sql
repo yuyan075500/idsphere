@@ -63,8 +63,6 @@ INSERT INTO `system_path` VALUES (37, 'UpdateSettings', '/api/v1/settings*', 'PU
 INSERT INTO `system_path` VALUES (38, 'UpdateCert', '/api/v1/settings/cert', 'PUT', 'ConfManagement', '证书密钥更新');
 INSERT INTO `system_path` VALUES (39, 'UpdateLogo', '/api/v1/settings/logoUpload', 'POST', 'ConfManagement', '修改 Logo');
 INSERT INTO `system_path` VALUES (40, 'TestSettings', '/api/v1/settings/test/*', 'POST', 'ConfManagement', '功能测试');
-
-
 INSERT INTO `system_path` VALUES (41, 'GetDomainServiceProviderList', '/api/v1/domain/providers', 'GET', 'DomainManagement', '获取服务商列表');
 INSERT INTO `system_path` VALUES (42, 'AddDomainServiceProvider', '/api/v1/domain/provider', 'POST', 'DomainManagement', '新增服务商');
 INSERT INTO `system_path` VALUES (43, 'DeleteDomainServiceProvider', '/api/v1/domain/provider/:id', 'DELETE', 'DomainManagement', '删除服务商');

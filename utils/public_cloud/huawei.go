@@ -153,7 +153,7 @@ func (client *HuaweiClient) SyncDomains(serviceProviderID uint) ([]DomainList, e
 	iamPassword, _ := utils.Decrypt(*provider.IamPassword)
 
 	// 从缓存用户Token
-	token, err := global.RedisClient.Get("hw_iam_user_token").Result()
+	token, err := global.RedisClient.Get(fmt.Sprintf("hw_iam_user_token_%v", provider.Id)).Result()
 	if err != nil {
 		// 从华为云获取用户Token
 		t, err := client.GetToken(accountName, iamUsername, iamPassword)
@@ -164,7 +164,7 @@ func (client *HuaweiClient) SyncDomains(serviceProviderID uint) ([]DomainList, e
 		token = *t
 
 		// 将Token存入Redis缓存
-		if err := global.RedisClient.Set("hw_iam_user_token", *t, 12*time.Hour).Err(); err != nil {
+		if err := global.RedisClient.Set(fmt.Sprintf("hw_iam_user_token_%v", provider.Id), *t, 12*time.Hour).Err(); err != nil {
 			return nil, err
 		}
 	}
