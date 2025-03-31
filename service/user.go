@@ -507,7 +507,7 @@ func (u *user) FeishuLogin(params *FeishuLogin) (token, redirectUri, username, a
 	conditions := map[string]interface{}{
 		"name":         *userinfo.Data.Name,
 		"phone_number": mobile[3:],
-		"email":        *userinfo.Data.Email,
+		//"email":        *userinfo.Data.Email,
 	}
 
 	// 在本地数据库中查找匹配的用户
