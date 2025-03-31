@@ -122,6 +122,7 @@ type ResponseUserinfo struct {
 	PreferredUsername string `json:"preferred_username"` // 首选用户名
 	Email             string `json:"email"`              // 邮箱地址
 	PhoneNumber       string `json:"phone_number"`       // 电话号码
+	Sub               string `json:"sub"`
 }
 
 type Claims struct {
@@ -361,6 +362,7 @@ func (s *sso) GetUserinfo(token string) (user *ResponseUserinfo, err error) {
 		PreferredUsername: userinfo.Username,
 		Email:             userinfo.Email,
 		PhoneNumber:       userinfo.PhoneNumber,
+		Sub:               fmt.Sprintf("user-%d", mc.ID),
 	}
 
 	return user, err
