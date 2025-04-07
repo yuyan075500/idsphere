@@ -226,3 +226,25 @@ func (d *domain) GetDomainForID(id uint) (*model.Domain, error) {
 	}
 	return &result, nil
 }
+
+// GetExpiredDomainList 获取过期域名列表
+func (d *domain) GetExpiredDomainList() (domainList []*model.Domain, err error) {
+
+	var (
+		domains        []*model.Domain
+		now            = time.Now()
+		sevenDaysLater = now.Add(30 * 24 * time.Hour)
+	)
+
+	if err := global.MySQLClient.Model(&model.Domain{}).
+		Preload("DomainServiceProvider", func(db *gorm.DB) *gorm.DB {
+			return db.Select("id, name")
+		}).
+		Where("expiration_at < ? OR expiration_at BETWEEN ? AND ?", now, now, sevenDaysLater).
+		Find(&domains).
+		Error; err != nil {
+		return nil, err
+	}
+
+	return domains, nil
+}

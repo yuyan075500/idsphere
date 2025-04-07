@@ -2,6 +2,7 @@ package mail
 
 import (
 	"errors"
+	"fmt"
 	"github.com/go-gomail/gomail"
 	"ops-api/config"
 	"ops-api/utils"
@@ -18,15 +19,41 @@ type EmailInfo struct {
 	msg      *gomail.Message
 }
 
-// Setup 初始化邮件dialer
-func (e *EmailInfo) Setup() *gomail.Dialer {
+// 获取字符串类型配置
+func getConfigString(key string) (string, error) {
+	if val, ok := config.Conf.Settings[key].(string); ok {
+		return val, nil
+	}
+	return "", fmt.Errorf("%s configuration is missing or not a string", key)
+}
 
-	var (
-		mailHost     = config.Conf.Settings["mailAddress"].(string)
-		mailPort     = config.Conf.Settings["mailPort"].(int)
-		mailFrom     = config.Conf.Settings["mailForm"].(string)
-		mailPassword = config.Conf.Settings["mailPassword"].(string)
-	)
+// 获取整数类型配置
+func getConfigInt(key string) (int, error) {
+	if val, ok := config.Conf.Settings[key].(int); ok {
+		return val, nil
+	}
+	return 0, fmt.Errorf("%s configuration is missing or not an integer", key)
+}
+
+// Setup 初始化邮件 Dialer
+func (e *EmailInfo) Setup() (*gomail.Dialer, error) {
+
+	mailHost, err := getConfigString("mailAddress")
+	if err != nil {
+		return nil, err
+	}
+	mailPort, err := getConfigInt("mailPort")
+	if err != nil {
+		return nil, err
+	}
+	mailFrom, err := getConfigString("mailForm")
+	if err != nil {
+		return nil, err
+	}
+	mailPassword, err := getConfigString("mailPassword")
+	if err != nil {
+		return nil, err
+	}
 
 	// 密码解密
 	str, _ := utils.Decrypt(mailPassword)
@@ -45,20 +72,26 @@ func (e *EmailInfo) Setup() *gomail.Dialer {
 		//e.dialer.TLSConfig = &tls.Config{InsecureSkipVerify: true}
 	}
 
-	return e.dialer
+	return e.dialer, nil
 }
 
 // SendMsg 发送邮件
 func (e *EmailInfo) SendMsg(to, cc, files []string, subject, body, sendType string) error {
 
 	// 初始化连接验证
-	e.Setup()
+	_, err := e.Setup()
+	if err != nil {
+		return err
+	}
 
 	// 创建一个邮件对象
 	e.msg = gomail.NewMessage()
 
 	// 设置发件人
-	mailFrom := config.Conf.Settings["mailForm"].(string)
+	mailFrom, err := getConfigString("mailForm")
+	if err != nil {
+		return err
+	}
 	e.msg.SetHeader("From", mailFrom)
 	// 设置收件人
 	e.msg.SetHeader("To", to...)

@@ -779,7 +779,7 @@ func (u *user) PasswordExpiredNotice() (map[string]interface{}, error) {
 		expiredAt := user.PasswordExpiredAt.Format("2006-01-02 15:04:05")
 
 		// 生成HTML内容
-		htmlBody := PasswordExpiredNoticeHTML(user.Name, user.Username, expiredAt)
+		htmlBody := passwordExpiredNoticeHTML(user.Name, user.Username, expiredAt)
 
 		// 发送邮件函数
 		if err := mail.Email.SendMsg([]string{user.Email}, nil, nil, "密码过期提醒", htmlBody, "html"); err != nil {
@@ -797,8 +797,8 @@ func (u *user) PasswordExpiredNotice() (map[string]interface{}, error) {
 	return result, nil
 }
 
-// PasswordExpiredNoticeHTML 密码过期通知正文
-func PasswordExpiredNoticeHTML(name, username, expiredAt string) string {
+// passwordExpiredNoticeHTML 密码过期通知正文
+func passwordExpiredNoticeHTML(name, username, expiredAt string) string {
 
 	var (
 		externalUrl = config.Conf.Settings["externalUrl"].(string)
