@@ -298,16 +298,13 @@ func executeBuiltInMethod(task model.ScheduledTask, execLog *model.ScheduledTask
 
 	// 证书过期提醒
 	if task.BuiltInMethod == "certificate_expire_notify" {
-		//result, err := User.PasswordExpiredNotice()
-		//if err != nil {
-		//	global.MySQLClient.Model(execLog).Update("result", err.Error())
-		//	global.MySQLClient.Model(&task).Update("LastRunResult", "失败")
-		//	logger.Warn("任务执行失败:", err.Error())
-		//} else {
-		//	jsonData, _ := json.Marshal(result)
-		//	// 任务成功记录
-		//	global.MySQLClient.Model(execLog).Update("result", fmt.Sprintf("%v", string(jsonData)))
-		//	global.MySQLClient.Model(&task).Update("LastRunResult", "成功")
-		//}
+		if err := Certificate.CertificateExpiredNotice(); err != nil {
+			global.MySQLClient.Model(execLog).Update("result", err.Error())
+			global.MySQLClient.Model(&task).Update("LastRunResult", "失败")
+			logger.Warn("任务执行失败:", err.Error())
+		} else {
+			global.MySQLClient.Model(execLog).Update("result", "成功")
+			global.MySQLClient.Model(&task).Update("LastRunResult", "成功")
+		}
 	}
 }

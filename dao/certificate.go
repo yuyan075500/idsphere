@@ -3,6 +3,7 @@ package dao
 import (
 	"ops-api/global"
 	"ops-api/model"
+	"time"
 )
 
 var Certificate certificate
@@ -68,4 +69,23 @@ func (c *certificate) GetCertificateForID(id int) (*model.DomainCertificate, err
 		return nil, err
 	}
 	return &cert, nil
+}
+
+// GetExpiredCertificateList 获取过期证书列表
+func (c *certificate) GetExpiredCertificateList() (certificateList []*model.DomainCertificate, err error) {
+
+	var (
+		certificates   []*model.DomainCertificate
+		now            = time.Now()
+		sevenDaysLater = now.Add(30 * 24 * time.Hour)
+	)
+
+	if err := global.MySQLClient.Model(&model.DomainCertificate{}).
+		Where("expiration_at < ? OR expiration_at BETWEEN ? AND ?", now, now, sevenDaysLater).
+		Find(&certificates).
+		Error; err != nil {
+		return nil, err
+	}
+
+	return certificates, nil
 }
