@@ -83,7 +83,7 @@ type CertTest struct {
 
 // GetAllSettingsWithParsedValues 获取所有配置
 func (s *settings) GetAllSettingsWithParsedValues() (map[string]interface{}, error) {
-	settings, err := dao.Settings.GetAllSettings()
+	configs, err := dao.Settings.GetAllSettings()
 	if err != nil {
 		return nil, err
 	}
@@ -91,11 +91,11 @@ func (s *settings) GetAllSettingsWithParsedValues() (map[string]interface{}, err
 	// 创建结果字典
 	result := make(map[string]interface{})
 
-	for _, setting := range settings {
-		if err := setting.ParseValue(); err != nil {
+	for _, conf := range configs {
+		if err := conf.ParseValue(); err != nil {
 			return nil, err
 		}
-		result[setting.Key] = setting.ParsedValue
+		result[conf.Key] = conf.ParsedValue
 	}
 	return result, nil
 }
@@ -166,67 +166,147 @@ func (s *settings) UpdateSettingValue(key, value string) error {
 // UpdateSettingValues 更新多个配置
 func (s *settings) UpdateSettingValues(data *SettingsUpdate) (map[string]interface{}, error) {
 
-	settingsToUpdate := map[string]interface{}{
-		"externalUrl":                data.ExternalUrl,
-		"mfa":                        data.Mfa,
-		"issuer":                     data.Issuer,
-		"secret":                     data.Secret,
-		"ldapAddress":                data.LdapAddress,
-		"ldapBindDn":                 data.LdapBindDn,
-		"ldapBindPassword":           data.LdapBindPassword,
-		"ldapSearchDn":               data.LdapSearchDn,
-		"ldapFilterAttribute":        data.LdapFilterAttribute,
-		"ldapUserPasswordExpireDays": data.LdapUserPasswordExpireDays,
-		"passwordExpireDays":         data.PasswordExpireDays,
-		"passwordLength":             data.PasswordLength,
-		"passwordComplexity":         data.PasswordComplexity,
-		"passwordExpiryReminderDays": data.PasswordExpiryReminderDays,
-		"mailAddress":                data.MailAddress,
-		"mailPort":                   data.MailPort,
-		"mailForm":                   data.MailForm,
-		"mailPassword":               data.MailPassword,
-		"smsAppSecret":               data.SmsAppSecret,
-		"smsAppKey":                  data.SmsAppKey,
-		"smsProvider":                data.SmsProvider,
-		"smsSignature":               data.SmsSignature,
-		"smsEndpoint":                data.SmsEndpoint,
-		"smsSender":                  data.SmsSender,
-		"smsCallbackUrl":             data.SmsCallbackUrl,
-		"smsTemplateId":              data.SmsTemplateId,
-		"dingdingAppKey":             data.DingdingAppKey,
-		"dingdingAppSecret":          data.DingdingAppSecret,
-		"feishuAppId":                data.FeishuAppId,
-		"feishuAppSecret":            data.FeishuAppSecret,
-		"wechatCorpId":               data.WechatCorpId,
-		"wechatAgentId":              data.WechatAgentId,
-		"wechatSecret":               data.WechatSecret,
-		"TokenExpiresTime":           data.TokenExpiresTime,
-		"Swagger":                    data.Swagger,
+	settingsToUpdate := map[string]interface{}{}
+
+	// 站点基本配置
+	if data.ExternalUrl != "" {
+		settingsToUpdate["externalUrl"] = data.ExternalUrl
+	}
+	if data.Swagger != "" {
+		settingsToUpdate["Swagger"] = data.Swagger
+	}
+
+	// 安全设置
+	if data.Mfa != "" {
+		settingsToUpdate["mfa"] = data.Mfa
+	}
+	if data.Issuer != "" {
+		settingsToUpdate["issuer"] = data.Issuer
+	}
+	if data.Secret != "" {
+		settingsToUpdate["secret"] = data.Secret
+	}
+	if data.TokenExpiresTime != "" {
+		settingsToUpdate["TokenExpiresTime"] = data.TokenExpiresTime
+	}
+
+	// LDAP 设置
+	if data.LdapAddress != "" {
+		settingsToUpdate["ldapAddress"] = data.LdapAddress
+	}
+	if data.LdapBindDn != "" {
+		settingsToUpdate["ldapBindDn"] = data.LdapBindDn
+	}
+	if data.LdapBindPassword != "" {
+		cipherText, _ := utils.Encrypt(data.LdapBindPassword)
+		settingsToUpdate["ldapBindPassword"] = cipherText
+	}
+	if data.LdapSearchDn != "" {
+		settingsToUpdate["ldapSearchDn"] = data.LdapSearchDn
+	}
+	if data.LdapFilterAttribute != "" {
+		settingsToUpdate["ldapFilterAttribute"] = data.LdapFilterAttribute
+	}
+	if data.LdapUserPasswordExpireDays != "" {
+		settingsToUpdate["ldapUserPasswordExpireDays"] = data.LdapUserPasswordExpireDays
+	}
+
+	// 用户密码策略
+	if data.PasswordExpireDays != "" {
+		settingsToUpdate["passwordExpireDays"] = data.PasswordExpireDays
+	}
+	if data.PasswordLength != "" {
+		settingsToUpdate["passwordLength"] = data.PasswordLength
+	}
+	if data.PasswordComplexity != "" {
+		settingsToUpdate["passwordComplexity"] = data.PasswordComplexity
+	}
+	if data.PasswordExpiryReminderDays != "" {
+		settingsToUpdate["passwordExpiryReminderDays"] = data.PasswordExpiryReminderDays
+	}
+
+	// 邮件配置
+	if data.MailAddress != "" {
+		settingsToUpdate["mailAddress"] = data.MailAddress
+	}
+	if data.MailPort != "" {
+		settingsToUpdate["mailPort"] = data.MailPort
+	}
+	if data.MailForm != "" {
+		settingsToUpdate["mailForm"] = data.MailForm
+	}
+	if data.MailPassword != "" {
+		cipherText, _ := utils.Encrypt(data.MailPassword)
+		settingsToUpdate["mailPassword"] = cipherText
+	}
+
+	// 短信配置
+	if data.SmsAppSecret != "" {
+		cipherText, _ := utils.Encrypt(data.SmsAppSecret)
+		settingsToUpdate["smsAppSecret"] = cipherText
+	}
+	if data.SmsAppKey != "" {
+		settingsToUpdate["smsAppKey"] = data.SmsAppKey
+	}
+	if data.SmsProvider != "" {
+		settingsToUpdate["smsProvider"] = data.SmsProvider
+	}
+	if data.SmsSignature != "" {
+		settingsToUpdate["smsSignature"] = data.SmsSignature
+	}
+	if data.SmsEndpoint != "" {
+		settingsToUpdate["smsEndpoint"] = data.SmsEndpoint
+	}
+	if data.SmsSender != "" {
+		if data.SmsProvider == "aliyun" {
+			settingsToUpdate["smsSender"] = nil
+		} else {
+			settingsToUpdate["smsSender"] = data.SmsSender
+		}
+	}
+	if data.SmsCallbackUrl != "" {
+		if data.SmsProvider == "aliyun" {
+			settingsToUpdate["smsCallbackUrl"] = nil
+		} else {
+			settingsToUpdate["smsCallbackUrl"] = data.SmsCallbackUrl
+		}
+	}
+	if data.SmsTemplateId != "" {
+		settingsToUpdate["smsTemplateId"] = data.SmsTemplateId
+	}
+
+	// 钉钉配置
+	if data.DingdingAppKey != "" {
+		settingsToUpdate["dingdingAppKey"] = data.DingdingAppKey
+	}
+	if data.DingdingAppSecret != "" {
+		cipherText, _ := utils.Encrypt(data.DingdingAppSecret)
+		settingsToUpdate["dingdingAppSecret"] = cipherText
+	}
+
+	// 飞书配置
+	if data.FeishuAppId != "" {
+		settingsToUpdate["feishuAppId"] = data.FeishuAppId
+	}
+	if data.FeishuAppSecret != "" {
+		cipherText, _ := utils.Encrypt(data.FeishuAppSecret)
+		settingsToUpdate["feishuAppSecret"] = cipherText
+	}
+
+	// 企业微信配置
+	if data.WechatAgentId != "" {
+		settingsToUpdate["wechatAgentId"] = data.WechatAgentId
+	}
+	if data.WechatSecret != "" {
+		cipherText, _ := utils.Encrypt(data.WechatSecret)
+		settingsToUpdate["wechatSecret"] = cipherText
+	}
+	if data.WechatCorpId != "" {
+		settingsToUpdate["wechatCorpId"] = data.WechatCorpId
 	}
 
 	// 开启事务
 	tx := global.MySQLClient.Begin()
-
-	for key, value := range settingsToUpdate {
-		if value == "" || value == nil {
-			// 删除空值
-			delete(settingsToUpdate, key)
-		} else {
-			strValue := fmt.Sprintf("%v", value)
-
-			// 敏感信息加密
-			if key == "ldapBindPassword" || key == "mailPassword" || key == "smsAppSecret" || key == "dingdingAppSecret" || key == "feishuAppSecret" || key == "wechatSecret" {
-				// 对密码进行加密
-				cipherText, err := utils.Encrypt(strValue)
-				if err != nil {
-					return nil, err
-				}
-				strValue = cipherText
-			}
-
-			settingsToUpdate[key] = strValue
-		}
-	}
 
 	// 批量更新
 	result, err := dao.Settings.UpdateSettings(tx, settingsToUpdate)

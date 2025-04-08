@@ -38,7 +38,7 @@ func (s *settings) UpdateSetting(key, value string) error {
 func (s *settings) UpdateSettings(db *gorm.DB, settings map[string]interface{}) (map[string]interface{}, error) {
 	// 批量更新
 	for key, value := range settings {
-		if err := db.Model(&model.Settings{}).Where("`key` = ?", key).Update("value", value).Error; err != nil {
+		if err := db.Model(&model.Settings{}).Select("*").Where("`key` = ?", key).Update("value", value).Error; err != nil {
 			return nil, err
 		}
 	}
