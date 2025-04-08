@@ -83,6 +83,9 @@ func (p *dnsProvider) Present(domain, token, keyAuth string) error {
 
 	// 添加DNS记录
 	rr := fmt.Sprintf("_acme-challenge.%s", sub)
+	if sub == domain {
+		rr = "_acme-challenge"
+	}
 	recordId, err := p.providerClient.AddDns(p.domain, "TXT", rr, info.Value, "DNS-01挑战", 600, nil, 0)
 	if err != nil {
 		return err
@@ -102,6 +105,9 @@ func (p *dnsProvider) CleanUp(domain, token, keyAuth string) error {
 	// 获取记录
 	sub := strings.TrimSuffix(domain, "."+p.domain)
 	rr := fmt.Sprintf("_acme-challenge.%s", sub)
+	if sub == domain {
+		rr = "_acme-challenge"
+	}
 
 	// 获取记录ID
 	recordId := p.recordIds[rr]
@@ -172,7 +178,7 @@ func (c *certificate) RequestDomainCertificate(data *DomainCertificateRequest) e
 	acmeUser.Registration = reg
 	acmeUser.GetRegistration()
 
-	// 验证DNS，设置验证超时时间为15分钟
+	// 验证DNS
 	customDnsProvider := dnsProvider{
 		providerClient: providerClient,
 		domain:         data.Domain,
