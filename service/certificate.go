@@ -70,40 +70,57 @@ func (u *AcmeUser) GetPrivateKey() crypto.PrivateKey {
 
 type dnsProvider struct {
 	providerClient CloudProvider
-	rr             string
 	domain         string
-	RecordId       string
+	recordIds      map[string]string
 }
 
 func (p *dnsProvider) Present(domain, token, keyAuth string) error {
 	// 获取DNS记录信息
 	info := dns01.GetChallengeInfo(domain, keyAuth)
 
-	// 组装DNS记录名称
-	rr := fmt.Sprintf("_acme-challenge.%s", p.rr)
+	// 解析当前这个域名的子域名部分
+	sub := strings.TrimSuffix(domain, "."+p.domain)
 
 	// 添加DNS记录
+	rr := fmt.Sprintf("_acme-challenge.%s", sub)
 	recordId, err := p.providerClient.AddDns(p.domain, "TXT", rr, info.Value, "DNS-01挑战", 600, nil, 0)
 	if err != nil {
 		return err
 	}
 
-	p.RecordId = recordId
+	// 初始化记录IDs
+	if p.recordIds == nil {
+		p.recordIds = make(map[string]string)
+	}
+	p.recordIds[rr] = recordId
 
 	return nil
 }
 
 func (p *dnsProvider) CleanUp(domain, token, keyAuth string) error {
+
+	// 获取记录
+	sub := strings.TrimSuffix(domain, "."+p.domain)
+	rr := fmt.Sprintf("_acme-challenge.%s", sub)
+
+	// 获取记录ID
+	recordId := p.recordIds[rr]
+
 	// 删除DNS记录
-	return p.providerClient.DeleteDns(p.domain, p.RecordId)
+	return p.providerClient.DeleteDns(p.domain, recordId)
 }
 
 // RequestDomainCertificate 完成证书申请
 func (c *certificate) RequestDomainCertificate(data *DomainCertificateRequest) error {
 
 	// 创建数据库记录
+	rrList := strings.Split(data.RR, ",")
+	var fullDomains []string
+	for _, rr := range rrList {
+		fullDomains = append(fullDomains, fmt.Sprintf("%s.%s", rr, data.Domain))
+	}
 	crt := &model.DomainCertificate{
-		Domain: fmt.Sprintf("%s.%s", data.RR, data.Domain),
+		Domain: strings.Join(fullDomains, " | "),
 		Status: "pending",
 	}
 	if err := global.MySQLClient.Create(crt).Error; err != nil {
@@ -134,15 +151,15 @@ func (c *certificate) RequestDomainCertificate(data *DomainCertificateRequest) e
 		key:   key,
 	}
 
-	config := lego.NewConfig(&acmeUser)
+	conf := lego.NewConfig(&acmeUser)
 
 	// 配置证书请求地址，测试环境为：LEDirectoryStaging，生产环境为：LEDirectoryProduction
-	config.CADirURL = lego.LEDirectoryStaging
+	conf.CADirURL = lego.LEDirectoryStaging
 
 	// 设置证书类型
-	config.Certificate.KeyType = certcrypto.RSA2048
+	conf.Certificate.KeyType = certcrypto.RSA2048
 
-	client, err := lego.NewClient(config)
+	client, err := lego.NewClient(conf)
 	if err != nil {
 		return err
 	}
@@ -159,7 +176,6 @@ func (c *certificate) RequestDomainCertificate(data *DomainCertificateRequest) e
 	customDnsProvider := dnsProvider{
 		providerClient: providerClient,
 		domain:         data.Domain,
-		rr:             data.RR,
 	}
 	err = client.Challenge.SetDNS01Provider(&customDnsProvider)
 	if err != nil {
@@ -168,7 +184,7 @@ func (c *certificate) RequestDomainCertificate(data *DomainCertificateRequest) e
 
 	// 申请证书
 	request := cert.ObtainRequest{
-		Domains: []string{fmt.Sprintf("%s.%s", data.RR, data.Domain)},
+		Domains: fullDomains,
 		Bundle:  true,
 	}
 
