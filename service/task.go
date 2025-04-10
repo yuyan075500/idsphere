@@ -307,4 +307,16 @@ func executeBuiltInMethod(task model.ScheduledTask, execLog *model.ScheduledTask
 			global.MySQLClient.Model(&task).Update("LastRunResult", "成功")
 		}
 	}
+
+	// URL地址证书监控
+	if task.BuiltInMethod == "url_certificate_expire_notify" {
+		if err := UrlAddress.CertificateCheck(nil); err != nil {
+			global.MySQLClient.Model(execLog).Update("result", err.Error())
+			global.MySQLClient.Model(&task).Update("LastRunResult", "失败")
+			logger.Warn("任务执行失败:", err.Error())
+		} else {
+			global.MySQLClient.Model(execLog).Update("result", "成功")
+			global.MySQLClient.Model(&task).Update("LastRunResult", "成功")
+		}
+	}
 }

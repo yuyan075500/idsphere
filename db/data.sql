@@ -20,7 +20,7 @@ INSERT INTO `system_sub_menu` VALUES (9, '定时任务', 'CornManagement', 'sub-
 INSERT INTO `system_sub_menu` VALUES (10, '系统配置', 'ConfManagement', 'sub-menu-conf', 'conf', 'system/settings/index', 3, null, 4);
 INSERT INTO `system_sub_menu` VALUES (11, '域名管理', 'DomainManagement', 'sub-menu-domain', 'domain', 'domain/domain/index', 1, null, 5);
 INSERT INTO `system_sub_menu` VALUES (12, '证书管理', 'CertificateManagement', 'sub-menu-certificate', 'certificate', 'domain/certificate/index', 2, null, 5);
--- INSERT INTO `system_sub_menu` VALUES (13, '站点监控', 'SiteMonitoring', 'sub-menu-monitoring', 'monitoring', 'domain/monitoring/index', 3, null, 5);
+INSERT INTO `system_sub_menu` VALUES (13, '站点监控', 'SiteMonitoring', 'sub-menu-monitoring', 'monitoring', 'domain/monitoring/index', 3, null, 5);
 
 # API接口
 INSERT INTO `system_path` VALUES (1, 'AddUser', '/api/v1/user', 'POST', 'UserManagement', '新增用户');
