@@ -140,7 +140,7 @@ func (u *urlAddress) CertificateCheck(c *gin.Context) {
 		return
 	}
 
-	if err := service.UrlAddress.CertificateCheck(params.ID); err != nil {
+	if err := service.UrlAddress.ManualCertificateCheck(params.ID); err != nil {
 		Response(c, 90500, err.Error())
 		return
 	}

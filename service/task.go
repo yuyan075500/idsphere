@@ -18,11 +18,13 @@ type task struct{}
 
 // TaskCreate 创建构体
 type TaskCreate struct {
-	Name          string `json:"name" binding:"required"`
-	Type          uint   `json:"type" binding:"required"`
-	CronExpr      string `json:"cron_expr" binding:"required"`
-	BuiltInMethod string `json:"built_in_method" binding:"required"`
-	Enabled       *bool  `json:"enabled" binding:"required"`
+	Name          string  `json:"name" binding:"required"`
+	Type          uint    `json:"type" binding:"required"`
+	CronExpr      string  `json:"cron_expr" binding:"required"`
+	BuiltInMethod string  `json:"built_in_method" binding:"required"`
+	Enabled       *bool   `json:"enabled" binding:"required"`
+	NotifyType    *int    `json:"notify_type"`
+	Receiver      *string `json:"receiver"`
 }
 
 // AddTask 创建定时任务
@@ -34,6 +36,8 @@ func (t *task) AddTask(data *TaskCreate) (job *model.ScheduledTask, err error) {
 		CronExpr:      data.CronExpr,
 		BuiltInMethod: data.BuiltInMethod,
 		Enabled:       *data.Enabled,
+		NotifyType:    data.NotifyType,
+		Receiver:      data.Receiver,
 	}
 
 	// 数据库中新增任务
@@ -310,7 +314,7 @@ func executeBuiltInMethod(task model.ScheduledTask, execLog *model.ScheduledTask
 
 	// URL地址证书监控
 	if task.BuiltInMethod == "url_certificate_expire_notify" {
-		if err := UrlAddress.CertificateCheck(nil); err != nil {
+		if err := UrlAddress.AutoCertificateCheck(&task); err != nil {
 			global.MySQLClient.Model(execLog).Update("result", err.Error())
 			global.MySQLClient.Model(&task).Update("LastRunResult", "失败")
 			logger.Warn("任务执行失败:", err.Error())

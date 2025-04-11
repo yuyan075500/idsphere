@@ -11,7 +11,6 @@ import (
 	"ops-api/dao"
 	"ops-api/global"
 	"ops-api/model"
-	"ops-api/utils/mail"
 	"strconv"
 	"strings"
 	"time"
@@ -57,50 +56,110 @@ func (u *urlAddress) GetUrlList(name string, page, limit *int) (data *dao.UrlAdd
 	return dao.UrlAddress.GetUrlList(name, page, limit)
 }
 
-// CertificateCheck 证书检查
-func (u *urlAddress) CertificateCheck(id *uint) error {
+// ManualCertificateCheck 手动检查
+func (u *urlAddress) ManualCertificateCheck(id *uint) error {
+	url, err := dao.UrlAddress.GetUrlForID(*id)
+	if err != nil {
+		return err
+	}
+	return u.checkSingleCertificate(url)
+}
 
-	var ids []uint
+// AutoCertificateCheck 定量任务检查
+func (u *urlAddress) AutoCertificateCheck(task *model.ScheduledTask) error {
 
-	if id == nil {
-		// 获取所有 UrlAddress
-		urls, err := dao.UrlAddress.GetUrlList("", nil, nil)
-		if err != nil {
-			return err
-		}
-		for _, url := range urls.Items {
-			ids = append(ids, url.ID)
-		}
+	// 获取所有 URL 站点
+	urls, err := dao.UrlAddress.GetUrlList("", nil, nil)
+	if err != nil {
+		return err
+	}
 
-		// 检查证书
-		for _, checkID := range ids {
-			if err := u.checkSingleCertificate(checkID); err != nil {
-				continue
-			}
-		}
-
-		// 获取所有状态总异常的记录
-		records, err := dao.UrlAddress.GetExpiredOrExpirationList()
-		if err != nil {
-			return err
-		}
-
-		// 生成HTML内容
-		htmlBody := urlCertificateExpiredNoticeHTML(records)
-
-		// 发送邮件告警
-		return mail.Email.SendMsg([]string{"270142877@qq.com"}, nil, nil, "URL 站点证书过期提醒", htmlBody, "html")
-	} else {
-		// 检查证书
-		if err := u.checkSingleCertificate(*id); err != nil {
-			logger.Error(err)
+	// 循环执行检查
+	for _, url := range urls.Items {
+		if err := u.checkSingleCertificate(url); err != nil {
+			logger.Error("证书验证失败，域名：%s，ErrorMsg：%s", url.Domain, err.Error())
+			continue
 		}
 	}
 
-	return nil
+	// 获取所有状态为异常地记录（过期、检查异常、即将过期）
+	records, err := dao.UrlAddress.GetExpiredOrExpirationList()
+	if err != nil {
+		return err
+	}
+
+	// 如果记录为空则不做任何操作
+	if len(records) < 0 {
+		return nil
+	}
+
+	// 生成通知内容（1：邮件 HTML，2：Markdown 文档）
+	notifyType := *task.NotifyType
+	var message string
+	switch notifyType {
+	case 1:
+		message = urlCertificateExpiredNoticeHTML(records)
+	default:
+		message = urlCertificateExpiredMarkdown(records)
+	}
+
+	// 发送告警
+	notifier := GetNotifier(*task)
+	return notifier.SendNotify(message, "URL 站点 HTTPS 证书过期提醒")
 }
 
-// urlCertificateExpiredNoticeHTML URL证书过期通知 HTML
+// urlCertificateExpiredNoticeHTML 生成 URL HTTPS 证书过期通知 Markdown 文档
+func urlCertificateExpiredMarkdown(urls []*model.DomainCertificateMonitor) string {
+	var (
+		builder = &strings.Builder{}
+		now     = time.Now()
+		issuer  = config.Conf.Settings["issuer"].(string)
+	)
+
+	builder.WriteString("# URL 站点 HTTPS 证书过期提醒\n\n")
+	builder.WriteString("以下 URL 站点 HTTPS 证书即将过期或已过期，请及时处理。\n\n")
+	builder.WriteString("| 名称 | 域名 | 过期时间 | 检查时间 | 状态 |\n")
+	builder.WriteString("|----------|------|----------|----------|------|\n")
+
+	for _, url := range urls {
+		var (
+			statusText = "未检查"
+			expiredAt  = "-"
+			checkedAt  = "-"
+		)
+
+		if url.ExpirationAt != nil {
+			expiredAt = url.ExpirationAt.Format("2006-01-02 15:04:05")
+		}
+		if url.LastCheckAt != nil {
+			checkedAt = url.LastCheckAt.Format("2006-01-02 15:04:05")
+		}
+
+		if url.Status != nil {
+			switch *url.Status {
+			case 0:
+				if url.ExpirationAt != nil && url.ExpirationAt.Before(now.Add(90*24*time.Hour)) {
+					statusText = "⚠️ **即将过期**"
+				} else {
+					statusText = "✅ 正常"
+				}
+			case 1:
+				statusText = "❌ **检查异常**"
+			case 2:
+				statusText = "❗ **已过期**"
+			}
+		}
+
+		builder.WriteString(fmt.Sprintf("| %s | %s | %s | %s | %s |\n", url.Name, url.Domain, expiredAt, checkedAt, statusText))
+	}
+
+	builder.WriteString("\n---\n")
+	builder.WriteString(fmt.Sprintf("来源：%s\n", issuer))
+
+	return builder.String()
+}
+
+// urlCertificateExpiredNoticeHTML 生成 URL HTTPS 证书过期通知 HTML 文档
 func urlCertificateExpiredNoticeHTML(urls []*model.DomainCertificateMonitor) string {
 
 	var (
@@ -113,7 +172,7 @@ func urlCertificateExpiredNoticeHTML(urls []*model.DomainCertificateMonitor) str
         <html>
         <head>
             <meta charset="UTF-8">
-            <title>URL 站点证书过期提醒</title>
+            <title>URL 站点 HTTPS 证书过期提醒</title>
             <style>
                 /* 主容器设置固定宽度并居中 */
                 .email-container {
@@ -202,15 +261,15 @@ func urlCertificateExpiredNoticeHTML(urls []*model.DomainCertificateMonitor) str
             <div class="email-container">
                 <!-- 内容区域 -->
                 <div class="email-content">
-                    <h1>URL 站点证书过期提醒</h1>
+                    <h1>URL 站点 HTTPS 证书过期提醒</h1>
                     <div class="info">
-                        以下URL 站点证书即将过期或已过期，请及时处理以避免服务中断。
+                        以下 URL 站点 HTTPS 证书即将过期或已过期，请及时处理以避免服务中断。
                     </div>
                     
                     <table>
                         <thead>
                             <tr>
-                                <th>站点名称</th>
+                                <th>名称</th>
 								<th>域名</th>
                                 <th>过期时间</th>
 								<th>检查时间</th>
@@ -233,7 +292,7 @@ func urlCertificateExpiredNoticeHTML(urls []*model.DomainCertificateMonitor) str
     `, generateUrlCertificateRows(urls, now), issuer)
 }
 
-// generateUrlCertificateRows 生成表格行
+// generateUrlCertificateRows URL HTTPS 证书过期通知 HTML 表格数据渲染
 func generateUrlCertificateRows(urls []*model.DomainCertificateMonitor, now time.Time) string {
 	var rows strings.Builder
 
@@ -286,61 +345,47 @@ func generateUrlCertificateRows(urls []*model.DomainCertificateMonitor, now time
 	return rows.String()
 }
 
-// 检查单个证书
-func (u *urlAddress) checkSingleCertificate(id uint) error {
-	status := 0
+// checkSingleCertificate 检查证书
+func (u *urlAddress) checkSingleCertificate(data *model.DomainCertificateMonitor) error {
 
-	url, err := dao.UrlAddress.GetUrlForID(id)
+	// 向 URL 发起请求，获取证书
+	cert, err := fetchCertificate(data.Domain, data.IPAddress, data.Port)
 	if err != nil {
-		return fmt.Errorf("数据库读取信息失败: %w", err)
+		return err
 	}
 
-	// 获取证书
-	cert, err := fetchCertificate(url.Domain, url.IPAddress, url.Port)
+	// 设置最后检查时间
+	data.LastCheckAt = ptr(time.Now())
+
 	if err != nil {
-		logger.Error("证书获取失败 (Domain: %v): %v", url.Domain, err.Error())
-		status = 1
-		if err := updateStatus(&id, status); err != nil {
-			return fmt.Errorf("状态更新失败: %w", err)
-		}
-		return nil
+		// 设置状态为：1（表示异常）
+		data.Status = ptr(1)
+
+		// 在数据库中更新状态
+		return global.MySQLClient.Save(data).Error
 	}
 
+	// 设置证书过期时间
+	data.ExpirationAt = &cert.NotAfter
+
+	// 判断证书是否过期
 	if cert.NotAfter.Before(time.Now()) {
-		status = 2
+		// 设置状态为：2（表示已过期）
+		data.Status = ptr(2)
+	} else {
+		// 设置状态为：0（表示正常）
+		data.Status = ptr(0)
 	}
 
-	if err := updateStatusAndExpiration(&id, status, cert.NotAfter); err != nil {
-		return fmt.Errorf("证书信息更新失败: %w", err)
-	}
-
-	return nil
+	return global.MySQLClient.Save(data).Error
 }
 
-// updateStatusAndExpiration 更新证书状态和过期时间
-func updateStatusAndExpiration(id *uint, status int, expirationTime time.Time) error {
-	now := time.Now()
-	urlAddress := &model.DomainCertificateMonitor{
-		ID:           *id,
-		Status:       &status,
-		ExpirationAt: &expirationTime,
-		LastCheckAt:  &now,
-	}
-	return global.MySQLClient.Model(&model.DomainCertificateMonitor{}).Where("id = ?", *id).Select("Status", "ExpirationAt", "LastCheckAt").Updates(urlAddress).Error
+// ptr 创建一个指针
+func ptr[T any](v T) *T {
+	return &v
 }
 
-// updateStatus 更新证书状态
-func updateStatus(id *uint, status int) error {
-	urlAddress := &model.DomainCertificateMonitor{
-		ID:     *id,
-		Status: &status,
-	}
-	return global.MySQLClient.Model(&model.DomainCertificateMonitor{}).
-		Where("id = ?", *id).
-		Select("Status").
-		Updates(urlAddress).Error
-}
-
+// fetchCertificate 从指定的 URL 地址获取证书信息
 func fetchCertificate(domain, ip string, port uint) (*x509.Certificate, error) {
 
 	var (

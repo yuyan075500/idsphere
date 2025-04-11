@@ -24,13 +24,15 @@ type TaskLogList struct {
 
 // TaskUpdate 更新构体
 type TaskUpdate struct {
-	ID            uint   `json:"id" binding:"required"`
-	Name          string `json:"name"`
-	Type          uint   `json:"type"`
-	CronExpr      string `json:"cron_expr"`
-	Method        uint   `json:"method"`
-	BuiltInMethod string `json:"built_in_method"`
-	Enabled       bool   `json:"enabled"`
+	ID            uint    `json:"id" binding:"required"`
+	Name          string  `json:"name"`
+	Type          uint    `json:"type"`
+	CronExpr      string  `json:"cron_expr"`
+	Method        uint    `json:"method"`
+	BuiltInMethod string  `json:"built_in_method"`
+	Enabled       bool    `json:"enabled"`
+	NotifyType    *int    `json:"notify_type"`
+	Receiver      *string `json:"receiver"`
 }
 
 // AddTask 新增定时任务
