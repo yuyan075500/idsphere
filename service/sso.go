@@ -201,7 +201,11 @@ func (s *sso) GetCASAuthorize(data *CASAuthorize, userId uint, username string) 
 	}
 
 	// 返回票据
-	redirectURI := fmt.Sprintf("%s?ticket=%s", site.CallbackUrl, st)
+	separator := "?"
+	if strings.Contains(site.CallbackUrl, "?") {
+		separator = "&"
+	}
+	redirectURI := fmt.Sprintf("%s%sticket=%s", site.CallbackUrl, separator, st)
 	return redirectURI, site.Name, nil
 }
 
