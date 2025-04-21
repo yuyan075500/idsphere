@@ -3,6 +3,7 @@ package service
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/wonderivan/logger"
@@ -11,6 +12,7 @@ import (
 	"ops-api/dao"
 	"ops-api/global"
 	"ops-api/model"
+	"ops-api/utils/notify"
 	"strconv"
 	"strings"
 	"time"
@@ -99,29 +101,115 @@ func (u *urlAddress) AutoCertificateCheck(task *model.ScheduledTask) error {
 	switch notifyType {
 	case 1:
 		message = urlCertificateExpiredNoticeHTML(records)
+	case 3:
+		postData := urlCertificateExpiredNoticeFeishuPost(records)
+		jsonBytes, _ := json.Marshal(postData)
+		message = string(jsonBytes)
 	default:
-		message = urlCertificateExpiredMarkdown(records)
+		message = urlCertificateExpiredNoticeMarkdown(records)
 	}
 
 	// 发送告警
-	notifier := GetNotifier(*task)
+	notifier := notify.GetNotifier(*task)
 	return notifier.SendNotify(message, "URL 站点 HTTPS 证书过期提醒")
 }
 
-// urlCertificateExpiredNoticeHTML 生成 URL HTTPS 证书过期通知 Markdown 文档
-func urlCertificateExpiredMarkdown(urls []*model.DomainCertificateMonitor) string {
+// urlCertificateExpiredNoticeFeishuPost 生成飞书 Post 富文本消息
+func urlCertificateExpiredNoticeFeishuPost(urls []*model.DomainCertificateMonitor) map[string]interface{} {
+	var (
+		now     = time.Now()
+		issuer  = config.Conf.Settings["issuer"].(string)
+		content = make([][]map[string]interface{}, 0)
+	)
+
+	for i, url := range urls {
+		var (
+			statusText  = "未检查"
+			statusColor = "default"
+			expiredAt   = "-"
+			checkedAt   = "-"
+		)
+
+		if url.ExpirationAt != nil {
+			expiredAt = url.ExpirationAt.Format("2006-01-02 15:04:05")
+		}
+		if url.LastCheckAt != nil {
+			checkedAt = url.LastCheckAt.Format("2006-01-02 15:04:05")
+		}
+
+		if url.Status != nil {
+			switch *url.Status {
+			case 0:
+				if url.ExpirationAt != nil && url.ExpirationAt.Before(now.Add(90*24*time.Hour)) {
+					statusText = "即将过期"
+					statusColor = "orange"
+				} else {
+					statusText = "正常"
+					statusColor = "green"
+				}
+			case 1:
+				statusText = "检查异常"
+				statusColor = "orange"
+			case 2:
+				statusText = "已过期"
+				statusColor = "red"
+			}
+		}
+
+		// 每条记录拼接一段
+		content = append(content, []map[string]interface{}{
+			{"tag": "text", "text": fmt.Sprintf("%d. 名称：", i+1)},
+			{"tag": "text", "text": url.Name, "bold": true},
+		})
+		content = append(content, []map[string]interface{}{
+			{"tag": "text", "text": "   域名："},
+			{"tag": "a", "text": url.Domain},
+		})
+		content = append(content, []map[string]interface{}{
+			{"tag": "text", "text": "   到期时间："},
+			{"tag": "text", "text": expiredAt},
+		})
+		content = append(content, []map[string]interface{}{
+			{"tag": "text", "text": "   检查时间："},
+			{"tag": "text", "text": checkedAt},
+		})
+		content = append(content, []map[string]interface{}{
+			{"tag": "text", "text": "   状态："},
+			{"tag": "text", "text": statusText, "text_color": statusColor},
+		})
+	}
+
+	content = append(content, []map[string]interface{}{
+		{"tag": "text", "text": "--------------------------------\n"},
+	})
+	content = append(content, []map[string]interface{}{
+		{"tag": "text", "text": fmt.Sprintf("来源：%s", issuer)},
+	})
+
+	return map[string]interface{}{
+		"msg_type": "post",
+		"content": map[string]interface{}{
+			"post": map[string]interface{}{
+				"zh_cn": map[string]interface{}{
+					"title":   "URL 站点 HTTPS 证书异常提醒：",
+					"content": content,
+				},
+			},
+		},
+	}
+}
+
+// urlCertificateExpiredNoticeMarkdown 生成 URL HTTPS 证书过期通知 Markdown 文档
+func urlCertificateExpiredNoticeMarkdown(urls []*model.DomainCertificateMonitor) string {
 	var (
 		builder = &strings.Builder{}
 		now     = time.Now()
 		issuer  = config.Conf.Settings["issuer"].(string)
 	)
 
-	builder.WriteString("# URL 站点 HTTPS 证书过期提醒\n\n")
-	builder.WriteString("以下 URL 站点 HTTPS 证书即将过期或已过期，请及时处理。\n\n")
-	builder.WriteString("| 名称 | 域名 | 过期时间 | 检查时间 | 状态 |\n")
-	builder.WriteString("|----------|------|----------|----------|------|\n")
+	builder.WriteString("**URL 站点 HTTPS 证书异常提醒：**\n\n")
 
-	for _, url := range urls {
+	for i, url := range urls {
 		var (
 			statusText = "未检查"
 			expiredAt  = "-"
@@ -139,21 +227,25 @@ func urlCertificateExpiredMarkdown(urls []*model.DomainCertificateMonitor) strin
 			switch *url.Status {
 			case 0:
 				if url.ExpirationAt != nil && url.ExpirationAt.Before(now.Add(90*24*time.Hour)) {
-					statusText = "⚠️ **即将过期**"
+					statusText = "<font color=\"warning\">即将过期</font>"
 				} else {
-					statusText = "✅ 正常"
+					statusText = "<font color=\"info\">检查异常</font>"
 				}
 			case 1:
-				statusText = "❌ **检查异常**"
+				statusText = "<font color=\"warning\">检查异常</font>"
 			case 2:
-				statusText = "❗ **已过期**"
+				statusText = "<font color=\"warning\">已过期</font>"
 			}
 		}
 
-		builder.WriteString(fmt.Sprintf("| %s | %s | %s | %s | %s |\n", url.Name, url.Domain, expiredAt, checkedAt, statusText))
+		builder.WriteString(fmt.Sprintf("%d. 名称：%s\n\n", i+1, url.Name))
+		builder.WriteString(fmt.Sprintf("   域名：%s\n\n", url.Domain))
+		builder.WriteString(fmt.Sprintf("   到期时间：%s\n\n", expiredAt))
+		builder.WriteString(fmt.Sprintf("   检查时间：%s\n\n", checkedAt))
+		builder.WriteString(fmt.Sprintf("   状态：%s\n\n", statusText))
 	}
 
-	builder.WriteString("\n---\n")
+	builder.WriteString("--------------------------------\n")
 	builder.WriteString(fmt.Sprintf("来源：%s\n", issuer))
 
 	return builder.String()
