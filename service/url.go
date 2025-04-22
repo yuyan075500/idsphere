@@ -92,10 +92,11 @@ func (u *urlAddress) AutoCertificateCheck(task *model.ScheduledTask) error {
 
 	// 如果记录为空则不做任何操作
 	if len(records) < 0 {
+		logger.Info("检查 URL 站点状态正常.")
 		return nil
 	}
 
-	// 生成通知内容（1：邮件 HTML，2：Markdown 文档）
+	// 生成通知内容（1：邮件 HTML，3：富文本，其它： Markdown 文档）
 	notifyType := *task.NotifyType
 	var message string
 	switch notifyType {
@@ -226,7 +227,7 @@ func urlCertificateExpiredNoticeMarkdown(urls []*model.DomainCertificateMonitor)
 		if url.Status != nil {
 			switch *url.Status {
 			case 0:
-				if url.ExpirationAt != nil && url.ExpirationAt.Before(now.Add(90*24*time.Hour)) {
+				if url.ExpirationAt != nil && url.ExpirationAt.Before(now.Add(30*24*time.Hour)) {
 					statusText = "<font color=\"warning\">即将过期</font>"
 				} else {
 					statusText = "<font color=\"info\">检查异常</font>"
@@ -264,7 +265,7 @@ func urlCertificateExpiredNoticeHTML(urls []*model.DomainCertificateMonitor) str
         <html>
         <head>
             <meta charset="UTF-8">
-            <title>URL 站点 HTTPS 证书过期提醒</title>
+            <title>URL 站点 HTTPS 证书异常提醒</title>
             <style>
                 /* 主容器设置固定宽度并居中 */
                 .email-container {
@@ -353,9 +354,9 @@ func urlCertificateExpiredNoticeHTML(urls []*model.DomainCertificateMonitor) str
             <div class="email-container">
                 <!-- 内容区域 -->
                 <div class="email-content">
-                    <h1>URL 站点 HTTPS 证书过期提醒</h1>
+                    <h1>URL 站点 HTTPS 证书异常提醒</h1>
                     <div class="info">
-                        以下 URL 站点 HTTPS 证书即将过期或已过期，请及时处理以避免服务中断。
+                        以下 URL 站点 HTTPS 证书异常，请及时处理以避免服务中断。
                     </div>
                     
                     <table>

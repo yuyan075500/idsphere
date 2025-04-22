@@ -290,7 +290,7 @@ func executeBuiltInMethod(task model.ScheduledTask, execLog *model.ScheduledTask
 	// 域名过期提醒
 	if task.BuiltInMethod == "domain_expire_notify" {
 
-		if err := Domain.DomainExpiredNotice(); err != nil {
+		if err := Domain.DomainExpiredNotice(&task); err != nil {
 			global.MySQLClient.Model(execLog).Update("result", err.Error())
 			global.MySQLClient.Model(&task).Update("LastRunResult", "失败")
 			logger.Warn("任务执行失败:", err.Error())
@@ -302,7 +302,7 @@ func executeBuiltInMethod(task model.ScheduledTask, execLog *model.ScheduledTask
 
 	// 证书过期提醒
 	if task.BuiltInMethod == "certificate_expire_notify" {
-		if err := Certificate.CertificateExpiredNotice(); err != nil {
+		if err := Certificate.CertificateExpiredNotice(&task); err != nil {
 			global.MySQLClient.Model(execLog).Update("result", err.Error())
 			global.MySQLClient.Model(&task).Update("LastRunResult", "失败")
 			logger.Warn("任务执行失败:", err.Error())

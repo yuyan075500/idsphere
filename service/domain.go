@@ -8,7 +8,7 @@ import (
 	"ops-api/dao"
 	"ops-api/model"
 	"ops-api/utils"
-	"ops-api/utils/mail"
+	"ops-api/utils/notify"
 	"ops-api/utils/public_cloud"
 	"strings"
 	"time"
@@ -363,7 +363,7 @@ func (d *domain) SetDnsStatus(dns *SetDnsStatus) error {
 }
 
 // DomainExpiredNotice 域名过期通知
-func (d *domain) DomainExpiredNotice() error {
+func (d *domain) DomainExpiredNotice(task *model.ScheduledTask) error {
 
 	domains, err := dao.Domain.GetExpiredDomainList()
 	if err != nil {
@@ -375,11 +375,23 @@ func (d *domain) DomainExpiredNotice() error {
 		return nil
 	}
 
-	// 生成HTML内容
-	htmlBody := domainExpiredNoticeHTML(domains)
+	// 生成通知内容（1：邮件 HTML，3：富文本，其它： Markdown 文档）
+	notifyType := *task.NotifyType
+	var message string
+	switch notifyType {
+	case 1:
+		message = domainExpiredNoticeHTML(domains)
+	case 3:
+		//postData := urlCertificateExpiredNoticeFeishuPost(records)
+		//jsonBytes, _ := json.Marshal(postData)
+		//message = string(jsonBytes)
+	default:
+		//message = urlCertificateExpiredNoticeMarkdown(records)
+	}
 
-	// 发送邮件函数
-	return mail.Email.SendMsg([]string{"270142877@qq.com"}, nil, nil, "域名过期提醒", htmlBody, "html")
+	// 发送告警
+	notifier := notify.GetNotifier(*task)
+	return notifier.SendNotify(message, "域名过期提醒")
 }
 
 // domainExpiredNoticeHTML 域名过期通知 HTML

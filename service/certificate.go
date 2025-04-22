@@ -9,6 +9,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/json"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -22,7 +23,7 @@ import (
 	"ops-api/dao"
 	"ops-api/global"
 	"ops-api/model"
-	"ops-api/utils/mail"
+	"ops-api/utils/notify"
 	"os"
 	"strings"
 	"time"
@@ -306,7 +307,7 @@ func (c *certificate) DownloadDomainCertificate(id int) (data *bytes.Buffer, dom
 }
 
 // CertificateExpiredNotice 证书过期通知
-func (c *certificate) CertificateExpiredNotice() error {
+func (c *certificate) CertificateExpiredNotice(task *model.ScheduledTask) error {
 
 	crts, err := dao.Certificate.GetExpiredCertificateList()
 	if err != nil {
@@ -318,11 +319,121 @@ func (c *certificate) CertificateExpiredNotice() error {
 		return nil
 	}
 
-	// 生成HTML内容
-	htmlBody := certificateExpiredNoticeHTML(crts)
+	// 生成通知内容（1：邮件 HTML，3：富文本，其它： Markdown 文档）
+	notifyType := *task.NotifyType
+	var message string
+	switch notifyType {
+	case 1:
+		message = certificateExpiredNoticeHTML(crts)
+	case 3:
+		postData := certificateExpiredNoticePost(crts)
+		jsonBytes, _ := json.Marshal(postData)
+		message = string(jsonBytes)
+	default:
+		message = certificateExpiredNoticeMarkdown(crts)
+	}
 
-	// 发送邮件函数
-	return mail.Email.SendMsg([]string{"270142877@qq.com"}, nil, nil, "证书过期提醒", htmlBody, "html")
+	// 发送告警
+	notifier := notify.GetNotifier(*task)
+	return notifier.SendNotify(message, "证书过期提醒")
+}
+
+// certificateExpiredNoticePost 生成飞书 Post 格式的富文本内容
+func certificateExpiredNoticePost(certs []*model.DomainCertificate) map[string]interface{} {
+	var (
+		now     = time.Now()
+		issuer  = config.Conf.Settings["issuer"].(string)
+		content = make([][]map[string]interface{}, 0)
+	)
+
+	for i, crt := range certs {
+		var (
+			statusText  = "未知"
+			statusColor = "default"
+			expiredAt   = "-"
+		)
+
+		if crt.ExpirationAt != nil {
+			expiredAt = crt.ExpirationAt.Format("2006-01-02 15:04:05")
+			if crt.ExpirationAt.Before(now) {
+				statusText = "已过期"
+				statusColor = "red"
+			} else if crt.ExpirationAt.Before(now.Add(30 * 24 * time.Hour)) {
+				statusText = "即将过期"
+				statusColor = "orange"
+			} else {
+				continue
+			}
+		} else {
+			continue
+		}
+
+		content = append(content, []map[string]interface{}{
+			{"tag": "text", "text": fmt.Sprintf("%d. 域名：", i+1)},
+			{"tag": "text", "text": crt.Domain, "bold": true},
+		})
+		content = append(content, []map[string]interface{}{
+			{"tag": "text", "text": "   到期时间："},
+			{"tag": "text", "text": expiredAt},
+		})
+		content = append(content, []map[string]interface{}{
+			{"tag": "text", "text": "   状态："},
+			{"tag": "text", "text": statusText, "text_color": statusColor},
+		})
+	}
+
+	content = append(content, []map[string]interface{}{
+		{"tag": "text", "text": "--------------------------------\n"},
+	})
+	content = append(content, []map[string]interface{}{
+		{"tag": "text", "text": fmt.Sprintf("来源：%s", issuer)},
+	})
+
+	return map[string]interface{}{
+		"msg_type": "post",
+		"content": map[string]interface{}{
+			"post": map[string]interface{}{
+				"zh_cn": map[string]interface{}{
+					"title":   "域名证书异常提醒：",
+					"content": content,
+				},
+			},
+		},
+	}
+}
+
+// certificateExpiredNoticeMarkdown 生成证书过期通知 Markdown 文档
+func certificateExpiredNoticeMarkdown(certs []*model.DomainCertificate) string {
+	var (
+		builder   = &strings.Builder{}
+		now       = time.Now()
+		issuer, _ = config.Conf.Settings["issuer"].(string)
+	)
+
+	builder.WriteString("**证书异常提醒：**\n\n")
+
+	for i, crt := range certs {
+		var statusText string
+		if crt.ExpirationAt != nil {
+			if crt.ExpirationAt.Before(now) {
+				statusText = "<font color=\"warning\">已过期</font>"
+			} else if crt.ExpirationAt.Before(now.Add(30 * 24 * time.Hour)) {
+				statusText = "<font color=\"warning\">即将过期</font>"
+			} else {
+				continue
+			}
+		}
+
+		expiredAt := crt.ExpirationAt.Format("2006-01-02 15:04:05")
+		builder.WriteString(fmt.Sprintf("%d. 域名：%s\n\n", i+1, crt.Domain))
+		builder.WriteString(fmt.Sprintf("   到期时间：%s\n\n", expiredAt))
+		builder.WriteString(fmt.Sprintf("   状态：%s\n\n", statusText))
+	}
+
+	builder.WriteString("--------------------------------\n")
+	builder.WriteString(fmt.Sprintf("来源：%s\n", issuer))
+
+	return builder.String()
 }
 
 // certificateExpiredNoticeHTML 证书过期通知 HTML
@@ -338,7 +449,7 @@ func certificateExpiredNoticeHTML(certificates []*model.DomainCertificate) strin
         <html>
         <head>
             <meta charset="UTF-8">
-            <title>证书过期提醒</title>
+            <title>证书异常提醒</title>
             <style>
                 /* 主容器设置固定宽度并居中 */
                 .email-container {
@@ -422,9 +533,9 @@ func certificateExpiredNoticeHTML(certificates []*model.DomainCertificate) strin
             <div class="email-container">
                 <!-- 内容区域 -->
                 <div class="email-content">
-                    <h1>证书过期提醒</h1>
+                    <h1>证书异常提醒</h1>
                     <div class="info">
-                        以下证书即将过期或已过期，请及时处理以避免服务中断。
+                        以下证书异常，请及时处理以避免服务中断。
                     </div>
                     
                     <table>
