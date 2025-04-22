@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/wonderivan/logger"
@@ -382,16 +383,119 @@ func (d *domain) DomainExpiredNotice(task *model.ScheduledTask) error {
 	case 1:
 		message = domainExpiredNoticeHTML(domains)
 	case 3:
-		//postData := urlCertificateExpiredNoticeFeishuPost(records)
-		//jsonBytes, _ := json.Marshal(postData)
-		//message = string(jsonBytes)
+		postData := domainExpiredNoticePost(domains)
+		jsonBytes, _ := json.Marshal(postData)
+		message = string(jsonBytes)
 	default:
-		//message = urlCertificateExpiredNoticeMarkdown(records)
+		message = domainExpiredNoticeMarkdown(domains)
 	}
 
 	// 发送告警
 	notifier := notify.GetNotifier(*task)
 	return notifier.SendNotify(message, "域名过期提醒")
+}
+
+// domainExpiredNoticePost 生成飞书 Post 格式的富文本内容
+func domainExpiredNoticePost(domains []*model.Domain) map[string]interface{} {
+	var (
+		now     = time.Now()
+		issuer  = config.Conf.Settings["issuer"].(string)
+		content = make([][]map[string]interface{}, 0)
+	)
+
+	for i, d := range domains {
+		var (
+			statusText  = "未知"
+			statusColor = "default"
+			expiredAt   = "-"
+		)
+
+		if d.ExpirationAt != nil {
+			expiredAt = d.ExpirationAt.Format("2006-01-02 15:04:05")
+			if d.ExpirationAt.Before(now) {
+				statusText = "已过期"
+				statusColor = "red"
+			} else if d.ExpirationAt.Before(now.Add(30 * 24 * time.Hour)) {
+				statusText = "即将过期"
+				statusColor = "orange"
+			} else {
+				continue
+			}
+		} else {
+			continue
+		}
+
+		content = append(content, []map[string]interface{}{
+			{"tag": "text", "text": fmt.Sprintf("%d. 域名：", i+1)},
+			{"tag": "text", "text": d.Name, "bold": true},
+		})
+		content = append(content, []map[string]interface{}{
+			{"tag": "text", "text": "   域名服务商："},
+			{"tag": "text", "text": d.DomainServiceProvider.Name},
+		})
+		content = append(content, []map[string]interface{}{
+			{"tag": "text", "text": "   到期时间："},
+			{"tag": "text", "text": expiredAt},
+		})
+		content = append(content, []map[string]interface{}{
+			{"tag": "text", "text": "   状态："},
+			{"tag": "text", "text": statusText, "text_color": statusColor},
+		})
+	}
+
+	content = append(content, []map[string]interface{}{
+		{"tag": "text", "text": "--------------------------------\n"},
+	})
+	content = append(content, []map[string]interface{}{
+		{"tag": "text", "text": fmt.Sprintf("来源：%s", issuer)},
+	})
+
+	return map[string]interface{}{
+		"msg_type": "post",
+		"content": map[string]interface{}{
+			"post": map[string]interface{}{
+				"zh_cn": map[string]interface{}{
+					"title":   "域名异常提醒：",
+					"content": content,
+				},
+			},
+		},
+	}
+}
+
+// domainExpiredNoticeMarkdown 生成域名过期通知 Markdown 文档
+func domainExpiredNoticeMarkdown(domains []*model.Domain) string {
+	var (
+		builder   = &strings.Builder{}
+		now       = time.Now()
+		issuer, _ = config.Conf.Settings["issuer"].(string)
+	)
+
+	builder.WriteString("**证书异常提醒：**\n\n")
+
+	for i, d := range domains {
+		var statusText string
+		if d.ExpirationAt != nil {
+			if d.ExpirationAt.Before(now) {
+				statusText = "<font color=\"warning\">已过期</font>"
+			} else if d.ExpirationAt.Before(now.Add(30 * 24 * time.Hour)) {
+				statusText = "<font color=\"warning\">即将过期</font>"
+			} else {
+				continue
+			}
+		}
+
+		expiredAt := d.ExpirationAt.Format("2006-01-02 15:04:05")
+		builder.WriteString(fmt.Sprintf("%d. 域名：%s\n\n", i+1, d.Name))
+		builder.WriteString(fmt.Sprintf("   域名服务商：%s\n\n", d.DomainServiceProvider.Name))
+		builder.WriteString(fmt.Sprintf("   到期时间：%s\n\n", expiredAt))
+		builder.WriteString(fmt.Sprintf("   状态：%s\n\n", statusText))
+	}
+
+	builder.WriteString("--------------------------------\n")
+	builder.WriteString(fmt.Sprintf("来源：%s\n", issuer))
+
+	return builder.String()
 }
 
 // domainExpiredNoticeHTML 域名过期通知 HTML
@@ -407,7 +511,7 @@ func domainExpiredNoticeHTML(domains []*model.Domain) string {
         <html>
         <head>
             <meta charset="UTF-8">
-            <title>域名过期提醒</title>
+            <title>域名异常提醒</title>
             <style>
                 /* 主容器设置固定宽度并居中 */
                 .email-container {
@@ -491,9 +595,9 @@ func domainExpiredNoticeHTML(domains []*model.Domain) string {
             <div class="email-container">
                 <!-- 内容区域 -->
                 <div class="email-content">
-                    <h1>域名过期提醒</h1>
+                    <h1>域名异常提醒</h1>
                     <div class="info">
-                        以下域名即将过期或已过期，请及时处理以避免服务中断。
+                        以下域名异常，请及时处理以避免服务中断。
                     </div>
                     
                     <table>
