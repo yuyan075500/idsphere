@@ -161,7 +161,7 @@ func (c *certificate) RequestDomainCertificate(data *DomainCertificateRequest) e
 	conf := lego.NewConfig(&acmeUser)
 
 	// 配置证书请求地址，测试环境为：LEDirectoryStaging，生产环境为：LEDirectoryProduction
-	conf.CADirURL = lego.LEDirectoryStaging
+	conf.CADirURL = lego.LEDirectoryProduction
 
 	// 设置证书类型
 	conf.Certificate.KeyType = certcrypto.RSA2048

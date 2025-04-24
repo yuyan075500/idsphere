@@ -78,6 +78,7 @@ func PermissionCheck() gin.HandlerFunc {
 			"/api/v1/audit/sms/receipt",         // 获取短信回执
 			"/api/v1/tag/list",                  // 获取标签列表
 			"/api/v1/account",                   // 账号管理相关接口
+			"/api/v1/url/check",                 // 站点 HTTPS 检测
 		}
 		for _, item := range ignorePath {
 			if strings.HasPrefix(path, item) {
