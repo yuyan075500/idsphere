@@ -84,7 +84,7 @@ INSERT INTO `system_path` VALUES (58, 'RequestDomainCertificate', '/api/v1/certi
 INSERT INTO `system_path` VALUES (59, 'GetUrlList', '/api/v1/urls', 'GET', 'SiteMonitoring', '获取站点列表');
 INSERT INTO `system_path` VALUES (60, 'AddUrl', '/api/v1/url', 'POST', 'SiteMonitoring', '新增站点');
 INSERT INTO `system_path` VALUES (61, 'DeleteUrl', '/api/v1/url/:id', 'DELETE', 'SiteMonitoring', '删除站点');
-INSERT INTO `system_path` VALUES (62, 'UpdateUrl', '/api/v1/dns', 'PUT', 'SiteMonitoring', '修改站点');
+INSERT INTO `system_path` VALUES (62, 'UpdateUrl', '/api/v1/url', 'PUT', 'SiteMonitoring', '修改站点');
 
 # 系统默认配置
 INSERT INTO `settings` VALUES (1, 'externalUrl', 'https://example.idsphere.cn', 'string');
