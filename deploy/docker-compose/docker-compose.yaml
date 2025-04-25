@@ -2,7 +2,7 @@ version: '3'
 services:
   redis:
     image: swr.cn-east-3.myhuaweicloud.com/lansefenbao/redis:5
-    container_name: ops-redis
+    container_name: idsphere-redis
     command: redis-server --appendonly yes --requirepass ${REDIS_REQUIRE_PASS}
     restart: always
     ports:
@@ -11,7 +11,7 @@ services:
       - ./data/redis:/data
   mysql:
     image: swr.cn-east-3.myhuaweicloud.com/lansefenbao/mysql:8.4.2-CST
-    container_name: ops-mysql
+    container_name: idsphere-mysql
     restart: always
     ports:
       - "3306:3306"
@@ -25,7 +25,7 @@ services:
       - ./data/mysql:/var/lib/mysql
   minio:
     image: swr.cn-east-3.myhuaweicloud.com/lansefenbao/minio:2024.8.26
-    container_name: ops-minio
+    container_name: idsphere-minio
     restart: always
     ports:
       - "9000:9000"
@@ -39,23 +39,23 @@ services:
       MINIO_DEFAULT_BUCKETS: ${MINIO_DEFAULT_BUCKETS}
     volumes:
       - ./data/minio:/bitnami/minio/data
-  ops-api:
+  idsphere:
     depends_on:
       - mysql
       - redis
       - minio
     image: ${OPS_API_IMAGE}:${OPS_API_VERSION}
-    container_name: ops-api
+    container_name: idsphere-api
     restart: always
     volumes:
       - ./conf/config.yaml:/app/config/config.yaml
-  ops-web:
+  idsphere-web:
     image: ${OPS_WEB_IMAGE}:${OPS_WEB_VERSION}
-    container_name: ops-web
+    container_name: idsphere-web
     restart: always
   gateway:
     image: swr.cn-east-3.myhuaweicloud.com/lansefenbao/nginx:1.27-CST
-    container_name: ops-gateway
+    container_name: idsphere-gateway
     restart: always
     ports:
       - "80:80"

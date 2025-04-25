@@ -2,11 +2,11 @@ server: "0.0.0.0:8000"
 mysql:
   host: "mysql"
   port: 3306
-  db: "ops-api"
+  db: "idsphere"
   user: "root"
   password: "X3UhzF9F"
   maxIdleConns: 10
-  maxOpenConns: 100
+  maxOpenConns: 1000
   maxLifeTime: 30
 redis:
   host: "redis:6379"
@@ -16,5 +16,5 @@ oss:
   endpoint: "192.168.200.21:9000"
   accessKey: "mXBbXV8nhjmLs8Ho"
   secretKey: "Zicc4ifKsX8dGwZHwro1"
-  bucketName: "ops-api"
+  bucketName: "idsphere"
   ssl: false

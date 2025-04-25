@@ -12,7 +12,7 @@ data:
       user: "root"
       password: "X3UhzF9F"
       maxIdleConns: 10
-      maxOpenConns: 100
+      maxOpenConns: 1000
       maxLifeTime: 30
     redis:
       host: "redis:6379"
