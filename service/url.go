@@ -91,7 +91,7 @@ func (u *urlAddress) AutoCertificateCheck(task *model.ScheduledTask) error {
 	}
 
 	// 如果记录为空则不做任何操作
-	if len(records) < 0 {
+	if len(records) == 0 {
 		logger.Info("检查 URL 站点状态正常.")
 		return nil
 	}
