@@ -132,35 +132,37 @@ type Claims struct {
 
 // OIDCConfig 返回给前端的OIDC配置信息
 type OIDCConfig struct {
-	Issuer                           string   `json:"issuer"`
-	AuthorizationEndpoint            string   `json:"authorization_endpoint"`
-	TokenEndpoint                    string   `json:"token_endpoint"`
-	UserInfoEndpoint                 string   `json:"userinfo_endpoint"`
-	JwksURI                          string   `json:"jwks_uri"`
-	ScopesSupported                  []string `json:"scopes_supported"`
-	ResponseTypesSupported           []string `json:"response_types_supported"`
-	GrantTypesSupported              []string `json:"grant_types_supported"`
-	SubjectTypesSupported            []string `json:"subject_types_supported"`
-	IDTokenSigningAlgValuesSupported []string `json:"id_token_signing_alg_values_supported"`
+	Issuer                            string   `json:"issuer"`
+	AuthorizationEndpoint             string   `json:"authorization_endpoint"`
+	TokenEndpoint                     string   `json:"token_endpoint"`
+	UserInfoEndpoint                  string   `json:"userinfo_endpoint"`
+	JwksURI                           string   `json:"jwks_uri"`
+	ScopesSupported                   []string `json:"scopes_supported"`
+	ResponseTypesSupported            []string `json:"response_types_supported"`
+	GrantTypesSupported               []string `json:"grant_types_supported"`
+	SubjectTypesSupported             []string `json:"subject_types_supported"`
+	IDTokenSigningAlgValuesSupported  []string `json:"id_token_signing_alg_values_supported"`
+	TokenEndpointAuthMethodsSupported []string `json:"token_endpoint_auth_methods_supported"`
 }
 
 // GetOIDCConfig 获取OIDC配置信息
 func (s *sso) GetOIDCConfig() (configuration *OIDCConfig, err error) {
 	externalUrl := config.Conf.Settings["externalUrl"].(string)
-	var config = &OIDCConfig{
-		Issuer:                           externalUrl,
-		AuthorizationEndpoint:            externalUrl + "/login",
-		TokenEndpoint:                    externalUrl + "/api/v1/sso/oauth/token",
-		UserInfoEndpoint:                 externalUrl + "/api/v1/sso/oauth/userinfo",
-		JwksURI:                          externalUrl + "/api/v1/sso/oidc/jwks",
-		ScopesSupported:                  []string{"openid"},
-		ResponseTypesSupported:           []string{"code"},
-		GrantTypesSupported:              []string{"authorization_code"},
-		SubjectTypesSupported:            []string{"public"},
-		IDTokenSigningAlgValuesSupported: []string{"RS256"},
+	var cfg = &OIDCConfig{
+		Issuer:                            externalUrl,
+		AuthorizationEndpoint:             externalUrl + "/login",
+		TokenEndpoint:                     externalUrl + "/api/v1/sso/oauth/token",
+		UserInfoEndpoint:                  externalUrl + "/api/v1/sso/oauth/userinfo",
+		JwksURI:                           externalUrl + "/api/v1/sso/oidc/jwks",
+		ScopesSupported:                   []string{"openid"},
+		ResponseTypesSupported:            []string{"code"},
+		GrantTypesSupported:               []string{"authorization_code"},
+		SubjectTypesSupported:             []string{"public"},
+		IDTokenSigningAlgValuesSupported:  []string{"RS256"},
+		TokenEndpointAuthMethodsSupported: []string{"client_secret_post"},
 	}
 
-	return config, nil
+	return cfg, nil
 }
 
 // GetCASAuthorize CAS3.0客户端授权
