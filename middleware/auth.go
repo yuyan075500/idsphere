@@ -32,12 +32,16 @@ type UserClaims struct {
 
 // OAuthClaims 保存需要保存到JWT中的信息结构体，适用于OAuth2认证
 type OAuthClaims struct {
-	ID       uint   `json:"id"`
-	Name     string `json:"name"`
-	Username string `json:"username"`
-	Azp      string `json:"azp"`
-	Policy   string `json:"policy"`
-	Nonce    string `json:"nonce"`
+	ID                uint   `json:"id"`
+	Name              string `json:"name"`
+	Username          string `json:"username"`
+	PreferredUsername string `json:"preferred_username"`
+	Azp               string `json:"azp"`
+	Policy            string `json:"policy"`
+	Nonce             string `json:"nonce"`
+	RealmAccess       struct {
+		Roles []string `json:"roles"`
+	} `json:"realm_access"`
 	jwt.RegisteredClaims
 }
 
@@ -161,13 +165,19 @@ func GenerateOAuthToken(id uint, name, username, clientId, policy, nonce string)
 	)
 
 	claims := OAuthClaims{
-		id,
-		name,
-		username,
-		clientId, // 授权谁给，通常是客户端ID
-		policy,   // 授权的策略，具体看客户端定义
-		nonce,
-		jwt.RegisteredClaims{
+		ID:                id,
+		Name:              name,
+		Username:          username,
+		PreferredUsername: name,
+		Azp:               clientId, // 授权谁给，通常是客户端ID
+		Policy:            policy,   // 授权的策略，具体看客户端定义
+		Nonce:             nonce,
+		RealmAccess: struct {
+			Roles []string `json:"roles"`
+		}{
+			Roles: []string{},
+		},
+		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Duration(tokenExpiresTime) * time.Hour)), // 过期时间
 			IssuedAt:  jwt.NewNumericDate(time.Now()),                                                  // 签发时间
 			NotBefore: jwt.NewNumericDate(time.Now()),                                                  // 生效时间
