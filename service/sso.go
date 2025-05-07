@@ -307,7 +307,11 @@ func (s *sso) GetOAuthAuthorize(data *OAuthAuthorize, userId uint) (callbackUrl,
 	}
 
 	// 返回授权码
-	redirectURI := fmt.Sprintf("%s?code=%s&state=%s", site.CallbackUrl, code, data.State)
+	separator := "?"
+	if strings.Contains(site.CallbackUrl, "?") {
+		separator = "&"
+	}
+	redirectURI := fmt.Sprintf("%s%scode=%s&state=%s", site.CallbackUrl, separator, code, data.State)
 	return redirectURI, site.Name, nil
 }
 
