@@ -143,6 +143,7 @@ type OIDCConfig struct {
 	SubjectTypesSupported             []string `json:"subject_types_supported"`
 	IDTokenSigningAlgValuesSupported  []string `json:"id_token_signing_alg_values_supported"`
 	TokenEndpointAuthMethodsSupported []string `json:"token_endpoint_auth_methods_supported"`
+	ClaimsSupported                   []string `json:"claims_supported"`
 }
 
 // GetOIDCConfig 获取OIDC配置信息
@@ -160,6 +161,7 @@ func (s *sso) GetOIDCConfig() (configuration *OIDCConfig, err error) {
 		SubjectTypesSupported:             []string{"public"},
 		IDTokenSigningAlgValuesSupported:  []string{"RS256"},
 		TokenEndpointAuthMethodsSupported: []string{"client_secret_post"},
+		ClaimsSupported:                   []string{"id", "name", "username", "preferred_username", "sub"},
 	}
 
 	return cfg, nil
