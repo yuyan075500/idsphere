@@ -61,6 +61,7 @@ func MySQLInit() error {
 		&model.LogOplog{},
 		&model.SsoOAuthTicket{},
 		&model.SsoCASTicket{},
+		&model.SsoNginxTicket{},
 		&model.ScheduledTask{},
 		&model.ScheduledTaskExecLog{},
 		&model.Account{},

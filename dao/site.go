@@ -336,6 +336,17 @@ func (s *site) DeleteSite(site *model.Site) (err error) {
 	return nil
 }
 
+// GetNginxSite 获取单个使用Nginx认证的站点
+func (s *site) GetNginxSite(callbackUrl string) (data *model.Site, err error) {
+	var site *model.Site
+
+	if err := global.MySQLClient.Where("callback_url = ? AND sso = true AND sso_type = 4", callbackUrl).First(&site).Error; err != nil {
+		return nil, err
+	}
+
+	return site, nil
+}
+
 // GetCASSite 获取单个使用CAS3.0认证的站点
 func (s *site) GetCASSite(service string) (data *model.Site, err error) {
 	var site *model.Site

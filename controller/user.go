@@ -69,24 +69,6 @@ func (u *user) Login(c *gin.Context) {
 		return
 	}
 
-	// 设置Cookie
-	domain, err := utils.GetSubdomain(c.Request.Host)
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     "auth_token",
-		Value:    token,
-		Path:     "/",
-		Domain:   domain,
-		Expires:  time.Now().Add(6 * time.Hour),
-		Secure:   true,
-		HttpOnly: true, // 防止客户端JavaScript访问
-		SameSite: http.SameSiteNoneMode,
-	})
-
-	// 更改回调地址
-	if params.NginxRedirectURI != "" {
-		redirectUri = params.NginxRedirectURI
-	}
-
 	c.JSON(http.StatusOK, gin.H{
 		"code":         0,
 		"token":        token,
@@ -679,17 +661,17 @@ func (u *user) GoogleQrcodeValidate(c *gin.Context) {
 	}
 
 	// 设置Cookie
-	domain, err := utils.GetSubdomain(c.Request.Host)
-	http.SetCookie(c.Writer, &http.Cookie{
-		Name:     "auth_token",
-		Value:    token,
-		Path:     "/",
-		Domain:   domain,
-		Expires:  time.Now().Add(6 * time.Hour),
-		Secure:   true,
-		HttpOnly: true, // 防止客户端JavaScript访问
-		SameSite: http.SameSiteNoneMode,
-	})
+	//domain, err := utils.GetSubdomain(c.Request.Host)
+	//http.SetCookie(c.Writer, &http.Cookie{
+	//	Name:     "auth_token",
+	//	Value:    token,
+	//	Path:     "/",
+	//	Domain:   domain,
+	//	Expires:  time.Now().Add(6 * time.Hour),
+	//	Secure:   true,
+	//	HttpOnly: true, // 防止客户端JavaScript访问
+	//	SameSite: http.SameSiteNoneMode,
+	//})
 
 	// 更改回调地址
 	if params.NginxRedirectURI != "" {

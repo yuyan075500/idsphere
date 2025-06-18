@@ -45,6 +45,11 @@ type CASAuthorize struct {
 	Service string `form:"service" binding:"required"`
 }
 
+// NginxAuthorize Nginx客户端获取授权请求参数
+type NginxAuthorize struct {
+	CallbackURL string `form:"callback_url" binding:"required"`
+}
+
 // Token OAuth2.0客户端获取token请求参数
 type Token struct {
 	GrantType    string `form:"grant_type"`
@@ -165,6 +170,41 @@ func (s *sso) GetOIDCConfig() (configuration *OIDCConfig, err error) {
 	}
 
 	return cfg, nil
+}
+
+// GetNginxAuthorize Nginx授权
+func (s *sso) GetNginxAuthorize(data *NginxAuthorize, userId uint) (callbackUrl, siteName string, err error) {
+
+	// 获取客户端应用
+	site, err := dao.Site.GetNginxSite(data.CallbackURL)
+	if err != nil {
+		return "", "", errors.New("应用未注册或配置错误")
+	}
+
+	// 判断用户是否有权限访问
+	if !site.AllOpen {
+		if !dao.Site.IsUserInSite(userId, site) {
+			return "", site.Name, errors.New("您无权访问该应用")
+		}
+	}
+
+	// 生成token
+	str := utils.GenerateRandomString(32)
+	// 字符串加密，用于返回给客户端授权码
+	code, err := utils.Encrypt(str)
+
+	// 将Token写入数据库
+	ticket := &model.SsoNginxTicket{
+		Token:     str,                            // 数据库中存放未加密的code，客户端来认证的时候使用的是加密后的code，这样在验证code的时候将前端加密的进行解密判断是否与数据库中的相等即可
+		UserID:    userId,                         // 用户ID
+		ExpiresAt: time.Now().Add(12 * time.Hour), // Token的有效期为12小时
+	}
+	if err = dao.SSO.CreateAuthorizeToken(ticket); err != nil {
+		return "", "", err
+	}
+
+	redirectURI := fmt.Sprintf("%s?token=%s", site.CallbackUrl, code)
+	return redirectURI, site.Name, nil
 }
 
 // GetCASAuthorize CAS3.0客户端授权
@@ -664,6 +704,17 @@ func (s *sso) Login(queryParams AuthorizeParam, user model.AuthUser) (callbackDa
 		}
 		data = html
 		application = siteName
+	} else if queryParams.GetNginxRedirectURI() != "" {
+		// Nginx认证返回
+		params := &NginxAuthorize{
+			CallbackURL: queryParams.GetNginxRedirectURI(),
+		}
+		callbackUrl, siteName, err := s.GetNginxAuthorize(params, user.ID)
+		if err != nil {
+			return "", siteName, err
+		}
+
+		return callbackUrl, siteName, err
 	}
 
 	return data, application, nil

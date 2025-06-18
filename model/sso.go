@@ -33,3 +33,15 @@ type SsoCASTicket struct {
 func (*SsoCASTicket) TableName() (name string) {
 	return "sso_cas_ticket"
 }
+
+// SsoNginxTicket Nginx认证票据
+type SsoNginxTicket struct {
+	*gorm.Model
+	ExpiresAt time.Time `json:"expires_at"`
+	Token     string    `json:"code"`
+	UserID    uint      `json:"user_id"`
+}
+
+func (*SsoNginxTicket) TableName() (name string) {
+	return "sso_nginx_ticket"
+}

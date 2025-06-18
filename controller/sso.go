@@ -3,10 +3,11 @@ package controller
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/wonderivan/logger"
 	"net/http"
+	"ops-api/dao"
 	"ops-api/middleware"
 	"ops-api/service"
+	"ops-api/utils"
 )
 
 var SSO sso
@@ -21,29 +22,24 @@ type sso struct{}
 // @Router /api/v1/sso/cookie/auth [get]
 func (s *sso) CookieAuth(c *gin.Context) {
 
-	// 获取Token
-	token, err := c.Cookie("auth_token")
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{
-			"code": 90401,
-			"msg":  "未找到Token",
-		})
+	// 获取 Cookie 并校验
+	cookies := c.Request.Cookies()
+	for _, cookie := range cookies {
+		// 获取Token（如果有数据则表明：1、Code存在，2、在有效期内）
+		token, _ := utils.Decrypt(cookie.Value)
+		ticket, _ := dao.SSO.GetAuthorizeToken(token)
+		if ticket.Token == token {
+			c.JSON(http.StatusOK, gin.H{
+				"code": 0,
+				"data": "认证成功",
+			})
+			return
+		}
 	}
 
-	// Token校验
-	_, err = middleware.ParseToken(token)
-	if err != nil {
-		logger.Error("ERROR：" + err.Error())
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": 90500,
-			"msg":  err.Error(),
-		})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{
+	c.JSON(http.StatusUnauthorized, gin.H{
 		"code": 0,
-		"msg":  "认证成功",
+		"msg":  "认证失败",
 	})
 }
 

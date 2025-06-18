@@ -1,10 +1,7 @@
 package utils
 
 import (
-	"errors"
 	"math/rand"
-	"net"
-	"strings"
 	"time"
 )
 
@@ -43,26 +40,6 @@ func GenerateRandomString(n int) string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
-}
-
-// GetSubdomain 获取二级域名
-func GetSubdomain(host string) (string, error) {
-
-	// 检查是否为IP地址或localhost
-	if net.ParseIP(host) != nil || host == "localhost" {
-		return host, nil
-	}
-
-	// 拆分主机名
-	parts := strings.Split(host, ".")
-
-	// 检查是否是有效的域名
-	if len(parts) < 2 {
-		return "", errors.New("无效的域名")
-	}
-
-	// 返回最后两部分作为二级域名
-	return strings.Join(parts[len(parts)-2:], "."), nil
 }
 
 // ParseTime 解析日期字符串为 *time.Time

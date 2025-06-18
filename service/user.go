@@ -35,6 +35,7 @@ type AuthorizeParam interface {
 	GetScope() string
 	GetState() string
 	GetNonce() string
+	GetNginxRedirectURI() string
 }
 
 // UserLogin 用户登录结构体（支持CAS3.0、OAuth2.0、OIDC和SAML2）
@@ -57,101 +58,108 @@ type UserLogin struct {
 
 // DingTalkLogin 钉钉扫码登录结构体（支持CAS3.0、OAuth2.0、OIDC和SAML2）
 type DingTalkLogin struct {
-	AuthCode     string `json:"authCode" binding:"required"`
-	ResponseType string `json:"response_type"` // OAuth2.0客户端：授权类型，固定值：code
-	ClientId     string `json:"client_id"`     // OAuth2.0客户端：客户端ID
-	RedirectURI  string `json:"redirect_uri"`  // OAuth2.0客户端：重定向URL
-	State        string `json:"state"`         // OAuth2.0客户端：客户端状态码
-	Scope        string `json:"scope"`         // OAuth2.0客户端：申请权限范围
-	Nonce        string `json:"nonce"`         // OIDC客户端：随机码
-	Service      string `json:"service"`       // CAS3.0客户端：回调地址
-	SAMLRequest  string `json:"SAMLRequest"`   // SAML2客户端：SAMLRequest
-	RelayState   string `json:"RelayState"`    // SAML2客户端：客户端状态码
-	SigAlg       string `json:"SigAlg"`        // SAML2客户端：签名算法
-	Signature    string `json:"Signature"`     // SAML2客户端：签名
+	AuthCode         string `json:"authCode" binding:"required"`
+	ResponseType     string `json:"response_type"`      // OAuth2.0客户端：授权类型，固定值：code
+	ClientId         string `json:"client_id"`          // OAuth2.0客户端：客户端ID
+	RedirectURI      string `json:"redirect_uri"`       // OAuth2.0客户端：重定向URL
+	State            string `json:"state"`              // OAuth2.0客户端：客户端状态码
+	Scope            string `json:"scope"`              // OAuth2.0客户端：申请权限范围
+	Nonce            string `json:"nonce"`              // OIDC客户端：随机码
+	Service          string `json:"service"`            // CAS3.0客户端：回调地址
+	SAMLRequest      string `json:"SAMLRequest"`        // SAML2客户端：SAMLRequest
+	RelayState       string `json:"RelayState"`         // SAML2客户端：客户端状态码
+	SigAlg           string `json:"SigAlg"`             // SAML2客户端：签名算法
+	Signature        string `json:"Signature"`          // SAML2客户端：签名
+	NginxRedirectURI string `json:"nginx_redirect_uri"` // Nginx代理客户端：回调地址
 }
 
 // WeChatLogin 企业微信扫码登录结构体（支持CAS3.0、OAuth2.0、OIDC和SAML2）
 type WeChatLogin struct {
-	Code         string `json:"code" binding:"required"`
-	Appid        string `json:"appid" binding:"required"`
-	ResponseType string `json:"response_type"` // OAuth2.0客户端：授权类型，固定值：code
-	ClientId     string `json:"client_id"`     // OAuth2.0客户端：客户端ID
-	RedirectURI  string `json:"redirect_uri"`  // OAuth2.0客户端：重定向URL
-	State        string `json:"state"`         // OAuth2.0客户端：客户端状态码
-	Scope        string `json:"scope"`         // OAuth2.0客户端：申请权限范围
-	Nonce        string `json:"nonce"`         // OIDC客户端：随机码
-	Service      string `json:"service"`       // CAS3.0客户端：回调地址
-	SAMLRequest  string `json:"SAMLRequest"`   // SAML2客户端：SAMLRequest
-	RelayState   string `json:"RelayState"`    // SAML2客户端：客户端状态码
-	SigAlg       string `json:"SigAlg"`        // SAML2客户端：签名算法
-	Signature    string `json:"Signature"`     // SAML2客户端：签名
+	Code             string `json:"code" binding:"required"`
+	Appid            string `json:"appid" binding:"required"`
+	ResponseType     string `json:"response_type"`      // OAuth2.0客户端：授权类型，固定值：code
+	ClientId         string `json:"client_id"`          // OAuth2.0客户端：客户端ID
+	RedirectURI      string `json:"redirect_uri"`       // OAuth2.0客户端：重定向URL
+	State            string `json:"state"`              // OAuth2.0客户端：客户端状态码
+	Scope            string `json:"scope"`              // OAuth2.0客户端：申请权限范围
+	Nonce            string `json:"nonce"`              // OIDC客户端：随机码
+	Service          string `json:"service"`            // CAS3.0客户端：回调地址
+	SAMLRequest      string `json:"SAMLRequest"`        // SAML2客户端：SAMLRequest
+	RelayState       string `json:"RelayState"`         // SAML2客户端：客户端状态码
+	SigAlg           string `json:"SigAlg"`             // SAML2客户端：签名算法
+	Signature        string `json:"Signature"`          // SAML2客户端：签名
+	NginxRedirectURI string `json:"nginx_redirect_uri"` // Nginx代理客户端：回调地址
 }
 
 // FeishuLogin 飞书扫码登录结构体（支持CAS3.0、OAuth2.0、OIDC和SAML2）
 type FeishuLogin struct {
-	Code         string `json:"code" binding:"required"`
-	Byte         string `json:"byte" binding:"required"` // 自定义参数
-	ResponseType string `json:"response_type"`           // OAuth2.0客户端：授权类型，固定值：code
-	ClientId     string `json:"client_id"`               // OAuth2.0客户端：客户端ID
-	RedirectURI  string `json:"redirect_uri"`            // OAuth2.0客户端：重定向URL
-	State        string `json:"state"`                   // OAuth2.0客户端：客户端状态码
-	Scope        string `json:"scope"`                   // OAuth2.0客户端：申请权限范围
-	Nonce        string `json:"nonce"`                   // OIDC客户端：随机码
-	Service      string `json:"service"`                 // CAS3.0客户端：回调地址
-	SAMLRequest  string `json:"SAMLRequest"`             // SAML2客户端：SAMLRequest
-	RelayState   string `json:"RelayState"`              // SAML2客户端：客户端状态码
-	SigAlg       string `json:"SigAlg"`                  // SAML2客户端：签名算法
-	Signature    string `json:"Signature"`               // SAML2客户端：签名
+	Code             string `json:"code" binding:"required"`
+	Byte             string `json:"byte" binding:"required"` // 自定义参数
+	ResponseType     string `json:"response_type"`           // OAuth2.0客户端：授权类型，固定值：code
+	ClientId         string `json:"client_id"`               // OAuth2.0客户端：客户端ID
+	RedirectURI      string `json:"redirect_uri"`            // OAuth2.0客户端：重定向URL
+	State            string `json:"state"`                   // OAuth2.0客户端：客户端状态码
+	Scope            string `json:"scope"`                   // OAuth2.0客户端：申请权限范围
+	Nonce            string `json:"nonce"`                   // OIDC客户端：随机码
+	Service          string `json:"service"`                 // CAS3.0客户端：回调地址
+	SAMLRequest      string `json:"SAMLRequest"`             // SAML2客户端：SAMLRequest
+	RelayState       string `json:"RelayState"`              // SAML2客户端：客户端状态码
+	SigAlg           string `json:"SigAlg"`                  // SAML2客户端：签名算法
+	Signature        string `json:"Signature"`               // SAML2客户端：签名
+	NginxRedirectURI string `json:"nginx_redirect_uri"`      // Nginx代理客户端：回调地址
 }
 
-func (f FeishuLogin) GetResponseType() string { return f.ResponseType }
-func (f FeishuLogin) GetClientId() string     { return f.ClientId }
-func (f FeishuLogin) GetRedirectURI() string  { return f.RedirectURI }
-func (f FeishuLogin) GetService() string      { return f.Service }
-func (f FeishuLogin) GetSAMLRequest() string  { return f.SAMLRequest }
-func (f FeishuLogin) GetRelayState() string   { return f.RelayState }
-func (f FeishuLogin) GetSigAlg() string       { return f.SigAlg }
-func (f FeishuLogin) GetSignature() string    { return f.Signature }
-func (f FeishuLogin) GetScope() string        { return f.Scope }
-func (f FeishuLogin) GetState() string        { return f.State }
-func (f FeishuLogin) GetNonce() string        { return f.Nonce }
+func (f FeishuLogin) GetResponseType() string     { return f.ResponseType }
+func (f FeishuLogin) GetClientId() string         { return f.ClientId }
+func (f FeishuLogin) GetRedirectURI() string      { return f.RedirectURI }
+func (f FeishuLogin) GetService() string          { return f.Service }
+func (f FeishuLogin) GetSAMLRequest() string      { return f.SAMLRequest }
+func (f FeishuLogin) GetRelayState() string       { return f.RelayState }
+func (f FeishuLogin) GetSigAlg() string           { return f.SigAlg }
+func (f FeishuLogin) GetSignature() string        { return f.Signature }
+func (f FeishuLogin) GetScope() string            { return f.Scope }
+func (f FeishuLogin) GetState() string            { return f.State }
+func (f FeishuLogin) GetNonce() string            { return f.Nonce }
+func (f FeishuLogin) GetNginxRedirectURI() string { return f.NginxRedirectURI }
 
-func (d DingTalkLogin) GetResponseType() string { return d.ResponseType }
-func (d DingTalkLogin) GetClientId() string     { return d.ClientId }
-func (d DingTalkLogin) GetRedirectURI() string  { return d.RedirectURI }
-func (d DingTalkLogin) GetService() string      { return d.Service }
-func (d DingTalkLogin) GetSAMLRequest() string  { return d.SAMLRequest }
-func (d DingTalkLogin) GetRelayState() string   { return d.RelayState }
-func (d DingTalkLogin) GetSigAlg() string       { return d.SigAlg }
-func (d DingTalkLogin) GetSignature() string    { return d.Signature }
-func (d DingTalkLogin) GetScope() string        { return d.Scope }
-func (d DingTalkLogin) GetState() string        { return d.State }
-func (d DingTalkLogin) GetNonce() string        { return d.Nonce }
+func (d DingTalkLogin) GetResponseType() string     { return d.ResponseType }
+func (d DingTalkLogin) GetClientId() string         { return d.ClientId }
+func (d DingTalkLogin) GetRedirectURI() string      { return d.RedirectURI }
+func (d DingTalkLogin) GetService() string          { return d.Service }
+func (d DingTalkLogin) GetSAMLRequest() string      { return d.SAMLRequest }
+func (d DingTalkLogin) GetRelayState() string       { return d.RelayState }
+func (d DingTalkLogin) GetSigAlg() string           { return d.SigAlg }
+func (d DingTalkLogin) GetSignature() string        { return d.Signature }
+func (d DingTalkLogin) GetScope() string            { return d.Scope }
+func (d DingTalkLogin) GetState() string            { return d.State }
+func (d DingTalkLogin) GetNonce() string            { return d.Nonce }
+func (d DingTalkLogin) GetNginxRedirectURI() string { return d.NginxRedirectURI }
 
-func (w WeChatLogin) GetResponseType() string { return w.ResponseType }
-func (w WeChatLogin) GetClientId() string     { return w.ClientId }
-func (w WeChatLogin) GetRedirectURI() string  { return w.RedirectURI }
-func (w WeChatLogin) GetService() string      { return w.Service }
-func (w WeChatLogin) GetSAMLRequest() string  { return w.SAMLRequest }
-func (w WeChatLogin) GetRelayState() string   { return w.RelayState }
-func (w WeChatLogin) GetSigAlg() string       { return w.SigAlg }
-func (w WeChatLogin) GetSignature() string    { return w.Signature }
-func (w WeChatLogin) GetScope() string        { return w.Scope }
-func (w WeChatLogin) GetState() string        { return w.State }
-func (w WeChatLogin) GetNonce() string        { return w.Nonce }
+func (w WeChatLogin) GetResponseType() string     { return w.ResponseType }
+func (w WeChatLogin) GetClientId() string         { return w.ClientId }
+func (w WeChatLogin) GetRedirectURI() string      { return w.RedirectURI }
+func (w WeChatLogin) GetService() string          { return w.Service }
+func (w WeChatLogin) GetSAMLRequest() string      { return w.SAMLRequest }
+func (w WeChatLogin) GetRelayState() string       { return w.RelayState }
+func (w WeChatLogin) GetSigAlg() string           { return w.SigAlg }
+func (w WeChatLogin) GetSignature() string        { return w.Signature }
+func (w WeChatLogin) GetScope() string            { return w.Scope }
+func (w WeChatLogin) GetState() string            { return w.State }
+func (w WeChatLogin) GetNonce() string            { return w.Nonce }
+func (w WeChatLogin) GetNginxRedirectURI() string { return w.NginxRedirectURI }
 
-func (u UserLogin) GetResponseType() string { return u.ResponseType }
-func (u UserLogin) GetClientId() string     { return u.ClientId }
-func (u UserLogin) GetRedirectURI() string  { return u.RedirectURI }
-func (u UserLogin) GetService() string      { return u.Service }
-func (u UserLogin) GetSAMLRequest() string  { return u.SAMLRequest }
-func (u UserLogin) GetRelayState() string   { return u.RelayState }
-func (u UserLogin) GetSigAlg() string       { return u.SigAlg }
-func (u UserLogin) GetSignature() string    { return u.Signature }
-func (u UserLogin) GetScope() string        { return u.Scope }
-func (u UserLogin) GetState() string        { return u.State }
-func (u UserLogin) GetNonce() string        { return u.Nonce }
+func (u UserLogin) GetResponseType() string     { return u.ResponseType }
+func (u UserLogin) GetClientId() string         { return u.ClientId }
+func (u UserLogin) GetRedirectURI() string      { return u.RedirectURI }
+func (u UserLogin) GetService() string          { return u.Service }
+func (u UserLogin) GetSAMLRequest() string      { return u.SAMLRequest }
+func (u UserLogin) GetRelayState() string       { return u.RelayState }
+func (u UserLogin) GetSigAlg() string           { return u.SigAlg }
+func (u UserLogin) GetSignature() string        { return u.Signature }
+func (u UserLogin) GetScope() string            { return u.Scope }
+func (u UserLogin) GetState() string            { return u.State }
+func (u UserLogin) GetNonce() string            { return u.Nonce }
+func (u UserLogin) GetNginxRedirectURI() string { return u.NginxRedirectURI }
 
 // RestPassword 重置密码时用户信息绑定的结构体
 type RestPassword struct {
@@ -605,7 +613,7 @@ func (u *user) WeChatLogin(params *WeChatLogin) (token, redirectUri, username, a
 	return token, "", user.Username, "", nil
 }
 
-// Login 用户登录（支持CAS3.0、OAuth2.0、OIDC和SAML2）
+// Login 用户登录（支持CAS3.0、OAuth2.0、OIDC、SAML2和Nginx拦截）
 func (u *user) Login(params *UserLogin) (token, redirectUri, application string, mfaPage *string, err error) {
 
 	var user model.AuthUser
@@ -647,7 +655,7 @@ func (u *user) Login(params *UserLogin) (token, redirectUri, application string,
 	}
 
 	// 处理单点登录请求
-	if params.SAMLRequest != "" || params.Service != "" || params.ClientId != "" {
+	if params.SAMLRequest != "" || params.Service != "" || params.ClientId != "" || params.NginxRedirectURI != "" {
 		callbackData, siteName, err := SSO.Login(params, user)
 		if err != nil {
 			return "", "", siteName, nil, err
