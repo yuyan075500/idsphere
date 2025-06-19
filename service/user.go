@@ -392,8 +392,7 @@ func (u *user) GetVerificationCode(data *ValidateCode) (err error) {
 			return err
 		}
 		code = number
-	}
-	if data.ValidateType == 3 {
+	} else if data.ValidateType == 3 {
 
 		// 判断是否开启此功能
 		if config.Conf.Settings["passwordMailResetOff"].(bool) == false {
@@ -412,10 +411,11 @@ func (u *user) GetVerificationCode(data *ValidateCode) (err error) {
 		if err := mail.Email.SendMsg([]string{userinfo.Email}, nil, nil, "密码重置", htmlBody, "html"); err != nil {
 			return err
 		}
+	} else {
+		return errors.New("验证码类型错误")
 	}
 
 	// 将验证码写入Redis缓存，如果已存在则会更新Key的值并刷新TTL
-	fmt.Println(code)
 	return global.RedisClient.Set(keyName, code, time.Duration(5)*time.Minute).Err()
 }
 
@@ -466,10 +466,8 @@ func (u *user) UpdateSelfPassword(data *RestPassword) (err error) {
 		if result != data.Code {
 			return errors.New("校验码错误")
 		}
-	}
-
-	// MFA校验
-	if data.ValidateType == 2 {
+	} else if data.ValidateType == 2 {
+		// MFA验证码校验
 
 		// 获取Secret
 		if user.MFACode == nil {
@@ -481,6 +479,8 @@ func (u *user) UpdateSelfPassword(data *RestPassword) (err error) {
 		if !valid {
 			return errors.New("校验码错误")
 		}
+	} else {
+		return errors.New("验证码类型错误")
 	}
 
 	// 执行密码重置

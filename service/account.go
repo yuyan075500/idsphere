@@ -4,10 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/pquerna/otp/totp"
+	"ops-api/config"
 	"ops-api/dao"
 	"ops-api/global"
 	"ops-api/model"
 	"ops-api/utils"
+	"ops-api/utils/mail"
+	"strconv"
 	"time"
 )
 
@@ -32,8 +35,13 @@ type BatchAccountCreate struct {
 
 // CodeVerification 获取密码结构体
 type CodeVerification struct {
-	ValidateType uint   `json:"validate_type" binding:"required"` // 验证类型：1：短信验证码，2：MFA验证码
+	ValidateType uint   `json:"validate_type" binding:"required"` // 验证类型：1：短信验证码，2：MFA验证码，3：邮箱验证码
 	Code         string `json:"code" binding:"required"`
+}
+
+// GetVerification 获取验证码结构体
+type GetVerification struct {
+	ValidateType uint `json:"validate_type" binding:"required"` // 验证类型：1：短信验证码，2：MFA验证码，3：邮箱验证码
 }
 
 // AddAccount 创建账号
@@ -232,7 +240,7 @@ func (a *account) GetAccountPassword(id uint, username string, userId uint) (pas
 }
 
 // GetSMSCode 发送获取账号密码验证码
-func (a *account) GetSMSCode(userID uint) (err error) {
+func (a *account) GetSMSCode(data *GetVerification, userID uint) (err error) {
 
 	// 查找用户
 	conditions := map[string]interface{}{
@@ -257,15 +265,42 @@ func (a *account) GetSMSCode(userID uint) (err error) {
 		if err != nil {
 			return err
 		}
-		if ttl.Minutes() > 4 {
+		if ttl.Seconds() > 240 {
 			return errors.New("请勿频繁发送校验码")
 		}
 	}
 
 	// 发送短信验证码
-	code, err := SMS.SMSSend(user.PhoneNumber, "密码查询")
-	if err != nil {
-		return err
+	var code string
+	if data.ValidateType == 1 {
+		if user.PhoneNumber == "" {
+			return errors.New("账号未绑定手机号")
+		}
+		number, err := SMS.SMSSend(user.PhoneNumber, "密码查询")
+		if err != nil {
+			return err
+		}
+		code = number
+	}
+	if data.ValidateType == 3 {
+
+		// 判断是否开启此功能
+		if config.Conf.Settings["passwordMailResetOff"].(bool) == false {
+			return errors.New("功能未启用，请联系管理员")
+		}
+
+		if user.Email == "" {
+			return errors.New("账号未绑定邮箱，请联系管理员")
+		}
+
+		// 生成HTML内容
+		code = strconv.Itoa(utils.GenerateRandomNumber())
+		htmlBody := GetPasswordHTML(code)
+
+		// 发送邮件
+		if err := mail.Email.SendMsg([]string{user.Email}, nil, nil, "密码获取", htmlBody, "html"); err != nil {
+			return err
+		}
 	}
 
 	// 将验证码写入Redis缓存，如果已存在则会更新Key的值并刷新TTL
@@ -274,6 +309,27 @@ func (a *account) GetSMSCode(userID uint) (err error) {
 	}
 
 	return nil
+}
+
+func GetPasswordHTML(number string) string {
+
+	issuer := config.Conf.Settings["issuer"].(string)
+
+	return fmt.Sprintf(`
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<title>密码获取</title>
+		</head>
+		<body>
+			<p>您的验证码为：%s，请妥善保管，切勿泄露。</p>
+			<br>
+			<p>此致，<br>%s</p>
+			<p style="color: red">此邮件为系统自动发送，请勿回复此邮件。</p>
+		</body>
+		</html>
+	`, number, issuer)
 }
 
 // CodeVerification 校验验证码
@@ -288,8 +344,8 @@ func (a *account) CodeVerification(userId uint, data *CodeVerification) (err err
 		return err
 	}
 
-	// 短信验证码校验
-	if data.ValidateType == 1 {
+	// 验证码校验
+	if data.ValidateType == 1 || data.ValidateType == 3 {
 
 		// 从缓存中获取验证码
 		result, err := global.RedisClient.Get(fmt.Sprintf("%s_get_account_password_verification_code", user.Username)).Result()
@@ -300,11 +356,8 @@ func (a *account) CodeVerification(userId uint, data *CodeVerification) (err err
 		if result != data.Code {
 			return errors.New("校验码错误")
 		}
-	}
-
-	// MFA验证码校验
-	if data.ValidateType == 2 {
-
+	} else if data.ValidateType == 2 {
+		// MFA验证码校验
 		// 获取Secret
 		if user.MFACode == nil {
 			return errors.New("您还未绑定MFA")
@@ -315,8 +368,10 @@ func (a *account) CodeVerification(userId uint, data *CodeVerification) (err err
 		if !valid {
 			return errors.New("校验码错误")
 		}
+	} else {
+		return errors.New("验证码类型错误")
 	}
 
 	// 写入允许用户获取密码的Redis缓存
-	return global.RedisClient.Set(fmt.Sprintf("%s_get_account_password_enabled", user.Username), true, 10*time.Minute).Err()
+	return global.RedisClient.Set(fmt.Sprintf("%s_get_account_password_enabled", user.Username), true, 5*time.Minute).Err()
 }

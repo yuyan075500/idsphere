@@ -277,14 +277,22 @@ func (a *account) GetAccountPassword(c *gin.Context) {
 // @Tags 账号管理
 // @Accept application/json
 // @Produce application/json
-// @Param user body service.RestPassword true "用户信息"
+// @Param user body service.GetVerification true "用户信息"
 // @Success 200 {string} json "{"code": 0, "msg": "校验码已发送，5分钟之内有效"}"
-// @Router /api/v1/account/code [get]
+// @Router /api/v1/account/code [post]
 func (a *account) GetSMSCode(c *gin.Context) {
+
+	var data = &service.GetVerification{}
+
+	// 解析请求参数
+	if err := c.ShouldBind(&data); err != nil {
+		Response(c, 90400, err.Error())
+		return
+	}
 
 	// 获取短信验证码
 	userID := c.GetUint("id")
-	if err := service.Account.GetSMSCode(userID); err != nil {
+	if err := service.Account.GetSMSCode(data, userID); err != nil {
 		Response(c, 90500, err.Error())
 		return
 	}

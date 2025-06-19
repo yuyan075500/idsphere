@@ -30,7 +30,7 @@ func initAccountRouters(router *gin.Engine) {
 		// 更改密码
 		account.PUT("/password", controller.Account.UpdatePassword)
 		// 获取短信验证码
-		account.GET("/code", controller.Account.GetSMSCode)
+		account.POST("/code", controller.Account.GetSMSCode)
 		// 获取短信验证码
 		account.POST("/code_verification", controller.Account.CodeVerification)
 	}
