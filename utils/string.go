@@ -53,11 +53,3 @@ func ParseTime(dateStr string) *time.Time {
 	}
 	return &parsedTime
 }
-
-// MaskPhoneNumber 遮蔽手机号
-func MaskPhoneNumber(phone string) string {
-	if len(phone) != 11 {
-		return phone
-	}
-	return phone[:3] + "****" + phone[7:]
-}

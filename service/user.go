@@ -14,6 +14,7 @@ import (
 	"ops-api/utils"
 	"ops-api/utils/check"
 	"ops-api/utils/mail"
+	"strconv"
 	"time"
 )
 
@@ -362,7 +363,7 @@ func (u *user) GetVerificationCode(data *ValidateCode) (err error) {
 			return err
 		}
 
-		if ttl.Seconds() > 1 {
+		if ttl.Seconds() > 240 {
 			return errors.New(fmt.Sprintf("验证码已发送，请%d秒后重试", int(ttl.Seconds())))
 		}
 	}
@@ -393,11 +394,51 @@ func (u *user) GetVerificationCode(data *ValidateCode) (err error) {
 		code = number
 	}
 	if data.ValidateType == 3 {
-		return
+
+		// 判断是否开启此功能
+		if config.Conf.Settings["passwordMailResetOff"].(bool) == false {
+			return errors.New("功能未启用，请联系管理员")
+		}
+
+		if userinfo.Email == "" {
+			return errors.New("用户未绑定邮箱，请联系管理员")
+		}
+
+		// 生成HTML内容
+		code = strconv.Itoa(utils.GenerateRandomNumber())
+		htmlBody := RestPasswordHTML(code)
+
+		// 发送邮件
+		if err := mail.Email.SendMsg([]string{userinfo.Email}, nil, nil, "密码重置", htmlBody, "html"); err != nil {
+			return err
+		}
 	}
 
 	// 将验证码写入Redis缓存，如果已存在则会更新Key的值并刷新TTL
+	fmt.Println(code)
 	return global.RedisClient.Set(keyName, code, time.Duration(5)*time.Minute).Err()
+}
+
+// RestPasswordHTML 密码重置邮件HTML
+func RestPasswordHTML(number string) string {
+
+	issuer := config.Conf.Settings["issuer"].(string)
+
+	return fmt.Sprintf(`
+		<!DOCTYPE html>
+		<html>
+		<head>
+			<meta charset="UTF-8">
+			<title>密码重置</title>
+		</head>
+		<body>
+			<p>您的验证码为：%s，请妥善保管，切勿泄露。</p>
+			<br>
+			<p>此致，<br>%s</p>
+			<p style="color: red">此邮件为系统自动发送，请勿回复此邮件。</p>
+		</body>
+		</html>
+	`, number, issuer)
 }
 
 // UpdateSelfPassword 用户重置密码
@@ -413,12 +454,8 @@ func (u *user) UpdateSelfPassword(data *RestPassword) (err error) {
 		return errors.New("用户不存在")
 	}
 
-	// 短信验证码校验
-	if data.ValidateType == 1 {
-
-		//if data.PhoneNumber != user.PhoneNumber {
-		//	return errors.New("手机号与用户不匹配")
-		//}
+	// 验证码校验
+	if data.ValidateType == 1 || data.ValidateType == 3 {
 
 		// 从缓存中获取验证码
 		result, err := global.RedisClient.Get(keyName).Result()
@@ -431,7 +468,7 @@ func (u *user) UpdateSelfPassword(data *RestPassword) (err error) {
 		}
 	}
 
-	// MFA验证码校验
+	// MFA校验
 	if data.ValidateType == 2 {
 
 		// 获取Secret
