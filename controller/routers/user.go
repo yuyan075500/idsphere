@@ -30,7 +30,7 @@ func initUserRouters(router *gin.Engine) {
 		user.POST("/sync/ad", controller.User.UserSyncAd)
 	}
 
-	// 获取密码重置验证码
+	// 发送密码重置验证码
 	router.POST("/api/v1/sms/reset_password", controller.User.GetVerificationCode)
 	// 重置用户密码（用户自己）
 	router.POST("/api/v1/reset_password", controller.User.UpdateSelfPassword)

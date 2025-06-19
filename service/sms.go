@@ -2,11 +2,9 @@ package service
 
 import (
 	"errors"
-	"gorm.io/gorm"
 	"net/url"
 	"ops-api/config"
 	"ops-api/dao"
-	"ops-api/global"
 	"ops-api/model"
 	"ops-api/utils"
 	message "ops-api/utils/sms"
@@ -19,25 +17,15 @@ var SMS sms
 type sms struct{}
 
 // SMSSend 发送短信
-func (s *sms) SMSSend(data *message.SendData) (string, error) {
+func (s *sms) SMSSend(phoneNumber, note string) (string, error) {
 
 	var (
 		smsSignature  = config.Conf.Settings["smsSignature"].(string)
 		smsTemplateId = config.Conf.Settings["smsTemplateId"].(string)
 	)
 
-	if data.PhoneNumber == "" {
-		return "", errors.New("手机号不能为空")
-	}
-
 	// 定义验证码
 	var code = strconv.Itoa(utils.GenerateRandomNumber())
-
-	// 查询用户是否存在
-	tx := global.MySQLClient.First(&model.AuthUser{}, "username = ? AND phone_number = ?", data.Username, data.PhoneNumber)
-	if errors.Is(tx.Error, gorm.ErrRecordNotFound) {
-		return "", errors.New("手机号与用户不匹配")
-	}
 
 	// 获取短信服务商
 	smsSender := message.GetSMSSender()
@@ -46,7 +34,7 @@ func (s *sms) SMSSend(data *message.SendData) (string, error) {
 	}
 
 	// 发送短信
-	resp, err := smsSender.SendSMS(data, code)
+	resp, err := smsSender.SendSMS(phoneNumber, code)
 	if err != nil {
 		return "", err
 	}
@@ -59,10 +47,10 @@ func (s *sms) SMSSend(data *message.SendData) (string, error) {
 
 	// 记录短信发送日志
 	smsLog := &model.LogSMS{
-		Note:       data.Note,
+		Note:       note,
 		Signature:  smsSignature,
 		TemplateId: smsTemplateId,
-		Receiver:   data.PhoneNumber,
+		Receiver:   phoneNumber,
 		Status:     "API请求成功",
 		SmsMsgId:   smsMsgId,
 	}

@@ -10,7 +10,6 @@ import (
 	"ops-api/model"
 	"ops-api/service"
 	"ops-api/utils"
-	message "ops-api/utils/sms"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -512,15 +511,12 @@ func (u *user) ResetUserMFA(c *gin.Context) {
 // @Tags 个人信息管理
 // @Accept application/json
 // @Produce application/json
-// @Param user body service.RestPassword true "用户信息"
+// @Param user body service.ValidateCode true "用户信息"
 // @Success 200 {string} json "{"code": 0, "msg": "校验码已发送..."}"
 // @Router /api/v1/sms/reset_password [post]
 func (u *user) GetVerificationCode(c *gin.Context) {
 
-	var (
-		data           = &message.SendData{}
-		expirationTime = 5 // 指定验证码过期时间
-	)
+	var data = &service.ValidateCode{}
 
 	// 解析请求参数
 	if err := c.ShouldBind(&data); err != nil {
@@ -529,14 +525,14 @@ func (u *user) GetVerificationCode(c *gin.Context) {
 	}
 
 	// 获取短信验证码
-	if err := service.User.GetVerificationCode(data, expirationTime); err != nil {
+	if err := service.User.GetVerificationCode(data); err != nil {
 		Response(c, 90500, err.Error())
 		return
 	}
 
 	c.JSON(200, gin.H{
 		"code": 0,
-		"msg":  fmt.Sprintf("校验码已发送，%s分钟之内有效", strconv.Itoa(expirationTime)),
+		"msg":  fmt.Sprintf("校验码已发送，有效期为5分钟"),
 	})
 }
 

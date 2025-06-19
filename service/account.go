@@ -8,7 +8,6 @@ import (
 	"ops-api/global"
 	"ops-api/model"
 	"ops-api/utils"
-	message "ops-api/utils/sms"
 	"time"
 )
 
@@ -264,12 +263,7 @@ func (a *account) GetSMSCode(userID uint) (err error) {
 	}
 
 	// 发送短信验证码
-	data := &message.SendData{
-		Username:    user.Username,
-		PhoneNumber: user.PhoneNumber,
-		Note:        "密码查询",
-	}
-	code, err := SMS.SMSSend(data)
+	code, err := SMS.SMSSend(user.PhoneNumber, "密码查询")
 	if err != nil {
 		return err
 	}

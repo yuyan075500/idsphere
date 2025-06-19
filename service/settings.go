@@ -15,7 +15,6 @@ import (
 	"ops-api/model"
 	"ops-api/utils"
 	"ops-api/utils/mail"
-	message "ops-api/utils/sms"
 	"time"
 )
 
@@ -60,6 +59,7 @@ type SettingsUpdate struct {
 	WechatSecret               string `json:"wechatSecret"`
 	TokenExpiresTime           string `json:"tokenExpiresTime"`
 	Swagger                    string `json:"swagger"`
+	PasswordMailResetOff       string `json:"passwordMailResetOff"`
 }
 
 type MailTest struct {
@@ -224,6 +224,9 @@ func (s *settings) UpdateSettingValues(data *SettingsUpdate) (map[string]interfa
 	if data.PasswordExpiryReminderDays != "" {
 		settingsToUpdate["passwordExpiryReminderDays"] = data.PasswordExpiryReminderDays
 	}
+	if data.PasswordMailResetOff != "" {
+		settingsToUpdate["passwordMailResetOff"] = data.PasswordMailResetOff
+	}
 
 	// 邮件配置
 	if data.MailAddress != "" {
@@ -358,12 +361,7 @@ func (s *settings) SmsTest(username string) error {
 	}
 
 	// 发送短信
-	data := &message.SendData{
-		Note:        "测试",
-		PhoneNumber: user.PhoneNumber,
-		Username:    user.Username,
-	}
-	if _, err := SMS.SMSSend(data); err != nil {
+	if _, err := SMS.SMSSend(user.PhoneNumber, "测试"); err != nil {
 		return err
 	}
 

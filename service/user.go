@@ -14,7 +14,6 @@ import (
 	"ops-api/utils"
 	"ops-api/utils/check"
 	"ops-api/utils/mail"
-	messages "ops-api/utils/sms"
 	"time"
 )
 
@@ -161,10 +160,15 @@ func (u UserLogin) GetState() string            { return u.State }
 func (u UserLogin) GetNonce() string            { return u.Nonce }
 func (u UserLogin) GetNginxRedirectURI() string { return u.NginxRedirectURI }
 
-// RestPassword 重置密码时用户信息绑定的结构体
+// ValidateCode 获取校验码
+type ValidateCode struct {
+	Username     string `json:"username" binding:"required"`
+	ValidateType uint   `json:"validate_type" binding:"required"` // 验证类型：1：短信验证码，2：MFA验证码，3：邮箱验证码
+}
+
+// RestPassword 重置密码
 type RestPassword struct {
 	Username     string `json:"username" binding:"required"`
-	PhoneNumber  string `json:"phone_number"`
 	ValidateType uint   `json:"validate_type" binding:"required"` // 验证类型：1：短信验证码，2：MFA验证码
 	Code         string `json:"code" binding:"required"`
 	Password     string `json:"password" binding:"required"`
@@ -338,7 +342,7 @@ func (u *user) ResetUserMFA(id int) error {
 }
 
 // GetVerificationCode 获取重置密码短信验证码
-func (u *user) GetVerificationCode(data *messages.SendData, expirationTime int) (err error) {
+func (u *user) GetVerificationCode(data *ValidateCode) (err error) {
 
 	var (
 		keyName = fmt.Sprintf("%s_rest_password_verification_code", data.Username)
@@ -349,6 +353,7 @@ func (u *user) GetVerificationCode(data *messages.SendData, expirationTime int) 
 	if err != nil {
 		return err
 	}
+
 	// 已存在
 	if val >= 1 {
 		// 判断Key的有效期
@@ -356,21 +361,43 @@ func (u *user) GetVerificationCode(data *messages.SendData, expirationTime int) 
 		if err != nil {
 			return err
 		}
-		// 如果Key的有效期大于4分钟，则提示用户请勿频繁发送校验码
-		if ttl.Minutes() > 4 {
-			return errors.New("请勿频繁发送校验码")
+
+		if ttl.Seconds() > 1 {
+			return errors.New(fmt.Sprintf("验证码已发送，请%d秒后重试", int(ttl.Seconds())))
 		}
 	}
 
-	// 发送短信验证码
-	data.Note = "密码重置"
-	code, err := SMS.SMSSend(data)
+	// 获取用户信息
+	conditions := map[string]interface{}{
+		"username": data.Username,
+	}
+	userinfo, err := dao.User.GetUser(conditions)
 	if err != nil {
 		return err
 	}
 
+	if userinfo.IsActive == false {
+		return errors.New("用户未激活，请联系管理员")
+	}
+
+	// 发送验证码
+	var code string
+	if data.ValidateType == 1 {
+		if userinfo.PhoneNumber == "" {
+			return errors.New("用户未绑定手机号，请联系管理员")
+		}
+		number, err := SMS.SMSSend(userinfo.PhoneNumber, "重置密码")
+		if err != nil {
+			return err
+		}
+		code = number
+	}
+	if data.ValidateType == 3 {
+		return
+	}
+
 	// 将验证码写入Redis缓存，如果已存在则会更新Key的值并刷新TTL
-	return global.RedisClient.Set(keyName, code, time.Duration(expirationTime)*time.Minute).Err()
+	return global.RedisClient.Set(keyName, code, time.Duration(5)*time.Minute).Err()
 }
 
 // UpdateSelfPassword 用户重置密码
@@ -389,9 +416,9 @@ func (u *user) UpdateSelfPassword(data *RestPassword) (err error) {
 	// 短信验证码校验
 	if data.ValidateType == 1 {
 
-		if data.PhoneNumber != user.PhoneNumber {
-			return errors.New("手机号与用户不匹配")
-		}
+		//if data.PhoneNumber != user.PhoneNumber {
+		//	return errors.New("手机号与用户不匹配")
+		//}
 
 		// 从缓存中获取验证码
 		result, err := global.RedisClient.Get(keyName).Result()
