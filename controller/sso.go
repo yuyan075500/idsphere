@@ -43,6 +43,66 @@ func (s *sso) CookieAuth(c *gin.Context) {
 	})
 }
 
+// NginxAuthorize 客户端授权
+// @Summary 客户端授权
+// @Description Cookie认证相关接口
+// @Tags Cookie认证
+// @Param Authorization header string true "Bearer 用户令牌"
+// @Param authorize body service.NginxAuthorize true "授权请求参数"
+// @Success 200 {string} json "{"code": 0, "msg": 授权成功, "redirect_uri": redirect_uri}"
+// @Router /api/v1/sso/nginx/authorize [get]
+func (s *sso) NginxAuthorize(c *gin.Context) {
+
+	params := new(struct {
+		NginxRedirectURI string `form:"nginx_redirect_uri" binding:"required"`
+	})
+	if err := c.Bind(params); err != nil {
+		Response(c, 90400, err.Error())
+		return
+	}
+
+	// 获取客户端Agent
+	userAgent := c.Request.UserAgent()
+	// 获取客户端IP
+	clientIP := c.ClientIP()
+
+	// 获取Token
+	token := c.Request.Header.Get("Authorization")
+	mc, err := middleware.ValidateJWT(token)
+	if err != nil {
+		Response(c, 90500, err.Error())
+		return
+	}
+
+	// 获取授权码
+	callbackUrl, application, err := service.SSO.GetNginxAuthorize(
+		&service.NginxAuthorize{CallbackURL: params.NginxRedirectURI},
+		mc.ID,
+	)
+	if err != nil {
+		// 记录登录失败信息
+		if err := service.User.RecordLoginInfo("账号密码", mc.Username, userAgent, clientIP, application, err); err != nil {
+			Response(c, 90500, err.Error())
+			return
+		}
+		Response(c, 90500, err.Error())
+		return
+	}
+
+	// 记录登录授权信息
+	if err := service.User.RecordLoginInfo("SSO授权", mc.Username, userAgent, clientIP, application, nil); err != nil {
+		Response(c, 90500, err.Error())
+		return
+	}
+
+	// 返回客户端回调地址
+	c.JSON(http.StatusOK, gin.H{
+		"code":         0,
+		"msg":          "授权成功",
+		"redirect_uri": callbackUrl,
+	})
+}
+
 // OAuthAuthorize 客户端授权
 // @Summary 客户端授权
 // @Description OAuth2.0认证相关接口

@@ -10,6 +10,8 @@ func initSSORouters(router *gin.Engine) {
 
 	sso := router.Group("/api/v1/sso")
 	{
+		// 获取授权（Nginx）
+		sso.GET("/nginx/authorize", controller.SSO.NginxAuthorize)
 		// 获取授权（OAuth2.0）
 		sso.POST("/oauth/authorize", controller.SSO.OAuthAuthorize)
 		// 获取Token（OAuth2.0）
