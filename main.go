@@ -66,6 +66,7 @@ func main() {
 		IgnorePaths("/api/v1/sso/oauth/userinfo").
 		IgnorePaths("/p3/serviceValidate").
 		IgnorePaths("/api/v1/sso/saml/metadata").
+		IgnorePaths("/api/v1/sso/saml/post").
 		IgnorePaths("/api/v1/sso/saml/authorize").
 		IgnorePaths("/.well-known/openid-configuration").
 		IgnorePaths("/api/v1/sso/oidc/jwks").
@@ -79,6 +80,9 @@ func main() {
 	r.Use(middleware.PermissionCheck())
 	// 加载记录日志中间件
 	r.Use(middleware.Oplog(global.MySQLClient))
+
+	// 加载模板文档
+	r.LoadHTMLGlob("templates/*")
 
 	// 注册路由
 	routers.Router.InitRouter(r)

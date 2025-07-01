@@ -2,8 +2,10 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"net/url"
 	"ops-api/dao"
 	"ops-api/middleware"
 	"ops-api/service"
@@ -417,6 +419,28 @@ func (s *sso) SPAuthorize(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": 0,
 		"data": html,
+	})
+}
+
+// SPHttpPost SP HTTP-POST
+// @Summary SP HTTP-POST
+// @Description SAML2认证相关接口
+// @Tags SAML2认证
+// @Success 200
+// @Router /api/v1/sso/saml/post [post]
+// @Success 200"
+func (s *sso) SPHttpPost(c *gin.Context) {
+	var data = &service.SAMLRequest{}
+	if err := c.ShouldBind(&data); err != nil {
+		Response(c, 90400, err.Error())
+		return
+	}
+
+	loginUrl := fmt.Sprintf("https://d-ops.50yc.cn/login?SAMLRequest=%s&RelayState=%s", url.QueryEscape(data.SAMLRequest), url.QueryEscape(data.RelayState))
+
+	c.Header("Content-Type", "text/html; charset=utf-8")
+	c.HTML(http.StatusOK, "redirect.html", gin.H{
+		"URL": loginUrl,
 	})
 }
 

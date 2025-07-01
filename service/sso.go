@@ -487,6 +487,10 @@ func (s *sso) GetIdPMetadata() (metadata string, err error) {
 		Binding:  saml.HTTPRedirectBinding, // 由于IDP是前后端分离架构，所以这里使用HTTPRedirectBinding
 		Location: externalUrl + "/login",   // 单点登录接口地址
 	})
+	idp.AddSingleSignOnService(saml.MetadataBinding{
+		Binding:  saml.HTTPPostBinding,
+		Location: externalUrl + "/saml/post",
+	})
 
 	// 添加IDP组件相关信息
 	idp.AddOrganization(saml.Organization{
@@ -613,7 +617,16 @@ func (s *sso) GetSPAuthorize(samlRequest *SAMLRequest, userId uint) (html, siteN
 	idp.AddAttribute("name", userinfo.Name, saml.AttributeFormatUnspecified)                // 用户姓名
 	idp.AddAttribute("username", userinfo.Username, saml.AttributeFormatUnspecified)        // 用户名
 	idp.AddAttribute("email", userinfo.Email, saml.AttributeFormatUnspecified)              // 邮箱地址
-	idp.AddAttribute("phone_number", userinfo.PhoneNumber, saml.AttributeFormatUnspecified) // 电话号码
+	idp.AddAttribute("phone_number", userinfo.PhoneNumber, saml.AttributeFormatUnspecified) // 电话号码\
+
+	// AWS专属配置
+	if strings.Contains(site.Address, "awsapps") {
+		idp.NameIdentifierFormat = saml.NameIdFormatEmailAddress
+		idp.NameIdentifier = userinfo.Email
+	}
+
+	// AWS专属配置
+	idp.AddAttribute("emailAddress", userinfo.Email, saml.AttributeFormatUnspecified) // 邮箱地址
 
 	// 华为云专属配置
 	idp.AddAttribute("IAM_SAML_Attributes_xUserId", userinfo.Username, saml.AttributeFormatUnspecified)
@@ -630,10 +643,15 @@ func (s *sso) GetSPAuthorize(samlRequest *SAMLRequest, userId uint) (html, siteN
 	// 设置认证请求有效期
 	idp.AuthnRequestTTL(time.Minute * 10)
 
-	// SAMLRequest请求校验,由于IDP的Metadata元数据中指定的SP Binding方法为HTTPRedirectBinding, 所以这里传入的时候是GET方法
+	// SAMLRequest请求校验，首先尝试使用GET方法校验，试用于HTTP-Redirect
 	_, validationError := idp.ValidateAuthnRequest("GET", s.GetSampleAuthnRequest(samlRequest), url.Values{})
 	if validationError != nil {
-		return "", site.Name, validationError.Error
+		// POST方法校验，试用于HTTP-POST
+		_, validationError := idp.ValidateAuthnRequest("POST", url.Values{}, s.GetSampleAuthnRequest(samlRequest))
+		if validationError != nil {
+			// 如果全部出错，则返回错误信息
+			return "", site.Name, validationError.Error
+		}
 	}
 
 	// 生成签名后XML数据

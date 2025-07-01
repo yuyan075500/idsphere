@@ -8,6 +8,7 @@ import (
 	"encoding/pem"
 	"encoding/xml"
 	"errors"
+	"github.com/wonderivan/logger"
 	"html/template"
 	"io"
 	"net/http"
@@ -156,7 +157,8 @@ func ParseSAMLRequest(samlRequest string) (data *AuthnRequest, err error) {
 	// 解压缩
 	bXML, err := Decompress(compressedXML)
 	if err != nil {
-		return nil, err
+		logger.Warn("Failed to decompress SAMLRequest: %v", err)
+		bXML = compressedXML
 	}
 
 	// 数据保存

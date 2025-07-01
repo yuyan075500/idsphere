@@ -30,6 +30,8 @@ func initSSORouters(router *gin.Engine) {
 		sso.POST("/saml/authorize", controller.SSO.SPAuthorize)
 		// SP元数据解析
 		sso.POST("/saml/metadata", controller.Site.ParseSPMetadata)
+		// SP HTTP-POST
+		sso.POST("/saml/post", controller.SSO.SPHttpPost)
 		// Cookie认证（用于Nginx转发过来的认证请求）
 		sso.GET("/cookie/auth", controller.SSO.CookieAuth)
 	}

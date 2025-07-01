@@ -15,6 +15,7 @@ import (
 // ExcludedPaths 不记录日志的接口
 var ExcludedPaths = map[string]bool{
 	"/api/auth/login":                   true,
+	"/api/v1/sso/saml/post":             true,
 	"/api/auth/logout":                  true,
 	"/api/auth/ww_login":                true,
 	"/api/auth/dingtalk_login":          true,
