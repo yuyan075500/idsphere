@@ -623,6 +623,7 @@ func (s *sso) GetSPAuthorize(samlRequest *SAMLRequest, userId uint) (html, siteN
 	if strings.Contains(site.Address, "awsapps") {
 		idp.NameIdentifierFormat = saml.NameIdFormatEmailAddress
 		idp.NameIdentifier = userinfo.Email
+		idp.AddAttribute("username", userinfo.Email, saml.AttributeFormatUnspecified)
 	}
 
 	// 华为云专属配置
