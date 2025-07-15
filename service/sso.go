@@ -625,9 +625,6 @@ func (s *sso) GetSPAuthorize(samlRequest *SAMLRequest, userId uint) (html, siteN
 		idp.NameIdentifier = userinfo.Email
 	}
 
-	// AWS专属配置
-	idp.AddAttribute("emailAddress", userinfo.Email, saml.AttributeFormatUnspecified) // 邮箱地址
-
 	// 华为云专属配置
 	idp.AddAttribute("IAM_SAML_Attributes_xUserId", userinfo.Username, saml.AttributeFormatUnspecified)
 	idp.AddAttribute("IAM_SAML_Attributes_redirect_url", site.RedirectUrl, saml.AttributeFormatUnspecified) // 登录后跳转的地址
