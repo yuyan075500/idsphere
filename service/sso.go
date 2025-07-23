@@ -489,7 +489,7 @@ func (s *sso) GetIdPMetadata() (metadata string, err error) {
 	})
 	idp.AddSingleSignOnService(saml.MetadataBinding{
 		Binding:  saml.HTTPPostBinding,
-		Location: externalUrl + "/saml/post",
+		Location: externalUrl + "/api/v1/sso/saml/post",
 	})
 
 	// 添加IDP组件相关信息
