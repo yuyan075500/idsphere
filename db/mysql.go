@@ -10,6 +10,7 @@ import (
 	"ops-api/config"
 	"ops-api/global"
 	"ops-api/model"
+	k8s "ops-api/model/kubernetes"
 	"os"
 	"strings"
 	"time"
@@ -70,6 +71,7 @@ func MySQLInit() error {
 		&model.Domain{},
 		&model.DomainCertificate{},
 		&model.DomainCertificateMonitor{},
+		&k8s.Cluster{},
 	)
 
 	// 设置数据库连接池

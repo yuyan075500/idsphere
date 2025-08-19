@@ -8,6 +8,7 @@ import (
 	"ops-api/controller/routers"
 	"ops-api/db"
 	"ops-api/global"
+	"ops-api/kubernetes"
 	"ops-api/middleware"
 	"ops-api/service"
 )
@@ -17,25 +18,31 @@ func main() {
 	// 配置文件初始化
 	config.InitConfig()
 
-	// 初始化Minio
+	// 初始化 Minio
 	if err := db.MinioInit(); err != nil {
 		logger.Error("Minio初始化失败：", err.Error())
 		return
 	}
 
-	// 初始化MySQL
+	// 初始化 MySQL
 	if err := db.MySQLInit(); err != nil {
 		logger.Error("MySQL初始化失败：", err.Error())
 		return
 	}
 
-	// 初始Redis
+	// 初始 Redis
 	if err := db.RedisInit(); err != nil {
 		logger.Error("Redis初始化失败：", err.Error())
 		return
 	}
 
-	// 初始化CasBin权限
+	// 初始化 Kubernetes
+	global.KubernetesClients = &kubernetes.Clients{}
+	if err := global.KubernetesClients.KubernetesInit(global.MySQLClient); err != nil {
+		logger.Error("Kubernetes初始化失败：", err.Error())
+	}
+
+	// 初始化 CasBin 权限
 	if err := middleware.CasBinInit(); err != nil {
 		logger.Error("权限初始化失败：", err.Error())
 		return
@@ -51,7 +58,7 @@ func main() {
 
 	// 加载跨域中间件
 	r.Use(middleware.Cors())
-	// 加载登录中间件，其中IgnorePaths()方法可以忽略不需要登录认证的路由，支持前缀匹配
+	// 加载登录中间件，其中 IgnorePaths() 方法可以忽略不需要登录认证的路由，支持前缀匹配
 	r.Use(middleware.LoginBuilder().
 		IgnorePaths("/api/auth/login").
 		IgnorePaths("/health").
