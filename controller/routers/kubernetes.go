@@ -32,4 +32,34 @@ func initKubernetesRouters(router *gin.Engine) {
 	{
 		namespace.GET("/", controller.Namespace.ListNamespaces)
 	}
+
+	// Pod相关
+	pod := router.Group("/api/v1/kubernetes/pod")
+	{
+		pod.GET("/", controller.Pod.ListPods)
+	}
+
+	// Deployment相关
+	deployment := router.Group("/api/v1/kubernetes/deployment")
+	{
+		deployment.GET("/", controller.Deployment.ListDeployments)
+	}
+
+	// DaemonSet相关
+	daemonSet := router.Group("/api/v1/kubernetes/daemonSet")
+	{
+		daemonSet.GET("/", controller.DaemonSet.ListDaemonSets)
+	}
+
+	// Job相关
+	job := router.Group("/api/v1/kubernetes/job")
+	{
+		job.GET("/", controller.Job.ListJobs)
+	}
+
+	// CronJob相关
+	cronJob := router.Group("/api/v1/kubernetes/cronJob")
+	{
+		cronJob.GET("/", controller.CronJob.ListCronJobs)
+	}
 }
