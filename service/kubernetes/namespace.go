@@ -51,3 +51,12 @@ func (n *namespace) List(uuid, name string, page, limit int) (*NamespaceList, er
 		Total: len(filtered),
 	}, nil
 }
+
+// ListAll 获取命名空间列表（所有）
+func (n *namespace) ListAll(uuid string) (*v1.NamespaceList, error) {
+	client := global.KubernetesClients.GetClient(uuid)
+	if client == nil {
+		return nil, fmt.Errorf("cluster %v not found", uuid)
+	}
+	return client.ClientSet.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
+}

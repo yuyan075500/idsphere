@@ -31,6 +31,7 @@ func initKubernetesRouters(router *gin.Engine) {
 	namespace := router.Group("/api/v1/kubernetes/namespace")
 	{
 		namespace.GET("/", controller.Namespace.ListNamespaces)
+		namespace.GET("/all", controller.Namespace.ListNamespacesAll)
 	}
 
 	// Pod相关
@@ -51,6 +52,12 @@ func initKubernetesRouters(router *gin.Engine) {
 		daemonSet.GET("/", controller.DaemonSet.ListDaemonSets)
 	}
 
+	// StatefulSet相关
+	statefulSet := router.Group("/api/v1/kubernetes/statefulSet")
+	{
+		statefulSet.GET("/", controller.StatefulSet.ListStatefulSets)
+	}
+
 	// Job相关
 	job := router.Group("/api/v1/kubernetes/job")
 	{
@@ -61,5 +68,23 @@ func initKubernetesRouters(router *gin.Engine) {
 	cronJob := router.Group("/api/v1/kubernetes/cronJob")
 	{
 		cronJob.GET("/", controller.CronJob.ListCronJobs)
+	}
+
+	// Service相关
+	service := router.Group("/api/v1/kubernetes/service")
+	{
+		service.GET("/", controller.Svc.ListServices)
+	}
+
+	// Endpoint相关
+	endpoint := router.Group("/api/v1/kubernetes/endpoint")
+	{
+		endpoint.GET("/", controller.Endpoint.ListEndpoints)
+	}
+
+	// Ingress相关
+	ingress := router.Group("/api/v1/kubernetes/ingress")
+	{
+		ingress.GET("/", controller.Ingress.ListIngresses)
 	}
 }

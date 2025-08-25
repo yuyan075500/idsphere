@@ -41,3 +41,32 @@ func (n *namespace) ListNamespaces(c *gin.Context) {
 		"data": list,
 	})
 }
+
+// ListNamespacesAll 获取命名空间列表（所有）
+func (n *namespace) ListNamespacesAll(c *gin.Context) {
+
+	params := new(struct {
+		UUID string `form:"uuid" binding:"required"`
+	})
+	if err := c.Bind(params); err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 90400,
+			"msg":  err.Error(),
+		})
+		return
+	}
+
+	list, err := service.Namespace.ListAll(params.UUID)
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"code": 90500,
+			"msg":  err.Error(),
+		})
+		return
+	}
+
+	c.JSON(200, gin.H{
+		"code": 0,
+		"data": list,
+	})
+}
