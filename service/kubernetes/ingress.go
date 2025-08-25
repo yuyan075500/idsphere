@@ -10,9 +10,9 @@ import (
 	"strings"
 )
 
-var Ingress ingresses
+var Ingress ingress
 
-type ingresses struct{}
+type ingress struct{}
 
 type IngressList struct {
 	Items *[]networkingv1.Ingress `json:"items"`
@@ -20,7 +20,7 @@ type IngressList struct {
 }
 
 // List 获取Ingress列表
-func (i *ingresses) List(uuid, name, namespace string, page, limit int) (*IngressList, error) {
+func (i *ingress) List(uuid, name, namespace string, page, limit int) (*IngressList, error) {
 	client := global.KubernetesClients.GetClient(uuid)
 	if client == nil {
 		return nil, fmt.Errorf("cluster %v not found", uuid)

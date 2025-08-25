@@ -87,4 +87,34 @@ func initKubernetesRouters(router *gin.Engine) {
 	{
 		ingress.GET("/", controller.Ingress.ListIngresses)
 	}
+
+	// PersistentVolume相关
+	pv := router.Group("/api/v1/kubernetes/persistentVolume")
+	{
+		pv.GET("/", controller.PersistentVolume.ListPersistentVolumes)
+	}
+
+	// PersistentVolumeClaim相关
+	pvc := router.Group("/api/v1/kubernetes/persistentVolumeClaim")
+	{
+		pvc.GET("/", controller.PersistentVolumeClaim.ListPersistentVolumeClaims)
+	}
+
+	// StorageClass相关
+	sc := router.Group("/api/v1/kubernetes/storageClass")
+	{
+		sc.GET("/", controller.StorageClass.ListStorageClasses)
+	}
+
+	// ConfigMap相关
+	configmap := router.Group("/api/v1/kubernetes/configMap")
+	{
+		configmap.GET("/", controller.ConfigMap.ListConfigMaps)
+	}
+
+	// Secret相关
+	secret := router.Group("/api/v1/kubernetes/secret")
+	{
+		secret.GET("/", controller.Secret.ListSecrets)
+	}
 }
