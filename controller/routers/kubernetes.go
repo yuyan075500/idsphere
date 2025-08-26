@@ -18,99 +18,54 @@ func initKubernetesRouters(router *gin.Engine) {
 	}
 
 	// 节点相关
-	node := router.Group("/api/v1/kubernetes/node")
-	{
-		node.GET("/", controller.Node.ListNodes)
-	}
+	router.GET("/api/v1/kubernetes/nodes", controller.Node.ListNodes)
 
 	// 名称空间相关
+	router.GET("/api/v1/kubernetes/namespaces", controller.Namespace.ListNamespaces)
 	namespace := router.Group("/api/v1/kubernetes/namespace")
 	{
-		namespace.GET("/", controller.Namespace.ListNamespaces)
 		namespace.GET("/all", controller.Namespace.ListNamespacesAll)
 	}
 
 	// Pod相关
-	pod := router.Group("/api/v1/kubernetes/pod")
-	{
-		pod.GET("/", controller.Pod.ListPods)
-	}
+	router.GET("/api/v1/kubernetes/pods", controller.Pod.ListPods)
 
 	// Deployment相关
-	deployment := router.Group("/api/v1/kubernetes/deployment")
-	{
-		deployment.GET("/", controller.Deployment.ListDeployments)
-	}
+	router.GET("/api/v1/kubernetes/deployments", controller.Deployment.ListDeployments)
 
 	// DaemonSet相关
-	daemonSet := router.Group("/api/v1/kubernetes/daemonSet")
-	{
-		daemonSet.GET("/", controller.DaemonSet.ListDaemonSets)
-	}
+	router.GET("/api/v1/kubernetes/daemonSets", controller.DaemonSet.ListDaemonSets)
 
 	// StatefulSet相关
-	statefulSet := router.Group("/api/v1/kubernetes/statefulSet")
-	{
-		statefulSet.GET("/", controller.StatefulSet.ListStatefulSets)
-	}
+	router.GET("/api/v1/kubernetes/statefulSets", controller.StatefulSet.ListStatefulSets)
 
 	// Job相关
-	job := router.Group("/api/v1/kubernetes/job")
-	{
-		job.GET("/", controller.Job.ListJobs)
-	}
+	router.GET("/api/v1/kubernetes/jobs", controller.Job.ListJobs)
 
 	// CronJob相关
-	cronJob := router.Group("/api/v1/kubernetes/cronJob")
-	{
-		cronJob.GET("/", controller.CronJob.ListCronJobs)
-	}
+	router.GET("/api/v1/kubernetes/cronJobs", controller.CronJob.ListCronJobs)
 
 	// Service相关
-	service := router.Group("/api/v1/kubernetes/service")
-	{
-		service.GET("/", controller.Svc.ListServices)
-	}
+	router.GET("/api/v1/kubernetes/services", controller.Svc.ListServices)
 
 	// Endpoint相关
-	endpoint := router.Group("/api/v1/kubernetes/endpoint")
-	{
-		endpoint.GET("/", controller.Endpoint.ListEndpoints)
-	}
+	router.GET("/api/v1/kubernetes/endpoints", controller.Endpoint.ListEndpoints)
 
 	// Ingress相关
-	ingress := router.Group("/api/v1/kubernetes/ingress")
-	{
-		ingress.GET("/", controller.Ingress.ListIngresses)
-	}
+	router.GET("/api/v1/kubernetes/ingresses", controller.Ingress.ListIngresses)
 
 	// PersistentVolume相关
-	pv := router.Group("/api/v1/kubernetes/persistentVolume")
-	{
-		pv.GET("/", controller.PersistentVolume.ListPersistentVolumes)
-	}
+	router.GET("/api/v1/kubernetes/persistentVolumes", controller.PersistentVolume.ListPersistentVolumes)
 
 	// PersistentVolumeClaim相关
-	pvc := router.Group("/api/v1/kubernetes/persistentVolumeClaim")
-	{
-		pvc.GET("/", controller.PersistentVolumeClaim.ListPersistentVolumeClaims)
-	}
+	router.GET("/api/v1/kubernetes/persistentVolumeClaims", controller.PersistentVolumeClaim.ListPersistentVolumeClaims)
 
 	// StorageClass相关
-	sc := router.Group("/api/v1/kubernetes/storageClass")
-	{
-		sc.GET("/", controller.StorageClass.ListStorageClasses)
-	}
+	router.GET("/api/v1/kubernetes/storageClasses", controller.StorageClass.ListStorageClasses)
 
 	// ConfigMap相关
-	configmap := router.Group("/api/v1/kubernetes/configMap")
-	{
-		configmap.GET("/", controller.ConfigMap.ListConfigMaps)
-	}
+	router.GET("/api/v1/kubernetes/configMaps", controller.ConfigMap.ListConfigMaps)
 
 	// Secret相关
-	secret := router.Group("/api/v1/kubernetes/secret")
-	{
-		secret.GET("/", controller.Secret.ListSecrets)
-	}
+	router.GET("/api/v1/kubernetes/secrets", controller.Secret.ListSecrets)
 }
