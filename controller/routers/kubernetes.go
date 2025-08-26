@@ -6,19 +6,15 @@ import (
 )
 
 func initKubernetesRouters(router *gin.Engine) {
-	cluster := router.Group("/api/v1/kubernetes")
+	router.GET("/api/v1/clusters", controller.Cluster.GetKubernetesList)
+	cluster := router.Group("/api/v1/cluster")
 	{
-		// 获取集群列表
-		cluster.GET("/clusters", controller.Cluster.GetKubernetesList)
 		// 新增集群
-		cluster.POST("/cluster", controller.Cluster.AddCluster)
+		cluster.POST("", controller.Cluster.AddCluster)
 		// 删除
-		cluster.DELETE("/cluster/:id", controller.Cluster.DeleteCluster)
+		cluster.DELETE("/:id", controller.Cluster.DeleteCluster)
 		// 修改
-		cluster.PUT("/cluster", controller.Cluster.UpdateCluster)
-
-		// 获取集群基本信息
-		cluster.GET("/cluster/info", controller.Cluster.GetKubernetesInfo)
+		cluster.PUT("", controller.Cluster.UpdateCluster)
 	}
 
 	// 节点相关

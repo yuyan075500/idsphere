@@ -87,6 +87,8 @@ func main() {
 	r.Use(middleware.PermissionCheck())
 	// 加载记录日志中间件
 	r.Use(middleware.Oplog(global.MySQLClient))
+	// 加载kubernetes客户端
+	r.Use(middleware.KubernetesClientInit(global.KubernetesClients))
 
 	// 加载模板文档
 	r.LoadHTMLGlob("templates/*")

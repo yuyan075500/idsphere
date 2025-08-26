@@ -2,10 +2,9 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"ops-api/global"
+	"ops-api/kubernetes"
 	"ops-api/utils"
 	"strings"
 )
@@ -19,11 +18,7 @@ type NodeList struct {
 	Total int        `json:"total"`
 }
 
-func (n *node) List(uuid, name string, page, limit int) (*NodeList, error) {
-	client := global.KubernetesClients.GetClient(uuid)
-	if client == nil {
-		return nil, fmt.Errorf("cluster %v not found", uuid)
-	}
+func (n *node) List(name string, page, limit int, client *kubernetes.ClientList) (*NodeList, error) {
 
 	nodes, err := client.ClientSet.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
 	if err != nil {

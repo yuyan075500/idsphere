@@ -6,6 +6,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"ops-api/global"
+	"ops-api/kubernetes"
 	"ops-api/utils"
 	"strings"
 )
@@ -20,13 +21,11 @@ type NamespaceList struct {
 }
 
 // List 获取命名空间列表
-func (n *namespace) List(uuid, name string, page, limit int) (*NamespaceList, error) {
-	client := global.KubernetesClients.GetClient(uuid)
-	if client == nil {
-		return nil, fmt.Errorf("cluster %v not found", uuid)
-	}
-
+func (n *namespace) List(name string, page, limit int, client *kubernetes.ClientList) (*NamespaceList, error) {
 	namespaces, err := client.ClientSet.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
 
 	// 名称过滤
 	var filtered []v1.Namespace

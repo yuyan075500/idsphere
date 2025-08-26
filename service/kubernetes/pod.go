@@ -2,10 +2,9 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"ops-api/global"
+	"ops-api/kubernetes"
 	"ops-api/utils"
 	"strings"
 )
@@ -20,13 +19,11 @@ type PodList struct {
 }
 
 // List 获取命名空间列表
-func (p *pod) List(uuid, name, namespace string, page, limit int) (*PodList, error) {
-	client := global.KubernetesClients.GetClient(uuid)
-	if client == nil {
-		return nil, fmt.Errorf("cluster %v not found", uuid)
-	}
-
+func (p *pod) List(name, namespace string, page, limit int, client *kubernetes.ClientList) (*PodList, error) {
 	pods, err := client.ClientSet.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
 
 	// 名称过滤
 	var filtered []v1.Pod

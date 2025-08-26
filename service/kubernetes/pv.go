@@ -2,10 +2,9 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"ops-api/global"
+	"ops-api/kubernetes"
 	"ops-api/utils"
 	"strings"
 )
@@ -20,13 +19,12 @@ type PersistentVolumeList struct {
 }
 
 // List 获取PersistentVolume列表
-func (p *persistentVolume) List(uuid, name string, page, limit int) (*PersistentVolumeList, error) {
-	client := global.KubernetesClients.GetClient(uuid)
-	if client == nil {
-		return nil, fmt.Errorf("cluster %v not found", uuid)
-	}
+func (p *persistentVolume) List(name string, page, limit int, client *kubernetes.ClientList) (*PersistentVolumeList, error) {
 
 	persistentVolumes, err := client.ClientSet.CoreV1().PersistentVolumes().List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
 
 	// 名称过滤
 	var filtered []corev1.PersistentVolume

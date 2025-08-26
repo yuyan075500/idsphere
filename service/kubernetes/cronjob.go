@@ -2,10 +2,9 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"ops-api/global"
+	"ops-api/kubernetes"
 	"ops-api/utils"
 	"strings"
 )
@@ -20,13 +19,11 @@ type CronJobList struct {
 }
 
 // List 获取CronJob列表
-func (c *cronjob) List(uuid, name, namespace string, page, limit int) (*CronJobList, error) {
-	client := global.KubernetesClients.GetClient(uuid)
-	if client == nil {
-		return nil, fmt.Errorf("cluster %v not found", uuid)
-	}
-
+func (c *cronjob) List(name, namespace string, page, limit int, client *kubernetes.ClientList) (*CronJobList, error) {
 	deployments, err := client.ClientSet.BatchV1().CronJobs(namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
 
 	// 名称过滤
 	var filtered []batchv1.CronJob

@@ -2,10 +2,9 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"ops-api/global"
+	"ops-api/kubernetes"
 	"ops-api/utils"
 	"strings"
 )
@@ -20,13 +19,11 @@ type SecretList struct {
 }
 
 // List 获取Secret列表
-func (s *secret) List(uuid, name, namespace string, page, limit int) (*SecretList, error) {
-	client := global.KubernetesClients.GetClient(uuid)
-	if client == nil {
-		return nil, fmt.Errorf("cluster %v not found", uuid)
-	}
-
+func (s *secret) List(name, namespace string, page, limit int, client *kubernetes.ClientList) (*SecretList, error) {
 	secrets, err := client.ClientSet.CoreV1().Secrets(namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
 
 	// 名称过滤
 	var filtered []corev1.Secret

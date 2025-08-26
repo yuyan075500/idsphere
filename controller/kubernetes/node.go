@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"ops-api/kubernetes"
 	service "ops-api/service/kubernetes"
 )
 
@@ -13,7 +14,6 @@ type node struct{}
 // ListNodes 获取节点列表
 func (n *node) ListNodes(c *gin.Context) {
 	params := new(struct {
-		UUID  string `form:"uuid" binding:"required"`
 		Name  string `form:"name"`
 		Limit int    `form:"limit" binding:"required"`
 		Page  int    `form:"page" binding:"required"`
@@ -26,7 +26,8 @@ func (n *node) ListNodes(c *gin.Context) {
 		return
 	}
 
-	list, err := service.Node.List(params.UUID, params.Name, params.Page, params.Limit)
+	client := c.MustGet("kc").(*kubernetes.ClientList)
+	list, err := service.Node.List(params.Name, params.Page, params.Limit, client)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code": 90500,

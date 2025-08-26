@@ -3,6 +3,7 @@ package kubernetes
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"ops-api/kubernetes"
 	service "ops-api/service/kubernetes"
 )
 
@@ -14,7 +15,6 @@ type svc struct{}
 func (s *svc) ListServices(c *gin.Context) {
 
 	params := new(struct {
-		UUID      string `form:"uuid" binding:"required"`
 		Namespace string `form:"namespace"`
 		Name      string `form:"name"`
 		Limit     int    `form:"limit" binding:"required"`
@@ -28,7 +28,8 @@ func (s *svc) ListServices(c *gin.Context) {
 		return
 	}
 
-	list, err := service.Svc.List(params.UUID, params.Name, params.Namespace, params.Page, params.Limit)
+	client := c.MustGet("kc").(*kubernetes.ClientList)
+	list, err := service.Svc.List(params.Name, params.Namespace, params.Page, params.Limit, client)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"code": 90500,

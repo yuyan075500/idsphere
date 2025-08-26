@@ -2,10 +2,9 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"ops-api/global"
+	"ops-api/kubernetes"
 	"ops-api/utils"
 	"strings"
 )
@@ -20,13 +19,11 @@ type ConfigMapList struct {
 }
 
 // List 获取ConfigMap列表
-func (c *configMap) List(uuid, name, namespace string, page, limit int) (*ConfigMapList, error) {
-	client := global.KubernetesClients.GetClient(uuid)
-	if client == nil {
-		return nil, fmt.Errorf("cluster %v not found", uuid)
-	}
-
+func (c *configMap) List(name, namespace string, page, limit int, client *kubernetes.ClientList) (*ConfigMapList, error) {
 	configmaps, err := client.ClientSet.CoreV1().ConfigMaps(namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
 
 	// 名称过滤
 	var filtered []corev1.ConfigMap

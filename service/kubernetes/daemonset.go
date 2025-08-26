@@ -2,10 +2,9 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"ops-api/global"
+	"ops-api/kubernetes"
 	"ops-api/utils"
 	"strings"
 )
@@ -20,13 +19,11 @@ type DaemonSetList struct {
 }
 
 // List 获取DaemonSet列表
-func (d *daemonSet) List(uuid, name, namespace string, page, limit int) (*DaemonSetList, error) {
-	client := global.KubernetesClients.GetClient(uuid)
-	if client == nil {
-		return nil, fmt.Errorf("cluster %v not found", uuid)
-	}
-
+func (d *daemonSet) List(name, namespace string, page, limit int, client *kubernetes.ClientList) (*DaemonSetList, error) {
 	daemonSets, err := client.ClientSet.AppsV1().DaemonSets(namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
 
 	// 名称过滤
 	var filtered []appsv1.DaemonSet

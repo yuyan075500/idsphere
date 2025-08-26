@@ -2,10 +2,9 @@ package kubernetes
 
 import (
 	"context"
-	"fmt"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"ops-api/global"
+	"ops-api/kubernetes"
 	"ops-api/utils"
 	"strings"
 )
@@ -20,13 +19,11 @@ type StatefulSetList struct {
 }
 
 // List 获取StatefulSet列表
-func (s *statefulSet) List(uuid, name, namespace string, page, limit int) (*StatefulSetList, error) {
-	client := global.KubernetesClients.GetClient(uuid)
-	if client == nil {
-		return nil, fmt.Errorf("cluster %v not found", uuid)
-	}
-
+func (s *statefulSet) List(name, namespace string, page, limit int, client *kubernetes.ClientList) (*StatefulSetList, error) {
 	statefulSets, err := client.ClientSet.AppsV1().StatefulSets(namespace).List(context.TODO(), metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
 
 	// 名称过滤
 	var filtered []appsv1.StatefulSet
