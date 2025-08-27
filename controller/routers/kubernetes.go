@@ -19,16 +19,25 @@ func initKubernetesRouters(router *gin.Engine) {
 
 	// 节点相关
 	router.GET("/api/v1/kubernetes/nodes", controller.Node.ListNodes)
+	node := router.Group("/api/v1/kubernetes/node")
+	{
+		node.GET("/:name", controller.Node.GetYAML)
+	}
 
 	// 名称空间相关
 	router.GET("/api/v1/kubernetes/namespaces", controller.Namespace.ListNamespaces)
 	namespace := router.Group("/api/v1/kubernetes/namespace")
 	{
 		namespace.GET("/all", controller.Namespace.ListNamespacesAll)
+		namespace.GET("/:name", controller.Namespace.GetYAML)
 	}
 
 	// Pod相关
 	router.GET("/api/v1/kubernetes/pods", controller.Pod.ListPods)
+	pod := router.Group("/api/v1/kubernetes/pod")
+	{
+		pod.GET("/:name", controller.Pod.GetYAML)
+	}
 
 	// Deployment相关
 	router.GET("/api/v1/kubernetes/deployments", controller.Deployment.ListDeployments)
