@@ -41,40 +41,92 @@ func initKubernetesRouters(router *gin.Engine) {
 
 	// Deployment相关
 	router.GET("/api/v1/kubernetes/deployments", controller.Deployment.ListDeployments)
+	deployment := router.Group("/api/v1/kubernetes/deployment")
+	{
+		deployment.GET("/:name", controller.Deployment.GetYAML)
+	}
 
 	// DaemonSet相关
 	router.GET("/api/v1/kubernetes/daemonSets", controller.DaemonSet.ListDaemonSets)
+	daemonSet := router.Group("/api/v1/kubernetes/daemonSet")
+	{
+		daemonSet.GET("/:name", controller.DaemonSet.GetYAML)
+	}
 
 	// StatefulSet相关
 	router.GET("/api/v1/kubernetes/statefulSets", controller.StatefulSet.ListStatefulSets)
+	statefulSet := router.Group("/api/v1/kubernetes/statefulSet")
+	{
+		statefulSet.GET("/:name", controller.StatefulSet.GetYAML)
+	}
 
 	// Job相关
 	router.GET("/api/v1/kubernetes/jobs", controller.Job.ListJobs)
+	job := router.Group("/api/v1/kubernetes/job")
+	{
+		job.GET("/:name", controller.Job.GetYAML)
+	}
 
 	// CronJob相关
 	router.GET("/api/v1/kubernetes/cronJobs", controller.CronJob.ListCronJobs)
+	cronJob := router.Group("/api/v1/kubernetes/cronJob")
+	{
+		cronJob.GET("/:name", controller.CronJob.GetYAML)
+	}
 
 	// Service相关
 	router.GET("/api/v1/kubernetes/services", controller.Svc.ListServices)
+	service := router.Group("/api/v1/kubernetes/service")
+	{
+		service.GET("/:name", controller.Svc.GetYAML)
+	}
 
 	// Endpoint相关
 	router.GET("/api/v1/kubernetes/endpoints", controller.Endpoint.ListEndpoints)
+	endpoint := router.Group("/api/v1/kubernetes/endpoint")
+	{
+		endpoint.GET("/:name", controller.Endpoint.GetYAML)
+	}
 
 	// Ingress相关
 	router.GET("/api/v1/kubernetes/ingresses", controller.Ingress.ListIngresses)
+	ingress := router.Group("/api/v1/kubernetes/ingress")
+	{
+		ingress.GET("/:name", controller.Ingress.GetYAML)
+	}
 
 	// PersistentVolume相关
 	router.GET("/api/v1/kubernetes/persistentVolumes", controller.PersistentVolume.ListPersistentVolumes)
+	persistentVolume := router.Group("/api/v1/kubernetes/persistentVolume")
+	{
+		persistentVolume.GET("/:name", controller.PersistentVolume.GetYAML)
+	}
 
 	// PersistentVolumeClaim相关
 	router.GET("/api/v1/kubernetes/persistentVolumeClaims", controller.PersistentVolumeClaim.ListPersistentVolumeClaims)
+	persistentVolumeClaim := router.Group("/api/v1/kubernetes/persistentVolumeClaim")
+	{
+		persistentVolumeClaim.GET("/:name", controller.PersistentVolumeClaim.GetYAML)
+	}
 
 	// StorageClass相关
 	router.GET("/api/v1/kubernetes/storageClasses", controller.StorageClass.ListStorageClasses)
+	storageClass := router.Group("/api/v1/kubernetes/storageClass")
+	{
+		storageClass.GET("/:name", controller.StorageClass.GetYAML)
+	}
 
 	// ConfigMap相关
 	router.GET("/api/v1/kubernetes/configMaps", controller.ConfigMap.ListConfigMaps)
+	configMap := router.Group("/api/v1/kubernetes/configMap")
+	{
+		configMap.GET("/:name", controller.ConfigMap.GetYAML)
+	}
 
 	// Secret相关
 	router.GET("/api/v1/kubernetes/secrets", controller.Secret.ListSecrets)
+	secret := router.Group("/api/v1/kubernetes/secret")
+	{
+		secret.GET("/:name", controller.Secret.GetYAML)
+	}
 }

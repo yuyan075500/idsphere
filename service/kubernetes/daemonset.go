@@ -1,9 +1,12 @@
 package kubernetes
 
 import (
+	"bytes"
 	"context"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/cli-runtime/pkg/printers"
 	"ops-api/kubernetes"
 	"ops-api/utils"
 	"strings"
@@ -47,4 +50,28 @@ func (d *daemonSet) List(name, namespace string, page, limit int, client *kubern
 		Items: res.(*[]appsv1.DaemonSet),
 		Total: len(filtered),
 	}, nil
+}
+
+// GetYAML 获取DaemonSet YAML配置
+func (d *daemonSet) GetYAML(name, namespace string, client *kubernetes.ClientList) (string, error) {
+	data, err := client.ClientSet.AppsV1().DaemonSets(namespace).Get(context.TODO(), name, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+
+	// 设置GroupVersionKind
+	data.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "apps",
+		Version: "v1",
+		Kind:    "DaemonSet",
+	})
+
+	// 输出 YAML
+	buf := new(bytes.Buffer)
+	y := printers.YAMLPrinter{}
+	if err := y.PrintObj(data, buf); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }

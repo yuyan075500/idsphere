@@ -1,9 +1,12 @@
 package kubernetes
 
 import (
+	"bytes"
 	"context"
 	storagev1 "k8s.io/api/storage/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/cli-runtime/pkg/printers"
 	"ops-api/kubernetes"
 	"ops-api/utils"
 	"strings"
@@ -48,4 +51,28 @@ func (s *storageClass) List(name string, page, limit int, client *kubernetes.Cli
 		Items: res.(*[]storagev1.StorageClass),
 		Total: len(filtered),
 	}, nil
+}
+
+// GetYAML 获取StorageClass YAML配置
+func (s *storageClass) GetYAML(name string, client *kubernetes.ClientList) (string, error) {
+	data, err := client.ClientSet.StorageV1().StorageClasses().Get(context.TODO(), name, metav1.GetOptions{})
+	if err != nil {
+		return "", err
+	}
+
+	// 设置GroupVersionKind
+	data.GetObjectKind().SetGroupVersionKind(schema.GroupVersionKind{
+		Group:   "storage.k8s.io",
+		Version: "v1",
+		Kind:    "StorageClass",
+	})
+
+	// 输出 YAML
+	buf := new(bytes.Buffer)
+	y := printers.YAMLPrinter{}
+	if err := y.PrintObj(data, buf); err != nil {
+		return "", err
+	}
+
+	return buf.String(), nil
 }
