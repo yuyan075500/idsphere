@@ -7,6 +7,7 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	model "ops-api/model/kubernetes"
 )
@@ -21,6 +22,7 @@ type ClientList struct {
 	ClientSet       *kubernetes.Clientset
 	DiscoveryClient *discovery.DiscoveryClient
 	DynamicClient   dynamic.Interface
+	RestConfig      *rest.Config
 }
 
 // KubernetesInit 初始化 kubernetes 客户端
@@ -68,6 +70,7 @@ func (k *Clients) KubernetesInit(db *gorm.DB) error {
 			ClientSet:       clientSet,
 			DiscoveryClient: discoveryClient,
 			DynamicClient:   dynamicClient,
+			RestConfig:      restConfig,
 		}
 
 		logger.Info(fmt.Sprintf("Kubernetes集群(%s)初始化成功.", cluster.Name))

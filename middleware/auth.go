@@ -66,6 +66,15 @@ func (l *Login) Build() gin.HandlerFunc {
 
 		// 获取Token
 		token := c.Request.Header.Get("Authorization")
+
+		// 如果未找到Token，则尝试从Cookie中获取（兼容 WebSocket）
+		if token == "" {
+			cookieToken, err := c.Cookie(c.Request.Host)
+			if err == nil {
+				token = "Bearer " + cookieToken
+			}
+		}
+
 		mc, err := ValidateJWT(token)
 		if err != nil {
 			logger.Error("ERROR：", err)

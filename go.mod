@@ -26,6 +26,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
+	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
 	github.com/huaweicloud/huaweicloud-sdk-go-v3 v0.1.139
 	github.com/larksuite/oapi-sdk-go/v3 v3.3.4
 	github.com/lestrrat-go/jwx v1.2.30
@@ -50,7 +51,6 @@ require (
 	k8s.io/apimachinery v0.33.4
 	k8s.io/cli-runtime v0.33.4
 	k8s.io/client-go v0.33.4
-	sigs.k8s.io/yaml v1.6.0
 )
 
 require github.com/jinzhu/now v1.1.5 // indirect
@@ -128,10 +128,12 @@ require (
 	github.com/minio/md5-simd v1.1.2 // indirect
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/moby/spdystream v0.5.0 // indirect
 	github.com/moby/term v0.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/oschwald/maxminddb-golang v1.13.1 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
@@ -193,4 +195,5 @@ require (
 	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0 // indirect
+	sigs.k8s.io/yaml v1.6.0 // indirect
 )

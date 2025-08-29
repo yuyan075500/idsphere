@@ -37,6 +37,7 @@ func initKubernetesRouters(router *gin.Engine) {
 	pod := router.Group("/api/v1/kubernetes/pod")
 	{
 		pod.GET("/:name", controller.Pod.GetYAML)
+		pod.GET("/terminal", controller.PodTerminal.Init)
 	}
 
 	// Deployment相关

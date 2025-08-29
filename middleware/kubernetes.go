@@ -13,6 +13,12 @@ func KubernetesClientInit(clients *kubernetes.Clients) gin.HandlerFunc {
 		if strings.HasPrefix(c.Request.URL.Path, "/api/v1/kubernetes/") {
 			// 获取 Kubernetes 集群 UUID
 			uuid := c.GetHeader("X-Kubernetes-Cluster-Uuid")
+
+			// 兼容 WebSocket
+			if uuid == "" {
+				uuid = c.Query("uuid")
+			}
+
 			if uuid == "" {
 				c.JSON(http.StatusOK, gin.H{
 					"code": 90500,
