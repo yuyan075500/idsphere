@@ -26,6 +26,7 @@ func wsInit(c *gin.Context) (*websocket.Conn, error) {
 func (p *podTerminal) Init(c *gin.Context) {
 
 	params := new(struct {
+		Shell         string `form:"shell" binding:"required"`
 		UUID          string `form:"uuid" binding:"required"`
 		PodName       string `form:"podName" binding:"required"`
 		ContainerName string `form:"containerName" binding:"required"`
@@ -56,7 +57,7 @@ func (p *podTerminal) Init(c *gin.Context) {
 	}(ws)
 
 	client := c.MustGet("kc").(*kubernetes.ClientList)
-	if err := service.PodTerminal.Init(params.Namespace, params.PodName, params.ContainerName, params.Cols, params.Rows, ws, client); err != nil {
+	if err := service.PodTerminal.Init(params.Shell, params.Namespace, params.PodName, params.ContainerName, params.Cols, params.Rows, ws, client); err != nil {
 		_ = ws.WriteMessage(websocket.TextMessage, []byte("error: "+err.Error()))
 		return
 	}

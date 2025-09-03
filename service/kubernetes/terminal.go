@@ -23,7 +23,7 @@ type streamHandler struct {
 	resizeEvent chan remotecommand.TerminalSize
 }
 
-func (p *podTerminal) Init(namespace, podName, containerName string, cols, rows int, ws *websocket.Conn, client *kubernetes.ClientList) error {
+func (p *podTerminal) Init(shell, namespace, podName, containerName string, cols, rows int, ws *websocket.Conn, client *kubernetes.ClientList) error {
 	req := client.ClientSet.CoreV1().RESTClient().Post().
 		Resource("pods").
 		Name(podName).
@@ -31,7 +31,7 @@ func (p *podTerminal) Init(namespace, podName, containerName string, cols, rows 
 		SubResource("exec").
 		VersionedParams(&corev1.PodExecOptions{
 			Container: containerName,
-			Command:   []string{"sh"},
+			Command:   []string{shell},
 			Stdin:     true,
 			Stdout:    true,
 			Stderr:    true,
