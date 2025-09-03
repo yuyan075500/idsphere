@@ -38,6 +38,7 @@ func initKubernetesRouters(router *gin.Engine) {
 	{
 		pod.GET("/:name", controller.Pod.GetYAML)
 		pod.GET("/terminal", controller.PodTerminal.Init)
+		pod.GET("/log", controller.PodLog.GetPodLogs)
 	}
 
 	// Deployment相关
