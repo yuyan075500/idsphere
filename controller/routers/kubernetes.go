@@ -30,6 +30,7 @@ func initKubernetesRouters(router *gin.Engine) {
 	{
 		namespace.POST("", controller.Namespace.CreateNamespaces)
 		namespace.DELETE("/:name", controller.Namespace.DeleteNamespaces)
+		namespace.PUT("", controller.Namespace.UpdateFromYAML)
 		namespace.GET("/all", controller.Namespace.ListNamespacesAll)
 		namespace.GET("/:name", controller.Namespace.GetYAML)
 	}

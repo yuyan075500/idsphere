@@ -6,6 +6,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/cli-runtime/pkg/printers"
 	"ops-api/kubernetes"
 	"ops-api/utils"
@@ -22,10 +23,13 @@ type NamespaceList struct {
 }
 
 // Create 创建命名空间
-func (n *namespace) Create(namespaceName string, client *kubernetes.ClientList) (*v1.Namespace, error) {
+func (n *namespace) Create(namespaceName, description string, client *kubernetes.ClientList) (*v1.Namespace, error) {
 	ns := &v1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: namespaceName,
+			Annotations: map[string]string{
+				"description": description,
+			},
 		},
 	}
 
@@ -43,6 +47,41 @@ func (n *namespace) Delete(namespaceName string, client *kubernetes.ClientList) 
 		namespaceName,
 		metav1.DeleteOptions{},
 	)
+}
+
+// UpdateFromYAML 通过YAML内容修改已存在的Namespace
+func (n *namespace) UpdateFromYAML(yamlContent string, client *kubernetes.ClientList) (*v1.Namespace, error) {
+	// 结构体绑定
+	var ns v1.Namespace
+	decoder := yaml.NewYAMLOrJSONDecoder(strings.NewReader(yamlContent), 1024)
+	if err := decoder.Decode(&ns); err != nil {
+		return nil, err
+	}
+
+	// 获取 ResourceVersion
+	existingNs, err := client.ClientSet.CoreV1().Namespaces().Get(
+		context.TODO(),
+		ns.Name,
+		metav1.GetOptions{},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// 赋值 ResourceVersion，避免并发修改冲突
+	ns.ResourceVersion = existingNs.ResourceVersion
+
+	// 执行更新
+	updatedNs, err := client.ClientSet.CoreV1().Namespaces().Update(
+		context.TODO(),
+		&ns,
+		metav1.UpdateOptions{},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return updatedNs, nil
 }
 
 // List 获取命名空间列表

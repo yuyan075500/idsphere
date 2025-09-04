@@ -16,7 +16,8 @@ type namespace struct{}
 func (n *namespace) CreateNamespaces(c *gin.Context) {
 
 	params := new(struct {
-		Name string `form:"name" binding:"required"`
+		Name        string `form:"name" binding:"required"`
+		Description string `form:"description"`
 	})
 	if err := c.ShouldBindBodyWithJSON(params); err != nil {
 		controller.Response(c, 90400, err.Error())
@@ -24,7 +25,7 @@ func (n *namespace) CreateNamespaces(c *gin.Context) {
 	}
 
 	client := c.MustGet("kc").(*kubernetes.ClientList)
-	list, err := service.Namespace.Create(params.Name, client)
+	list, err := service.Namespace.Create(params.Name, params.Description, client)
 	if err != nil {
 		controller.Response(c, 90500, err.Error())
 		return
@@ -38,14 +39,16 @@ func (n *namespace) CreateNamespaces(c *gin.Context) {
 
 // DeleteNamespaces 删除命名空间
 func (n *namespace) DeleteNamespaces(c *gin.Context) {
-	name := c.Param("name")
-	if name == "" {
-		controller.Response(c, 90400, "名称不能为空")
+	params := new(struct {
+		Name string `uri:"name" binding:"required"`
+	})
+	if err := c.ShouldBindUri(params); err != nil {
+		controller.Response(c, 90400, err.Error())
 		return
 	}
 
 	client := c.MustGet("kc").(*kubernetes.ClientList)
-	err := service.Namespace.Delete(name, client)
+	err := service.Namespace.Delete(params.Name, client)
 	if err != nil {
 		controller.Response(c, 90500, err.Error())
 		return
@@ -54,6 +57,27 @@ func (n *namespace) DeleteNamespaces(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"code": 0,
 		"msg":  "删除成功",
+	})
+}
+
+// UpdateFromYAML 更新名称空间
+func (n *namespace) UpdateFromYAML(c *gin.Context) {
+	yamlData, err := c.GetRawData()
+	if err != nil {
+		controller.Response(c, 90400, err.Error())
+		return
+	}
+
+	client := c.MustGet("kc").(*kubernetes.ClientList)
+	_, err = service.Namespace.UpdateFromYAML(string(yamlData), client)
+	if err != nil {
+		controller.Response(c, 90500, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"msg":  "更新成功",
 	})
 }
 
