@@ -28,6 +28,8 @@ func initKubernetesRouters(router *gin.Engine) {
 	router.GET("/api/v1/kubernetes/namespaces", controller.Namespace.ListNamespaces)
 	namespace := router.Group("/api/v1/kubernetes/namespace")
 	{
+		namespace.POST("", controller.Namespace.CreateNamespaces)
+		namespace.DELETE("/:name", controller.Namespace.DeleteNamespaces)
 		namespace.GET("/all", controller.Namespace.ListNamespacesAll)
 		namespace.GET("/:name", controller.Namespace.GetYAML)
 	}
