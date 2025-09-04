@@ -40,9 +40,11 @@ func (e *endpoint) ListEndpoints(c *gin.Context) {
 
 // GetYAML 获取Endpoint YAML配置
 func (e *endpoint) GetYAML(c *gin.Context) {
-	name := c.Param("name")
-	if name == "" {
-		controller.Response(c, 90400, "名称不能为空")
+	uriParams := new(struct {
+		Name string `uri:"name" binding:"required"`
+	})
+	if err := c.ShouldBindUri(uriParams); err != nil {
+		controller.Response(c, 90400, err.Error())
 		return
 	}
 
@@ -55,7 +57,7 @@ func (e *endpoint) GetYAML(c *gin.Context) {
 	}
 
 	client := c.MustGet("kc").(*kubernetes.ClientList)
-	strData, err := svr.Endpoint.GetYAML(name, params.Namespace, client)
+	strData, err := svr.Endpoint.GetYAML(uriParams.Name, params.Namespace, client)
 	if err != nil {
 		controller.Response(c, 90500, err.Error())
 		return

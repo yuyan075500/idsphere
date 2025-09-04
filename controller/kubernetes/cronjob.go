@@ -41,9 +41,11 @@ func (j *cronjob) ListCronJobs(c *gin.Context) {
 // GetYAML 获取CronJob YAML配置
 func (j *cronjob) GetYAML(c *gin.Context) {
 
-	name := c.Param("name")
-	if name == "" {
-		controller.Response(c, 90400, "名称不能为空")
+	uriParams := new(struct {
+		Name string `uri:"name" binding:"required"`
+	})
+	if err := c.ShouldBindUri(uriParams); err != nil {
+		controller.Response(c, 90400, err.Error())
 		return
 	}
 
@@ -56,7 +58,7 @@ func (j *cronjob) GetYAML(c *gin.Context) {
 	}
 
 	client := c.MustGet("kc").(*kubernetes.ClientList)
-	strData, err := service.CronJob.GetYAML(name, params.Namespace, client)
+	strData, err := service.CronJob.GetYAML(uriParams.Name, params.Namespace, client)
 	if err != nil {
 		controller.Response(c, 90500, err.Error())
 		return

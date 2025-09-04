@@ -102,14 +102,16 @@ func (n *namespace) ListNamespacesAll(c *gin.Context) {
 // GetYAML 获取节点YAML配置
 func (n *namespace) GetYAML(c *gin.Context) {
 
-	name := c.Param("name")
-	if name == "" {
-		controller.Response(c, 90400, "名称不能为空")
+	uriParams := new(struct {
+		Name string `uri:"name" binding:"required"`
+	})
+	if err := c.ShouldBindUri(uriParams); err != nil {
+		controller.Response(c, 90400, err.Error())
 		return
 	}
 
 	client := c.MustGet("kc").(*kubernetes.ClientList)
-	strData, err := service.Namespace.GetYAML(name, client)
+	strData, err := service.Namespace.GetYAML(uriParams.Name, client)
 	if err != nil {
 		controller.Response(c, 90500, err.Error())
 		return

@@ -39,14 +39,16 @@ func (s *storageClass) ListStorageClasses(c *gin.Context) {
 
 // GetYAML 获取StorageClass YAML配置
 func (s *storageClass) GetYAML(c *gin.Context) {
-	name := c.Param("name")
-	if name == "" {
-		controller.Response(c, 90400, "名称不能为空")
+	uriParams := new(struct {
+		Name string `uri:"name" binding:"required"`
+	})
+	if err := c.ShouldBindUri(uriParams); err != nil {
+		controller.Response(c, 90400, err.Error())
 		return
 	}
 
 	client := c.MustGet("kc").(*kubernetes.ClientList)
-	strData, err := service.StorageClass.GetYAML(name, client)
+	strData, err := service.StorageClass.GetYAML(uriParams.Name, client)
 	if err != nil {
 		controller.Response(c, 90500, err.Error())
 		return
