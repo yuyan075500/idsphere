@@ -2,8 +2,6 @@ package kubernetes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/wonderivan/logger"
-	"net/http"
 	"ops-api/controller"
 	dao "ops-api/dao/kubernetes"
 	service "ops-api/service/kubernetes"
@@ -27,7 +25,7 @@ type cluster struct{}
 func (cl *cluster) AddCluster(c *gin.Context) {
 	var params = &service.CreateData{}
 
-	if err := c.ShouldBind(params); err != nil {
+	if err := c.ShouldBindBodyWithJSON(params); err != nil {
 		controller.Response(c, 90400, err.Error())
 		return
 	}
@@ -75,7 +73,7 @@ func (cl *cluster) DeleteCluster(c *gin.Context) {
 // @Router /api/v1/kubernetes/cluster [put]
 func (cl *cluster) UpdateCluster(c *gin.Context) {
 	var data = &dao.UpdateData{}
-	if err := c.ShouldBind(&data); err != nil {
+	if err := c.ShouldBindBodyWithJSON(&data); err != nil {
 		controller.Response(c, 90400, err.Error())
 		return
 	}
@@ -106,58 +104,20 @@ func (cl *cluster) GetKubernetesList(c *gin.Context) {
 		Page  int    `form:"page" binding:"required"`
 		Limit int    `form:"limit" binding:"required"`
 	})
-	if err := c.Bind(params); err != nil {
-		logger.Error("ERROR：" + err.Error())
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90400,
-			"msg":  err.Error(),
-		})
+	if err := c.ShouldBindQuery(params); err != nil {
+		controller.Response(c, 90400, err.Error())
 		return
 	}
 
 	data, err := service.Cluster.GetKubernetesList(params.Name, params.Page, params.Limit)
 
 	if err != nil {
-		logger.Error("ERROR：" + err.Error())
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90500,
-			"msg":  err.Error(),
-		})
+		controller.Response(c, 90500, err.Error())
 		return
 	}
 
 	c.JSON(200, gin.H{
 		"code": 0,
 		"data": data,
-	})
-}
-
-// GetKubernetesInfo 集群信息同步
-// @Summary 集群信息同步
-// @Description Kubernetes相关接口
-// @Tags Kubernetes相关接口
-// @Param Authorization header string true "Bearer 用户令牌"
-// @Param uuid query string false "集群 UUID"
-// @Success 200 {string} json "{"code": 0, "data": []}"
-// @Router /api/v1/kubernetes/cluster/info [get]
-func (cl *cluster) GetKubernetesInfo(c *gin.Context) {
-
-	params := new(struct {
-		Uuid string `form:"uuid" uuid:"required"`
-	})
-	if err := c.Bind(params); err != nil {
-		logger.Error("ERROR：" + err.Error())
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90400,
-			"msg":  err.Error(),
-		})
-		return
-	}
-
-	service.Cluster.GetClusterInfo(params.Uuid)
-
-	c.JSON(200, gin.H{
-		"code": 0,
-		"data": "",
 	})
 }

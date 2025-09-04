@@ -18,7 +18,7 @@ func (n *namespace) CreateNamespaces(c *gin.Context) {
 	params := new(struct {
 		Name string `form:"name" binding:"required"`
 	})
-	if err := c.ShouldBind(params); err != nil {
+	if err := c.ShouldBindBodyWithJSON(params); err != nil {
 		controller.Response(c, 90400, err.Error())
 		return
 	}
@@ -38,14 +38,14 @@ func (n *namespace) CreateNamespaces(c *gin.Context) {
 
 // DeleteNamespaces 删除命名空间
 func (n *namespace) DeleteNamespaces(c *gin.Context) {
-	namespaceName := c.Param("name")
-	if namespaceName == "" {
-		controller.Response(c, 90400, "命名空间名称不能为空")
+	name := c.Param("name")
+	if name == "" {
+		controller.Response(c, 90400, "名称不能为空")
 		return
 	}
 
 	client := c.MustGet("kc").(*kubernetes.ClientList)
-	err := service.Namespace.Delete(namespaceName, client)
+	err := service.Namespace.Delete(name, client)
 	if err != nil {
 		controller.Response(c, 90500, err.Error())
 		return
@@ -65,7 +65,7 @@ func (n *namespace) ListNamespaces(c *gin.Context) {
 		Limit int    `form:"limit" binding:"required"`
 		Page  int    `form:"page" binding:"required"`
 	})
-	if err := c.Bind(params); err != nil {
+	if err := c.ShouldBindQuery(params); err != nil {
 		controller.Response(c, 90400, err.Error())
 		return
 	}
@@ -102,11 +102,13 @@ func (n *namespace) ListNamespacesAll(c *gin.Context) {
 // GetYAML 获取节点YAML配置
 func (n *namespace) GetYAML(c *gin.Context) {
 
-	var (
-		name   = c.Param("name")
-		client = c.MustGet("kc").(*kubernetes.ClientList)
-	)
+	name := c.Param("name")
+	if name == "" {
+		controller.Response(c, 90400, "名称不能为空")
+		return
+	}
 
+	client := c.MustGet("kc").(*kubernetes.ClientList)
 	strData, err := service.Namespace.GetYAML(name, client)
 	if err != nil {
 		controller.Response(c, 90500, err.Error())

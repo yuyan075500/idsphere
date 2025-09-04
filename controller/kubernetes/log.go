@@ -2,7 +2,7 @@ package kubernetes
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
+	"ops-api/controller"
 	"ops-api/kubernetes"
 	service "ops-api/service/kubernetes"
 )
@@ -22,18 +22,12 @@ func (p *podLog) GetPodLogs(c *gin.Context) {
 	})
 
 	if err := c.ShouldBindQuery(params); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90400,
-			"msg":  err.Error(),
-		})
+		controller.Response(c, 90400, err.Error())
 		return
 	}
 
 	client := c.MustGet("kc").(*kubernetes.ClientList)
 	if err := service.PodLog.StreamPodLog(c, params.Namespace, params.PodName, params.ContainerName, params.Follow, params.Line, client); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90500,
-			"msg":  err.Error(),
-		})
+		controller.Response(c, 90500, err.Error())
 	}
 }

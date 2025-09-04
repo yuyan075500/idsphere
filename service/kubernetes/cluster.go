@@ -1,9 +1,6 @@
 package kubernetes
 
 import (
-	"fmt"
-	"github.com/wonderivan/logger"
-	"golang.org/x/net/context"
 	dao "ops-api/dao/kubernetes"
 	"ops-api/global"
 	model "ops-api/model/kubernetes"
@@ -78,28 +75,4 @@ func (c *cluster) GetKubernetesList(name string, page, limit int) (data *dao.K8s
 		return nil, err
 	}
 	return data, nil
-}
-
-func (c *cluster) GetClusterInfo(uuid string) {
-
-	// 获取客户端
-	client := global.KubernetesClients.GetClient(uuid)
-
-	// 获取版本信息
-	version, err := client.DiscoveryClient.ServerVersion()
-	if err != nil {
-		return
-	}
-
-	// 获取健康状态
-	status, err := client.ClientSet.RESTClient().
-		Get().
-		AbsPath("/healthz").
-		Do(context.TODO()).
-		Raw()
-	if err != nil {
-		logger.Warn("获取集群健康状态失败")
-	}
-	fmt.Println(version)
-	fmt.Println(string(status))
 }

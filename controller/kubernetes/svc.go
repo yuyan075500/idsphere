@@ -2,7 +2,7 @@ package kubernetes
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
+	"ops-api/controller"
 	"ops-api/kubernetes"
 	service "ops-api/service/kubernetes"
 )
@@ -20,21 +20,15 @@ func (s *svc) ListServices(c *gin.Context) {
 		Limit     int    `form:"limit" binding:"required"`
 		Page      int    `form:"page" binding:"required"`
 	})
-	if err := c.Bind(params); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90400,
-			"msg":  err.Error(),
-		})
+	if err := c.ShouldBindQuery(params); err != nil {
+		controller.Response(c, 90400, err.Error())
 		return
 	}
 
 	client := c.MustGet("kc").(*kubernetes.ClientList)
 	list, err := service.Svc.List(params.Name, params.Namespace, params.Page, params.Limit, client)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90500,
-			"msg":  err.Error(),
-		})
+		controller.Response(c, 90500, err.Error())
 		return
 	}
 
@@ -47,28 +41,24 @@ func (s *svc) ListServices(c *gin.Context) {
 // GetYAML 获取Service YAML配置
 func (s *svc) GetYAML(c *gin.Context) {
 
-	var (
-		name   = c.Param("name")
-		client = c.MustGet("kc").(*kubernetes.ClientList)
-	)
+	name := c.Param("name")
+	if name == "" {
+		controller.Response(c, 90400, "名称不能为空")
+		return
+	}
 
 	params := new(struct {
 		Namespace string `form:"namespace"`
 	})
-	if err := c.Bind(params); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90400,
-			"msg":  err.Error(),
-		})
+	if err := c.ShouldBindQuery(params); err != nil {
+		controller.Response(c, 90400, err.Error())
 		return
 	}
 
+	client := c.MustGet("kc").(*kubernetes.ClientList)
 	strData, err := service.Svc.GetYAML(name, params.Namespace, client)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90500,
-			"msg":  err.Error(),
-		})
+		controller.Response(c, 90500, err.Error())
 		return
 	}
 

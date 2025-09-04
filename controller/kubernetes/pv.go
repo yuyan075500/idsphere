@@ -2,7 +2,7 @@ package kubernetes
 
 import (
 	"github.com/gin-gonic/gin"
-	"net/http"
+	"ops-api/controller"
 	"ops-api/kubernetes"
 	service "ops-api/service/kubernetes"
 )
@@ -19,21 +19,15 @@ func (p *persistentVolume) ListPersistentVolumes(c *gin.Context) {
 		Limit int    `form:"limit" binding:"required"`
 		Page  int    `form:"page" binding:"required"`
 	})
-	if err := c.Bind(params); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90400,
-			"msg":  err.Error(),
-		})
+	if err := c.ShouldBindQuery(params); err != nil {
+		controller.Response(c, 90400, err.Error())
 		return
 	}
 
 	client := c.MustGet("kc").(*kubernetes.ClientList)
 	list, err := service.PersistentVolume.List(params.Name, params.Page, params.Limit, client)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90500,
-			"msg":  err.Error(),
-		})
+		controller.Response(c, 90500, err.Error())
 		return
 	}
 
@@ -45,18 +39,16 @@ func (p *persistentVolume) ListPersistentVolumes(c *gin.Context) {
 
 // GetYAML 获取节点PersistentVolume YAML配置
 func (p *persistentVolume) GetYAML(c *gin.Context) {
+	name := c.Param("name")
+	if name == "" {
+		controller.Response(c, 90400, "名称不能为空")
+		return
+	}
 
-	var (
-		name   = c.Param("name")
-		client = c.MustGet("kc").(*kubernetes.ClientList)
-	)
-
+	client := c.MustGet("kc").(*kubernetes.ClientList)
 	strData, err := service.PersistentVolume.GetYAML(name, client)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90500,
-			"msg":  err.Error(),
-		})
+		controller.Response(c, 90500, err.Error())
 		return
 	}
 

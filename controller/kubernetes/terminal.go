@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"ops-api/controller"
 	"ops-api/kubernetes"
 	service "ops-api/service/kubernetes"
 )
@@ -35,20 +36,14 @@ func (p *podTerminal) Init(c *gin.Context) {
 		Rows          int    `form:"rows,default=30"`
 	})
 
-	if err := c.Bind(params); err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90400,
-			"msg":  err.Error(),
-		})
+	if err := c.ShouldBindQuery(params); err != nil {
+		controller.Response(c, 90400, err.Error())
 		return
 	}
 
 	ws, err := wsInit(c)
 	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"code": 90500,
-			"msg":  err.Error(),
-		})
+		controller.Response(c, 90500, err.Error())
 		return
 	}
 
