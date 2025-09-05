@@ -3,6 +3,9 @@ package kubernetes
 import (
 	"bytes"
 	"context"
+	"errors"
+	"fmt"
+	"github.com/wonderivan/logger"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -21,7 +24,46 @@ type PodList struct {
 	Total int       `json:"total"`
 }
 
-// List 获取命名空间列表
+// BatchDeleteStruct 批量删除
+type BatchDeleteStruct struct {
+	Pods  []Item `json:"pods" binding:"required,min=1"`
+	Force *int64 `json:"force"`
+}
+type Item struct {
+	Name      string `json:"name" binding:"required"`
+	Namespace string `json:"namespace" binding:"required"`
+}
+
+// BatchDeletePod 批量删除 Pod
+func (p *pod) BatchDeletePod(pods []Item, seconds *int64, client *kubernetes.ClientList) error {
+
+	// 删除选项，当 seconds=0 时表示强制删除
+	deleteOptions := metav1.DeleteOptions{
+		GracePeriodSeconds: seconds,
+	}
+
+	var failed []string
+
+	// 遍历删除
+	for _, value := range pods {
+		if err := client.ClientSet.CoreV1().Pods(value.Namespace).Delete(
+			context.TODO(),
+			value.Name,
+			deleteOptions,
+		); err != nil {
+			logger.Error(fmt.Printf("Pod %s 删除失败: %v", value.Name, err))
+			failed = append(failed, value.Name)
+		}
+	}
+
+	if len(failed) > 0 {
+		return errors.New("部分Pod删除失败: " + strings.Join(failed, ", "))
+	}
+
+	return nil
+}
+
+// List 获取 Pod 列表
 func (p *pod) List(name, namespace string, page, limit int, client *kubernetes.ClientList) (*PodList, error) {
 	pods, err := client.ClientSet.CoreV1().Pods(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -57,7 +99,7 @@ func (p *pod) List(name, namespace string, page, limit int, client *kubernetes.C
 	}, nil
 }
 
-// GetYAML 获取Pod YAML配置
+// GetYAML 获取 Pod YAML 配置
 func (p *pod) GetYAML(name, namespace string, client *kubernetes.ClientList) (string, error) {
 	data, err := client.ClientSet.CoreV1().Pods(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {

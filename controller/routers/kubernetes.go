@@ -39,9 +39,10 @@ func initKubernetesRouters(router *gin.Engine) {
 	router.GET("/api/v1/kubernetes/pods", controller.Pod.ListPods)
 	pod := router.Group("/api/v1/kubernetes/pod")
 	{
+		pod.DELETE("/batchDelete", controller.Pod.BatchDeletePod)
 		pod.GET("/:name", controller.Pod.GetYAML)
 		pod.GET("/terminal", controller.PodTerminal.Init)
-		pod.GET("/log", controller.PodLog.GetPodLogs)
+		pod.GET("/log", controller.PodLog.GetPodLog)
 	}
 
 	// Deployment相关

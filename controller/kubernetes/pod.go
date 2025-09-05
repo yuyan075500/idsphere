@@ -1,7 +1,9 @@
 package kubernetes
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"ops-api/controller"
 	"ops-api/kubernetes"
 	service "ops-api/service/kubernetes"
@@ -11,7 +13,30 @@ var Pod pod
 
 type pod struct{}
 
-// ListPods 获取Pod列表
+// BatchDeletePod 批量删除 Pod
+func (p *pod) BatchDeletePod(c *gin.Context) {
+
+	var params = &service.BatchDeleteStruct{}
+	if err := c.ShouldBind(params); err != nil {
+		controller.Response(c, 90400, err.Error())
+		return
+	}
+	fmt.Println(params.Force)
+	fmt.Println(params.Pods)
+	client := c.MustGet("kc").(*kubernetes.ClientList)
+	err := service.Pod.BatchDeletePod(params.Pods, params.Force, client)
+	if err != nil {
+		controller.Response(c, 90500, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"msg":  "删除成功",
+	})
+}
+
+// ListPods 获取 Pod 列表
 func (p *pod) ListPods(c *gin.Context) {
 
 	params := new(struct {
@@ -38,7 +63,7 @@ func (p *pod) ListPods(c *gin.Context) {
 	})
 }
 
-// GetYAML 获取Pod YAML配置
+// GetYAML 获取 Pod YAML 配置
 func (p *pod) GetYAML(c *gin.Context) {
 	uriParams := new(struct {
 		Name string `uri:"name" binding:"required"`

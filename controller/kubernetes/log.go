@@ -11,7 +11,7 @@ var PodLog podLog
 
 type podLog struct{}
 
-func (p *podLog) GetPodLogs(c *gin.Context) {
+func (p *podLog) GetPodLog(c *gin.Context) {
 	params := new(struct {
 		UUID          string `form:"uuid" binding:"required"`
 		PodName       string `form:"podName" binding:"required"`
