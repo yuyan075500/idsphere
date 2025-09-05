@@ -8,7 +8,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/cli-runtime/pkg/printers"
 	"ops-api/kubernetes"
-	"ops-api/utils"
 	"strings"
 )
 
@@ -50,7 +49,7 @@ func (n *node) List(name string, page, limit int, client *kubernetes.ClientList)
 	}
 
 	// 分页
-	res, err := utils.Paginate(filtered, page, limit)
+	res, err := Paginate(filtered, page, limit)
 	if err != nil {
 		return nil, err
 	}

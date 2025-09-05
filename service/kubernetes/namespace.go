@@ -9,7 +9,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/cli-runtime/pkg/printers"
 	"ops-api/kubernetes"
-	"ops-api/utils"
+	"sort"
 	"strings"
 )
 
@@ -103,8 +103,13 @@ func (n *namespace) List(name string, page, limit int, client *kubernetes.Client
 		filtered = namespaces.Items
 	}
 
+	// 按创建时间排序
+	sort.Slice(filtered, func(i, j int) bool {
+		return filtered[i].CreationTimestamp.After(filtered[j].CreationTimestamp.Time)
+	})
+
 	// 分页
-	res, err := utils.Paginate(filtered, page, limit)
+	res, err := Paginate(filtered, page, limit)
 	if err != nil {
 		return nil, err
 	}
