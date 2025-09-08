@@ -49,6 +49,8 @@ func initKubernetesRouters(router *gin.Engine) {
 	router.GET("/api/v1/kubernetes/deployments", controller.Deployment.ListDeployments)
 	deployment := router.Group("/api/v1/kubernetes/deployment")
 	{
+		deployment.POST("", controller.Deployment.CreateFromYAML)
+		deployment.DELETE("/batchDelete", controller.Deployment.BatchDeleteDeployment)
 		deployment.GET("/:name", controller.Deployment.GetYAML)
 	}
 

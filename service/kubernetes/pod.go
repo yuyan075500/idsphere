@@ -24,18 +24,18 @@ type PodList struct {
 	Total int       `json:"total"`
 }
 
-// BatchDeleteStruct 批量删除
-type BatchDeleteStruct struct {
-	Pods  []Item `json:"pods" binding:"required,min=1"`
-	Force *int64 `json:"force"`
+// PodBatchDeleteStruct 批量删除
+type PodBatchDeleteStruct struct {
+	Pods  []PodItem `json:"pods" binding:"required,min=1"`
+	Force *int64    `json:"force"`
 }
-type Item struct {
+type PodItem struct {
 	Name      string `json:"name" binding:"required"`
 	Namespace string `json:"namespace" binding:"required"`
 }
 
 // BatchDeletePod 批量删除 Pod
-func (p *pod) BatchDeletePod(pods []Item, seconds *int64, client *kubernetes.ClientList) error {
+func (p *pod) BatchDeletePod(pods []PodItem, seconds *int64, client *kubernetes.ClientList) error {
 
 	// 删除选项，当 seconds=0 时表示强制删除
 	deleteOptions := metav1.DeleteOptions{
@@ -57,7 +57,7 @@ func (p *pod) BatchDeletePod(pods []Item, seconds *int64, client *kubernetes.Cli
 	}
 
 	if len(failed) > 0 {
-		return errors.New("部分Pod删除失败: " + strings.Join(failed, ", "))
+		return errors.New("部分 Pods 删除失败: " + strings.Join(failed, ", "))
 	}
 
 	return nil

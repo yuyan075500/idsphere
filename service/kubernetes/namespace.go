@@ -41,10 +41,10 @@ func (n *namespace) Create(namespaceName, description string, client *kubernetes
 }
 
 // Delete 删除指定命名空间
-func (n *namespace) Delete(namespaceName string, client *kubernetes.ClientList) error {
+func (n *namespace) Delete(name string, client *kubernetes.ClientList) error {
 	return client.ClientSet.CoreV1().Namespaces().Delete(
 		context.TODO(),
-		namespaceName,
+		name,
 		metav1.DeleteOptions{},
 	)
 }

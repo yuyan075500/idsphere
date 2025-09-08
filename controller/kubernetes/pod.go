@@ -1,7 +1,6 @@
 package kubernetes
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"ops-api/controller"
@@ -16,13 +15,12 @@ type pod struct{}
 // BatchDeletePod 批量删除 Pod
 func (p *pod) BatchDeletePod(c *gin.Context) {
 
-	var params = &service.BatchDeleteStruct{}
+	var params = &service.PodBatchDeleteStruct{}
 	if err := c.ShouldBind(params); err != nil {
 		controller.Response(c, 90400, err.Error())
 		return
 	}
-	fmt.Println(params.Force)
-	fmt.Println(params.Pods)
+
 	client := c.MustGet("kc").(*kubernetes.ClientList)
 	err := service.Pod.BatchDeletePod(params.Pods, params.Force, client)
 	if err != nil {
