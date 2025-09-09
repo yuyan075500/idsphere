@@ -55,6 +55,27 @@ func (d *deployment) BatchDeleteDeployment(c *gin.Context) {
 	})
 }
 
+// UpdateFromYAML 更新Deployment
+func (d *deployment) UpdateFromYAML(c *gin.Context) {
+	yamlData, err := c.GetRawData()
+	if err != nil {
+		controller.Response(c, 90400, err.Error())
+		return
+	}
+
+	client := c.MustGet("kc").(*kubernetes.ClientList)
+	_, err = service.Deployment.UpdateFromYAML(yamlData, client)
+	if err != nil {
+		controller.Response(c, 90500, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"msg":  "更新成功",
+	})
+}
+
 // ListDeployments 获取Deployment列表
 func (d *deployment) ListDeployments(c *gin.Context) {
 

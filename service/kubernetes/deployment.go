@@ -73,6 +73,23 @@ func (d *deployment) BatchDeleteDeployment(deployments []DeploymentItem, client 
 	return nil
 }
 
+// UpdateFromYAML 通过YAML内容修改已存在的Deployment
+func (d *deployment) UpdateFromYAML(yamlContent []byte, client *kubernetes.ClientList) (*appsv1.Deployment, error) {
+	var deploy appsv1.Deployment
+	decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewReader(yamlContent), 1024)
+	if err := decoder.Decode(&deploy); err != nil {
+		return nil, err
+	}
+
+	existing, err := client.ClientSet.AppsV1().Deployments(deploy.Namespace).Get(context.TODO(), deploy.Name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	deploy.ResourceVersion = existing.ResourceVersion
+
+	return client.ClientSet.AppsV1().Deployments(deploy.Namespace).Update(context.TODO(), &deploy, metav1.UpdateOptions{})
+}
+
 // List 获取Deployment列表
 func (d *deployment) List(name, namespace string, page, limit int, client *kubernetes.ClientList) (*DeploymentList, error) {
 	deployments, err := client.ClientSet.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{})

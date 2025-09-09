@@ -59,7 +59,7 @@ func (n *namespace) UpdateFromYAML(yamlContent string, client *kubernetes.Client
 	}
 
 	// 获取 ResourceVersion
-	existingNs, err := client.ClientSet.CoreV1().Namespaces().Get(
+	existing, err := client.ClientSet.CoreV1().Namespaces().Get(
 		context.TODO(),
 		ns.Name,
 		metav1.GetOptions{},
@@ -69,7 +69,7 @@ func (n *namespace) UpdateFromYAML(yamlContent string, client *kubernetes.Client
 	}
 
 	// 赋值 ResourceVersion，避免并发修改冲突
-	ns.ResourceVersion = existingNs.ResourceVersion
+	ns.ResourceVersion = existing.ResourceVersion
 
 	// 执行更新
 	updatedNs, err := client.ClientSet.CoreV1().Namespaces().Update(

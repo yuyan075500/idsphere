@@ -51,6 +51,7 @@ func initKubernetesRouters(router *gin.Engine) {
 	{
 		deployment.POST("", controller.Deployment.CreateFromYAML)
 		deployment.DELETE("/batchDelete", controller.Deployment.BatchDeleteDeployment)
+		deployment.PUT("", controller.Deployment.UpdateFromYAML)
 		deployment.GET("/:name", controller.Deployment.GetYAML)
 	}
 
