@@ -59,6 +59,9 @@ func initKubernetesRouters(router *gin.Engine) {
 	router.GET("/api/v1/kubernetes/daemonSets", controller.DaemonSet.ListDaemonSets)
 	daemonSet := router.Group("/api/v1/kubernetes/daemonSet")
 	{
+		daemonSet.POST("", controller.DaemonSet.CreateFromYAML)
+		daemonSet.DELETE("/batchDelete", controller.DaemonSet.BatchDeleteDeployment)
+		daemonSet.PUT("", controller.DaemonSet.UpdateFromYAML)
 		daemonSet.GET("/:name", controller.DaemonSet.GetYAML)
 	}
 
@@ -66,6 +69,9 @@ func initKubernetesRouters(router *gin.Engine) {
 	router.GET("/api/v1/kubernetes/statefulSets", controller.StatefulSet.ListStatefulSets)
 	statefulSet := router.Group("/api/v1/kubernetes/statefulSet")
 	{
+		statefulSet.POST("", controller.StatefulSet.CreateFromYAML)
+		statefulSet.DELETE("/batchDelete", controller.StatefulSet.BatchDeleteDeployment)
+		statefulSet.PUT("", controller.StatefulSet.UpdateFromYAML)
 		statefulSet.GET("/:name", controller.StatefulSet.GetYAML)
 	}
 

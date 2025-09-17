@@ -12,6 +12,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/yaml"
 	"k8s.io/cli-runtime/pkg/printers"
 	"ops-api/kubernetes"
+	"sort"
 	"strings"
 )
 
@@ -33,20 +34,20 @@ type DeploymentItem struct {
 	Namespace string `json:"namespace" binding:"required"`
 }
 
-// CreateFromYAML 通过YAML内容创建Deployment
+// CreateFromYAML 通过 YAML 内容创建 Deployment
 func (d *deployment) CreateFromYAML(yamlContent []byte, clients *kubernetes.ClientList) (*appsv1.Deployment, error) {
-	var deploy appsv1.Deployment
+	var manifest appsv1.Deployment
 	decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewReader(yamlContent), 1024)
-	if err := decoder.Decode(&deploy); err != nil {
+	if err := decoder.Decode(&manifest); err != nil {
 		return nil, err
 	}
 
 	// 设置默认命名空间
-	if deploy.Namespace == "" {
-		deploy.Namespace = metav1.NamespaceDefault
+	if manifest.Namespace == "" {
+		manifest.Namespace = metav1.NamespaceDefault
 	}
 
-	return clients.ClientSet.AppsV1().Deployments(deploy.Namespace).Create(context.TODO(), &deploy, metav1.CreateOptions{})
+	return clients.ClientSet.AppsV1().Deployments(manifest.Namespace).Create(context.TODO(), &manifest, metav1.CreateOptions{})
 }
 
 // BatchDeleteDeployment 批量删除 Deployment
@@ -73,24 +74,24 @@ func (d *deployment) BatchDeleteDeployment(deployments []DeploymentItem, client 
 	return nil
 }
 
-// UpdateFromYAML 通过YAML内容修改已存在的Deployment
+// UpdateFromYAML 通过 YAML 内容修改已存在的 Deployment
 func (d *deployment) UpdateFromYAML(yamlContent []byte, client *kubernetes.ClientList) (*appsv1.Deployment, error) {
-	var deploy appsv1.Deployment
+	var manifest appsv1.Deployment
 	decoder := yaml.NewYAMLOrJSONDecoder(bytes.NewReader(yamlContent), 1024)
-	if err := decoder.Decode(&deploy); err != nil {
+	if err := decoder.Decode(&manifest); err != nil {
 		return nil, err
 	}
 
-	existing, err := client.ClientSet.AppsV1().Deployments(deploy.Namespace).Get(context.TODO(), deploy.Name, metav1.GetOptions{})
+	existing, err := client.ClientSet.AppsV1().Deployments(manifest.Namespace).Get(context.TODO(), manifest.Name, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
-	deploy.ResourceVersion = existing.ResourceVersion
+	manifest.ResourceVersion = existing.ResourceVersion
 
-	return client.ClientSet.AppsV1().Deployments(deploy.Namespace).Update(context.TODO(), &deploy, metav1.UpdateOptions{})
+	return client.ClientSet.AppsV1().Deployments(manifest.Namespace).Update(context.TODO(), &manifest, metav1.UpdateOptions{})
 }
 
-// List 获取Deployment列表
+// List 获取 Deployment 列表
 func (d *deployment) List(name, namespace string, page, limit int, client *kubernetes.ClientList) (*DeploymentList, error) {
 	deployments, err := client.ClientSet.AppsV1().Deployments(namespace).List(context.TODO(), metav1.ListOptions{})
 	if err != nil {
@@ -109,6 +110,11 @@ func (d *deployment) List(name, namespace string, page, limit int, client *kuber
 		filtered = deployments.Items
 	}
 
+	// 按创建时间排序
+	sort.Slice(filtered, func(i, j int) bool {
+		return filtered[i].CreationTimestamp.After(filtered[j].CreationTimestamp.Time)
+	})
+
 	// 分页
 	res, err := Paginate(filtered, page, limit)
 	if err != nil {
@@ -121,7 +127,7 @@ func (d *deployment) List(name, namespace string, page, limit int, client *kuber
 	}, nil
 }
 
-// GetYAML 获取Deployment YAML配置
+// GetYAML 获取 Deployment YAML 配置
 func (d *deployment) GetYAML(name, namespace string, client *kubernetes.ClientList) (string, error) {
 	data, err := client.ClientSet.AppsV1().Deployments(namespace).Get(context.TODO(), name, metav1.GetOptions{})
 	if err != nil {

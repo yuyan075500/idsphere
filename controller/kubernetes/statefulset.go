@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"ops-api/controller"
 	"ops-api/kubernetes"
 	service "ops-api/service/kubernetes"
@@ -10,6 +11,70 @@ import (
 var StatefulSet statefulSet
 
 type statefulSet struct{}
+
+// CreateFromYAML 创建 StatefulSet
+func (s *statefulSet) CreateFromYAML(c *gin.Context) {
+	yamlData, err := c.GetRawData()
+	if err != nil {
+		controller.Response(c, 90400, err.Error())
+		return
+	}
+
+	client := c.MustGet("kc").(*kubernetes.ClientList)
+	_, err = service.StatefulSet.CreateFromYAML(yamlData, client)
+	if err != nil {
+		controller.Response(c, 90500, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"msg":  "创建成功",
+	})
+}
+
+// BatchDeleteDeployment 批量删除 StatefulSet
+func (s *statefulSet) BatchDeleteDeployment(c *gin.Context) {
+
+	var params = &service.StatefulSetBatchDeleteStruct{}
+	if err := c.ShouldBind(params); err != nil {
+		controller.Response(c, 90400, err.Error())
+		return
+	}
+
+	client := c.MustGet("kc").(*kubernetes.ClientList)
+	err := service.StatefulSet.BatchDeleteDaemonSet(params.StatefulSets, client)
+	if err != nil {
+		controller.Response(c, 90500, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"msg":  "删除成功",
+	})
+}
+
+// UpdateFromYAML 更新 StatefulSet
+func (s *statefulSet) UpdateFromYAML(c *gin.Context) {
+	yamlData, err := c.GetRawData()
+	if err != nil {
+		controller.Response(c, 90400, err.Error())
+		return
+	}
+
+	client := c.MustGet("kc").(*kubernetes.ClientList)
+	_, err = service.StatefulSet.UpdateFromYAML(yamlData, client)
+	if err != nil {
+		controller.Response(c, 90500, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"msg":  "更新成功",
+	})
+}
 
 // ListStatefulSets 获取StatefulSet列表
 func (s *statefulSet) ListStatefulSets(c *gin.Context) {

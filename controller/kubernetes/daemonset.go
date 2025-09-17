@@ -2,6 +2,7 @@ package kubernetes
 
 import (
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"ops-api/controller"
 	"ops-api/kubernetes"
 	service "ops-api/service/kubernetes"
@@ -10,6 +11,70 @@ import (
 var DaemonSet daemonSet
 
 type daemonSet struct{}
+
+// CreateFromYAML 创建 DaemonSet
+func (d *daemonSet) CreateFromYAML(c *gin.Context) {
+	yamlData, err := c.GetRawData()
+	if err != nil {
+		controller.Response(c, 90400, err.Error())
+		return
+	}
+
+	client := c.MustGet("kc").(*kubernetes.ClientList)
+	_, err = service.DaemonSet.CreateFromYAML(yamlData, client)
+	if err != nil {
+		controller.Response(c, 90500, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"msg":  "创建成功",
+	})
+}
+
+// BatchDeleteDeployment 批量删除 DaemonSet
+func (d *daemonSet) BatchDeleteDeployment(c *gin.Context) {
+
+	var params = &service.DaemonSetBatchDeleteStruct{}
+	if err := c.ShouldBind(params); err != nil {
+		controller.Response(c, 90400, err.Error())
+		return
+	}
+
+	client := c.MustGet("kc").(*kubernetes.ClientList)
+	err := service.DaemonSet.BatchDeleteDaemonSet(params.DaemonSets, client)
+	if err != nil {
+		controller.Response(c, 90500, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"msg":  "删除成功",
+	})
+}
+
+// UpdateFromYAML 更新 DaemonSet
+func (d *daemonSet) UpdateFromYAML(c *gin.Context) {
+	yamlData, err := c.GetRawData()
+	if err != nil {
+		controller.Response(c, 90400, err.Error())
+		return
+	}
+
+	client := c.MustGet("kc").(*kubernetes.ClientList)
+	_, err = service.DaemonSet.UpdateFromYAML(yamlData, client)
+	if err != nil {
+		controller.Response(c, 90500, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"code": 0,
+		"msg":  "更新成功",
+	})
+}
 
 // ListDaemonSets 获取DaemonSet列表
 func (d *daemonSet) ListDaemonSets(c *gin.Context) {
